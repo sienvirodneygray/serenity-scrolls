@@ -28,7 +28,7 @@ const Index = () => {
               description="96 color-coded Bible verse scrolls organized by emotion"
               image={tubeProduct}
               badge="Bestseller"
-              amazonUrl="https://pixelfy.me/NkTDDE"
+              amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
               features={[
                 "96 carefully curated Bible verses",
                 "Color-coded for 6 emotions: Grateful, Frustrated, Anxious, Happy, Sad, Troubled",
@@ -42,7 +42,7 @@ const Index = () => {
               title="Serenity Scrolls Reflection Journal"
               description="Your companion for deep spiritual reflection and growth"
               image={journalProduct}
-              amazonUrl="https://pixelfy.me/NkTDDE"
+              amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
               features={[
                 "All 96 verses with 2-page spreads",
                 "10 reflection questions per verse",
