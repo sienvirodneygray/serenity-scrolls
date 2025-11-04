@@ -3,21 +3,21 @@ import { Star } from "lucide-react";
 
 const testimonials = [
   {
-    name: "Sarah M.",
-    role: "Teacher",
-    content: "These scrolls have become my daily companion. When I'm feeling overwhelmed, I pull out an 'anxious' scroll and find instant peace. The color-coding is genius!",
+    name: "Melinda G.",
+    role: "Verified Purchase",
+    content: "Beyond my expectations! I got so engrossed I sat down and read through every one of that color. It's like your own personal Devo in a can! I can see using this for a study group or Bible class or as a great gift for someone who needs a pick me up.",
     rating: 5,
   },
   {
-    name: "Michael T.",
-    role: "Pastor",
-    content: "I recommend Serenity Scrolls to everyone in my congregation. The reflection journal has transformed how we approach Scripture in times of need.",
+    name: "Pam Ward",
+    role: "Verified Purchase",
+    content: "I recently lost my husband of 34 years and have been on an emotional roller coaster. The serenity scrolls help me fill up my heart with scripture. They make it so easy for me to reach out and touch God's word and to receive God's blessings!",
     rating: 5,
   },
   {
-    name: "Jennifer L.",
-    role: "Nurse",
-    content: "After stressful shifts, I use these scrolls to center myself. The 'grateful' verses remind me of life's blessings. Perfect gift for anyone seeking peace.",
+    name: "Amazon Customer",
+    role: "Verified Purchase",
+    content: "Serenity Scrolls are the perfect item I didn't know I was missing. I keep some in my purse, some by the TV, and some next to the bed. They are so comforting to have within reach. I only wish I had them sooner.",
     rating: 5,
   },
 ];
@@ -61,7 +61,7 @@ export const Testimonials = () => {
             "aggregateRating": {
               "@type": "AggregateRating",
               "ratingValue": "5",
-              "reviewCount": "127"
+              "reviewCount": "7"
             }
           })}
         </script>
