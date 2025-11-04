@@ -30,7 +30,7 @@ export const Hero = () => {
             <img
               src={logo}
               alt="Serenity Scrolls"
-              className="h-24 w-auto drop-shadow-lg"
+              className="h-44 w-auto drop-shadow-lg"
             />
           </div>
 
