@@ -1,5 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Star } from "lucide-react";
+import Autoplay from "embla-carousel-autoplay";
 
 const testimonials = [
   {
@@ -15,9 +17,33 @@ const testimonials = [
     rating: 5,
   },
   {
+    name: "Kevin Sutton",
+    role: "Verified Purchase",
+    content: "Very high quality and very convenient to use when I need words of wisdom to get me and my mind where it needs to be. Excellent gift for family and close friends to assist them in getting through the daily troubles of the world that we all live in.",
+    rating: 5,
+  },
+  {
     name: "Amazon Customer",
     role: "Verified Purchase",
     content: "Serenity Scrolls are the perfect item I didn't know I was missing. I keep some in my purse, some by the TV, and some next to the bed. They are so comforting to have within reach. I only wish I had them sooner.",
+    rating: 5,
+  },
+  {
+    name: "C&S",
+    role: "Verified Purchase",
+    content: "Great for the entire family!",
+    rating: 5,
+  },
+  {
+    name: "Chris Linder",
+    role: "Verified Purchase",
+    content: "I ordered this so my wife and I could have it around for a pick-me-up and so we could stay grounded in the Word. When it arrived we were both surprised at how well-designed it was, and the little scrolls were cute. So far we are extremely pleased and may order one or two more for family members.",
+    rating: 5,
+  },
+  {
+    name: "AMODELQUEEN",
+    role: "Verified Purchase",
+    content: "This is the perfect spiritual gift. The size was amazing- very large and held lots of scrolls. Very easy to use and read. Amazing bible verses and also a fun way to study. This is a great spiritual gift or even to display. Excellent value!",
     rating: 5,
   },
 ];
@@ -33,24 +59,41 @@ export const Testimonials = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {testimonials.map((testimonial, idx) => (
-            <Card key={idx} className="bg-card/80 backdrop-blur-sm">
-              <CardContent className="pt-6">
-                <div className="flex mb-4">
-                  {[...Array(testimonial.rating)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-[hsl(var(--happy))] text-[hsl(var(--happy))]" />
-                  ))}
-                </div>
-                <p className="text-foreground mb-4 italic">"{testimonial.content}"</p>
-                <div>
-                  <p className="font-semibold">{testimonial.name}</p>
-                  <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          plugins={[
+            Autoplay({
+              delay: 60000, // 1 minute
+            }),
+          ]}
+          className="max-w-6xl mx-auto"
+        >
+          <CarouselContent>
+            {testimonials.map((testimonial, idx) => (
+              <CarouselItem key={idx} className="md:basis-1/2 lg:basis-1/3">
+                <Card className="bg-card/80 backdrop-blur-sm h-full">
+                  <CardContent className="pt-6">
+                    <div className="flex mb-4">
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <Star key={i} className="h-5 w-5 fill-[hsl(var(--happy))] text-[hsl(var(--happy))]" />
+                      ))}
+                    </div>
+                    <p className="text-foreground mb-4 italic">"{testimonial.content}"</p>
+                    <div>
+                      <p className="font-semibold">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious />
+          <CarouselNext />
+        </Carousel>
 
         {/* Aggregate Rating Structured Data */}
         <script type="application/ld+json">
