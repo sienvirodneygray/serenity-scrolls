@@ -3,7 +3,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { Testimonials } from "@/components/Testimonials";
 import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
-import tubeProduct from "@/assets/tube-product.jpg";
+import tubeProduct from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal-product.jpg";
 
 const Index = () => {
