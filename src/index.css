@@ -95,6 +95,8 @@ All colors MUST be HSL.
     --sad-light: 210 65% 92%;
     --troubled: 330 70% 65%;
     --troubled-light: 330 60% 92%;
+    --frustrated: 25 95% 55%;
+    --frustrated-light: 25 95% 90%;
 
     /* Muted */
     --muted: 35 20% 95%;

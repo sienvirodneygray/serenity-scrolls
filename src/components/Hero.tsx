@@ -44,7 +44,7 @@ export const Hero = () => {
 
           {/* Subheadline */}
           <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            96 color-coded Bible verses for when you're grateful, anxious, happy, sad, or troubled. 
+            96 color-coded Bible verses for when you're grateful, frustrated, anxious, happy, sad, or troubled. 
             Your companion for emotional wellness and spiritual growth.
           </p>
 
@@ -52,6 +52,7 @@ export const Hero = () => {
           <div className="flex flex-wrap justify-center gap-3 pt-4">
             {[
               { label: "Grateful", color: "grateful" },
+              { label: "Frustrated", color: "frustrated" },
               { label: "Anxious", color: "anxious" },
               { label: "Happy", color: "happy" },
               { label: "Sad", color: "sad" },

@@ -31,7 +31,7 @@ const Index = () => {
               amazonUrl="https://pixelfy.me/NkTDDE"
               features={[
                 "96 carefully curated Bible verses",
-                "Color-coded for 5 emotions: Grateful, Anxious, Happy, Sad, Troubled",
+                "Color-coded for 6 emotions: Grateful, Frustrated, Anxious, Happy, Sad, Troubled",
                 "Portable tube design - take peace anywhere",
                 "Draw a scroll that speaks to your current mood",
                 "Perfect for daily devotions or group sharing",
@@ -68,7 +68,7 @@ const Index = () => {
                 and Scripture has wisdom for every one of them.
               </p>
               <p>
-                Whether you're overflowing with gratitude, wrestling with anxiety, celebrating joy, 
+                Whether you're overflowing with gratitude, feeling frustrated, wrestling with anxiety, celebrating joy, 
                 navigating sadness, or facing troubled times - there's a verse waiting to meet you where you are.
               </p>
               <p>
