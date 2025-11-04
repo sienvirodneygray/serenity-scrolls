@@ -27,7 +27,7 @@ const Auth = () => {
         .select("*")
         .eq("code", productCode)
         .eq("is_redeemed", false)
-        .single();
+        .maybeSingle();
 
       if (codeError || !codeData) {
         throw new Error("Invalid or already redeemed product code");
