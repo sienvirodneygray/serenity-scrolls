@@ -1,9 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const ASSISTANT_ID = "asst_w8jcbRmFnDOCwRQc854yOOE6";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,44 +14,80 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const { message, threadId } = await req.json();
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are AI Servant, a compassionate spiritual companion for users of Serenity Scrolls. Your role is to:
+    console.log("Processing request with threadId:", threadId);
 
-1. Help users reflect on their emotions through the lens of Scripture
-2. Provide guidance on the 6 core emotions: Grateful, Frustrated, Anxious, Happy, Sad, and Troubled
-3. Offer insights and interpretations of Bible verses
-4. Support users in their spiritual growth and emotional wellness journey
-5. Answer questions about faith, prayer, and Scripture
+    // Create a new thread if none exists
+    let currentThreadId = threadId;
+    if (!currentThreadId) {
+      console.log("Creating new thread...");
+      const threadResponse = await fetch("https://api.openai.com/v1/threads", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${OPENAI_API_KEY}`,
+          "Content-Type": "application/json",
+          "OpenAI-Beta": "assistants=v2",
+        },
+      });
 
-Keep your responses warm, understanding, and grounded in biblical wisdom. Be concise but thoughtful. When appropriate, suggest relevant emotions or verses from Serenity Scrolls that might help the user.`;
+      if (!threadResponse.ok) {
+        const error = await threadResponse.text();
+        console.error("Thread creation error:", error);
+        throw new Error("Failed to create thread");
+      }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const thread = await threadResponse.json();
+      currentThreadId = thread.id;
+      console.log("Created thread:", currentThreadId);
+    }
+
+    // Add the user's message to the thread
+    console.log("Adding message to thread...");
+    const messageResponse = await fetch(`https://api.openai.com/v1/threads/${currentThreadId}/messages`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
+        "OpenAI-Beta": "assistants=v2",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          ...messages,
-        ],
+        role: "user",
+        content: message,
+      }),
+    });
+
+    if (!messageResponse.ok) {
+      const error = await messageResponse.text();
+      console.error("Message creation error:", error);
+      throw new Error("Failed to add message");
+    }
+
+    // Run the assistant
+    console.log("Running assistant...");
+    const runResponse = await fetch(`https://api.openai.com/v1/threads/${currentThreadId}/runs`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+        "OpenAI-Beta": "assistants=v2",
+      },
+      body: JSON.stringify({
+        assistant_id: ASSISTANT_ID,
         stream: true,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+    if (!runResponse.ok) {
+      const error = await runResponse.text();
+      console.error("Run creation error:", error);
       
-      if (response.status === 429) {
+      if (runResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limits exceeded, please try again later." }), 
           {
@@ -57,27 +96,69 @@ Keep your responses warm, understanding, and grounded in biblical wisdom. Be con
           }
         );
       }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required, please add funds to your Lovable AI workspace." }), 
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
 
-      return new Response(
-        JSON.stringify({ error: "AI gateway error" }), 
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      throw new Error("Failed to run assistant");
     }
 
-    return new Response(response.body, {
+    // Stream the response back to the client
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        // Send the thread ID first
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "thread_id", threadId: currentThreadId })}\n\n`));
+
+        const reader = runResponse.body?.getReader();
+        if (!reader) {
+          controller.close();
+          return;
+        }
+
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]") continue;
+
+                try {
+                  const parsed = JSON.parse(data);
+                  
+                  // Forward relevant events to the client
+                  if (parsed.event === "thread.message.delta") {
+                    const content = parsed.data?.delta?.content?.[0];
+                    if (content?.type === "text" && content.text?.value) {
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                        type: "content",
+                        content: content.text.value
+                      })}\n\n`));
+                    }
+                  }
+                } catch (e) {
+                  console.error("Parse error:", e);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Stream error:", e);
+        } finally {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`));
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {

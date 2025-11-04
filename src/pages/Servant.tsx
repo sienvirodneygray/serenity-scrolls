@@ -19,6 +19,7 @@ const Servant = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [threadId, setThreadId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,7 +77,8 @@ const Servant = () => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    const userMessage: Message = { role: "user", content: input };
+    const messageText = input;
+    const userMessage: Message = { role: "user", content: messageText };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setLoading(true);
@@ -85,7 +87,7 @@ const Servant = () => {
     await supabase.from("chat_messages").insert({
       user_id: user.id,
       role: "user",
-      content: input
+      content: messageText
     });
 
     try {
@@ -93,18 +95,17 @@ const Servant = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({ 
-          messages: [...messages, userMessage]
+          message: messageText,
+          threadId: threadId
         }),
       });
 
       if (!response.ok) {
         if (response.status === 429) {
           toast.error("Rate limit exceeded. Please try again later.");
-        } else if (response.status === 402) {
-          toast.error("Service temporarily unavailable.");
         } else {
           toast.error("Failed to get response");
         }
@@ -135,14 +136,19 @@ const Servant = () => {
             if (!line.startsWith("data: ")) continue;
 
             const jsonStr = line.slice(6).trim();
-            if (jsonStr === "[DONE]") break;
 
             try {
               const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content;
               
-              if (content) {
-                assistantContent += content;
+              // Handle thread ID
+              if (parsed.type === "thread_id") {
+                setThreadId(parsed.threadId);
+                console.log("Thread ID:", parsed.threadId);
+              }
+              
+              // Handle content
+              if (parsed.type === "content") {
+                assistantContent += parsed.content;
                 setMessages(prev => {
                   const last = prev[prev.length - 1];
                   if (last?.role === "assistant") {
@@ -152,6 +158,11 @@ const Servant = () => {
                   }
                   return [...prev, { role: "assistant", content: assistantContent }];
                 });
+              }
+
+              // Handle done
+              if (parsed.type === "done") {
+                break;
               }
             } catch {
               buffer = line + "\n" + buffer;
