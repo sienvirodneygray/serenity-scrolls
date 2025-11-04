@@ -2,6 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Vilonti Font Family */
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-Italic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-BoldItalic.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-ExtraBlack.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Vilonti';
+  src: url('/fonts/Vilonti-ExtraBlackItalic.otf') format('opentype');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
