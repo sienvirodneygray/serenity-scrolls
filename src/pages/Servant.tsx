@@ -194,7 +194,7 @@ const Servant = () => {
       
       <div className="flex-1 container mx-auto px-4 py-20 max-w-4xl flex flex-col">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">AI Servant</h1>
+          <h1 className="text-4xl font-bold mb-2">Serenity Scrolls Servant</h1>
           <p className="text-muted-foreground">
             Your spiritual companion for reflection and guidance
           </p>
@@ -204,7 +204,7 @@ const Servant = () => {
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.length === 0 && (
               <div className="text-center text-muted-foreground py-12">
-                <p className="text-lg mb-2">Welcome to AI Servant</p>
+                <p className="text-lg mb-2">Welcome to Serenity Scrolls Servant</p>
                 <p className="text-sm">Ask me about Scripture, emotions, or spiritual guidance</p>
               </div>
             )}
