@@ -133,14 +133,21 @@ serve(async (req) => {
                 try {
                   const parsed = JSON.parse(data);
                   
+                  console.log("Event:", parsed.event);
+                  
                   // Forward relevant events to the client
                   if (parsed.event === "thread.message.delta") {
-                    const content = parsed.data?.delta?.content?.[0];
-                    if (content?.type === "text" && content.text?.value) {
-                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-                        type: "content",
-                        content: content.text.value
-                      })}\n\n`));
+                    const delta = parsed.data?.delta;
+                    if (delta?.content) {
+                      for (const contentPart of delta.content) {
+                        if (contentPart.type === "text" && contentPart.text?.value) {
+                          console.log("Sending content:", contentPart.text.value);
+                          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                            type: "content",
+                            content: contentPart.text.value
+                          })}\n\n`));
+                        }
+                      }
                     }
                   }
                 } catch (e) {
