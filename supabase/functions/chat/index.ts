@@ -140,13 +140,29 @@ serve(async (req) => {
                     const delta = parsed.data?.delta;
                     if (delta?.content) {
                       for (const contentPart of delta.content) {
+                        // Support both legacy 'text' and v2 'output_text' shapes
                         if (contentPart.type === "text" && contentPart.text?.value) {
-                          console.log("Sending content:", contentPart.text.value);
+                          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+                            type: "content",
+                            content: contentPart.text.value
+                          })}\n\n`));
+                        } else if (contentPart.type === "output_text" && contentPart.text?.value) {
                           controller.enqueue(encoder.encode(`data: ${JSON.stringify({
                             type: "content",
                             content: contentPart.text.value
                           })}\n\n`));
                         }
+                      }
+                    }
+                  } else if (parsed.event === "thread.message.completed") {
+                    // Fallback: emit the final message content if deltas werent handled
+                    const message = parsed.data;
+                    const parts = message?.content ?? [];
+                    for (const part of parts) {
+                      if (part.type === "text" && part.text?.value) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "content", content: part.text.value })}\n\n`));
+                      } else if (part.type === "output_text" && part.text?.value) {
+                        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "content", content: part.text.value })}\n\n`));
                       }
                     }
                   }
