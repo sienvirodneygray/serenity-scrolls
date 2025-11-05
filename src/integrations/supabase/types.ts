@@ -20,6 +20,7 @@ export type Database = {
           created_at: string
           id: string
           is_redeemed: boolean
+          is_reusable: boolean | null
           product_type: string
           redeemed_at: string | null
           redeemed_by: string | null
@@ -29,6 +30,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_redeemed?: boolean
+          is_reusable?: boolean | null
           product_type: string
           redeemed_at?: string | null
           redeemed_by?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_redeemed?: boolean
+          is_reusable?: boolean | null
           product_type?: string
           redeemed_at?: string | null
           redeemed_by?: string | null
