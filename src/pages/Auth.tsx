@@ -21,21 +21,41 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // Check if code exists and is not redeemed
+      // Check if code exists
       const { data: codeData, error: codeError } = await supabase
         .from("access_codes")
         .select("*")
         .eq("code", productCode)
-        .eq("is_redeemed", false)
         .maybeSingle();
 
       if (codeError || !codeData) {
-        throw new Error("Invalid or already redeemed product code");
+        throw new Error("Invalid product code");
       }
 
-      // Create account with product code
+      // If code is already redeemed, sign in instead of creating new account
+      if (codeData.is_redeemed) {
+        const tempEmail = `${productCode}@serenityscrolls.temp`;
+        const tempPassword = productCode; // Use just the code as password for simplicity
+        
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: tempEmail,
+          password: tempPassword,
+        });
+
+        if (signInError) throw signInError;
+
+        toast({
+          title: "Welcome back! ✨",
+          description: "You've been signed in successfully.",
+        });
+
+        navigate("/servant");
+        return;
+      }
+
+      // Create account with product code (use simple password)
       const tempEmail = `${productCode}@serenityscrolls.temp`;
-      const tempPassword = `${productCode}-${Date.now()}`;
+      const tempPassword = productCode; // Simple password for easy sign-in later
 
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: tempEmail,
