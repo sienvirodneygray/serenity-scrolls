@@ -21,7 +21,7 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // Check if code exists
+      // Check if code exists (allow reusable codes)
       const { data: codeData, error: codeError } = await supabase
         .from("access_codes")
         .select("*")
@@ -32,30 +32,10 @@ const Auth = () => {
         throw new Error("Invalid product code");
       }
 
-      // If code is already redeemed, sign in instead of creating new account
-      if (codeData.is_redeemed) {
-        const tempEmail = `${productCode}@serenityscrolls.temp`;
-        const tempPassword = productCode; // Use just the code as password for simplicity
-        
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: tempEmail,
-          password: tempPassword,
-        });
-
-        if (signInError) throw signInError;
-
-        toast({
-          title: "Welcome back! ✨",
-          description: "You've been signed in successfully.",
-        });
-
-        navigate("/servant");
-        return;
-      }
-
-      // Create account with product code (use simple password)
-      const tempEmail = `${productCode}@serenityscrolls.temp`;
-      const tempPassword = productCode; // Simple password for easy sign-in later
+      // For reusable codes, create unique accounts with timestamp
+      const timestamp = Date.now();
+      const tempEmail = `${productCode}-${timestamp}@serenityscrolls.temp`;
+      const tempPassword = productCode; // Use code as password
 
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: tempEmail,
@@ -64,16 +44,7 @@ const Auth = () => {
 
       if (authError) throw authError;
 
-      // Mark code as redeemed
-      await supabase
-        .from("access_codes")
-        .update({
-          is_redeemed: true,
-          redeemed_by: authData.user?.id,
-          redeemed_at: new Date().toISOString(),
-        })
-        .eq("code", productCode);
-
+      // Don't mark reusable codes as redeemed, just track usage
       // Update profile
       await supabase
         .from("profiles")
