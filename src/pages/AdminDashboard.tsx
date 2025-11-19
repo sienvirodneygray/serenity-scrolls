@@ -5,9 +5,10 @@ import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { BarChart3, Users, MousePointerClick, Clock, TrendingUp, ShoppingCart } from "lucide-react";
+import { BarChart3, Users, MousePointerClick, Clock, TrendingUp, ShoppingCart, Settings } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
+import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -81,7 +82,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="traffic" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="traffic" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Traffic Analytics
@@ -89,6 +90,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="amazon" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
               Amazon Analytics
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Admin Settings
             </TabsTrigger>
           </TabsList>
 
@@ -98,6 +103,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="amazon" className="space-y-6">
             <AmazonAnalytics />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <AdminUserManagement />
           </TabsContent>
         </Tabs>
       </div>
