@@ -82,13 +82,21 @@ const Index = () => {
 
       {/* Footer */}
       <footer className="py-12 bg-muted/30 border-t border-border">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-muted-foreground">
-            © {new Date().getFullYear()} Serenity Scrolls. All rights reserved.
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Find peace in every emotion through Scripture
-          </p>
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <p className="text-muted-foreground text-center">
+              © {new Date().getFullYear()} Serenity Scrolls. All rights reserved.
+            </p>
+            <p className="text-sm text-muted-foreground text-center">
+              Find peace in every emotion through Scripture
+            </p>
+            <a 
+              href="/admin/login" 
+              className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+            >
+              Admin Dashboard
+            </a>
+          </div>
         </div>
       </footer>
 

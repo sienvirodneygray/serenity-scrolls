@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ProductCardProps {
   title: string;
@@ -14,12 +13,11 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ title, description, features, image, amazonUrl, badge }: ProductCardProps) => {
-  const handleAmazonClick = async () => {
-    // Track analytics
-    await supabase.from("analytics_events").insert({
-      event_name: "outbound_click_amazon",
-      properties: { product: title },
-    });
+  const handleAmazonClick = () => {
+    // Track Amazon click using global tracking function
+    if (typeof (window as any).trackAmazonClick === 'function') {
+      (window as any).trackAmazonClick(title, 'product_card');
+    }
   };
 
   return (
