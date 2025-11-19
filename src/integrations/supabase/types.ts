@@ -47,6 +47,47 @@ export type Database = {
         }
         Relationships: []
       }
+      amazon_clicks: {
+        Row: {
+          button_location: string | null
+          id: string
+          page_path: string
+          product_name: string | null
+          session_id: string
+          timestamp: string
+          utm_campaign: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          button_location?: string | null
+          id?: string
+          page_path: string
+          product_name?: string | null
+          session_id: string
+          timestamp?: string
+          utm_campaign?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          button_location?: string | null
+          id?: string
+          page_path?: string
+          product_name?: string | null
+          session_id?: string
+          timestamp?: string
+          utm_campaign?: string | null
+          utm_source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "amazon_clicks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_sessions"
+            referencedColumns: ["session_id"]
+          },
+        ]
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -71,6 +112,119 @@ export type Database = {
           properties?: Json | null
           session_id?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_pageviews: {
+        Row: {
+          id: string
+          page_path: string
+          page_title: string | null
+          referrer: string | null
+          scroll_depth_percent: number | null
+          session_id: string
+          time_on_page_seconds: number | null
+          timestamp: string
+        }
+        Insert: {
+          id?: string
+          page_path: string
+          page_title?: string | null
+          referrer?: string | null
+          scroll_depth_percent?: number | null
+          session_id: string
+          time_on_page_seconds?: number | null
+          timestamp?: string
+        }
+        Update: {
+          id?: string
+          page_path?: string
+          page_title?: string | null
+          referrer?: string | null
+          scroll_depth_percent?: number | null
+          session_id?: string
+          time_on_page_seconds?: number | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_pageviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "analytics_sessions"
+            referencedColumns: ["session_id"]
+          },
+        ]
+      }
+      analytics_sessions: {
+        Row: {
+          browser: string | null
+          device_type: string | null
+          entry_page: string | null
+          exit_page: string | null
+          first_visit: string
+          id: string
+          is_return_visitor: boolean | null
+          last_activity: string
+          os: string | null
+          referrer: string | null
+          screen_height: number | null
+          screen_width: number | null
+          session_id: string
+          total_pageviews: number | null
+          total_time_seconds: number | null
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+        }
+        Insert: {
+          browser?: string | null
+          device_type?: string | null
+          entry_page?: string | null
+          exit_page?: string | null
+          first_visit?: string
+          id?: string
+          is_return_visitor?: boolean | null
+          last_activity?: string
+          os?: string | null
+          referrer?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          session_id: string
+          total_pageviews?: number | null
+          total_time_seconds?: number | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+        }
+        Update: {
+          browser?: string | null
+          device_type?: string | null
+          entry_page?: string | null
+          exit_page?: string | null
+          first_visit?: string
+          id?: string
+          is_return_visitor?: boolean | null
+          last_activity?: string
+          os?: string | null
+          referrer?: string | null
+          screen_height?: number | null
+          screen_width?: number | null
+          session_id?: string
+          total_pageviews?: number | null
+          total_time_seconds?: number | null
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
         }
         Relationships: []
       }
@@ -203,15 +357,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -338,6 +519,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
