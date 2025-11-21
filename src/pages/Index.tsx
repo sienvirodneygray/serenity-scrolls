@@ -42,6 +42,7 @@ const Index = () => {
               title="Serenity Scrolls Reflection Journal"
               description="Your companion for deep spiritual reflection and growth"
               image={journalProduct}
+              badge="Coming Soon"
               amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
               features={[
                 "All 96 verses with 2-page spreads",
