@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { BarChart3, Users, MousePointerClick, Clock, TrendingUp, ShoppingCart, Settings } from "lucide-react";
+import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
 import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
-
+import { DevicesAnalytics } from "@/components/admin/DevicesAnalytics";
+import { UserBehaviorAnalytics } from "@/components/admin/UserBehaviorAnalytics";
+import { PagesAnalytics } from "@/components/admin/PagesAnalytics";
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,23 +83,47 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="traffic" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsList className="flex flex-wrap w-full max-w-4xl gap-1">
             <TabsTrigger value="traffic" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              Traffic Analytics
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="devices" className="flex items-center gap-2">
+              <Monitor className="h-4 w-4" />
+              Devices
+            </TabsTrigger>
+            <TabsTrigger value="behavior" className="flex items-center gap-2">
+              <MousePointer className="h-4 w-4" />
+              Behavior
+            </TabsTrigger>
+            <TabsTrigger value="pages" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Pages
             </TabsTrigger>
             <TabsTrigger value="amazon" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
-              Amazon Analytics
+              Amazon
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              Admin Settings
+              Settings
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="traffic" className="space-y-6">
             <TrafficAnalytics />
+          </TabsContent>
+
+          <TabsContent value="devices" className="space-y-6">
+            <DevicesAnalytics timeRange="7d" />
+          </TabsContent>
+
+          <TabsContent value="behavior" className="space-y-6">
+            <UserBehaviorAnalytics timeRange="7d" />
+          </TabsContent>
+
+          <TabsContent value="pages" className="space-y-6">
+            <PagesAnalytics timeRange="7d" />
           </TabsContent>
 
           <TabsContent value="amazon" className="space-y-6">
