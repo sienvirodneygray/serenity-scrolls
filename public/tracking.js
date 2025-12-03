@@ -216,36 +216,69 @@
     await flushEvents();
   }
 
+  // Track click with coordinates for heatmap
+  async function trackClick(e) {
+    const target = e.target.closest('a, button, [data-track]') || e.target;
+    
+    const clickData = {
+      session_id: sessionId,
+      page_path: window.location.pathname,
+      click_x: e.clientX,
+      click_y: e.clientY,
+      viewport_width: window.innerWidth,
+      viewport_height: window.innerHeight,
+      element_tag: target.tagName,
+      element_id: target.id || null,
+      element_class: target.className?.toString()?.substring(0, 255) || null,
+      element_text: target.textContent?.substring(0, 100) || null,
+      timestamp: new Date().toISOString()
+    };
+
+    await sendToSupabase('analytics_clicks', clickData);
+  }
+
+  // Track user flow (page transitions)
+  async function trackUserFlow(fromPage, toPage, transitionTime) {
+    const flowData = {
+      session_id: sessionId,
+      from_page: fromPage,
+      to_page: toPage,
+      transition_time_ms: transitionTime,
+      timestamp: new Date().toISOString()
+    };
+
+    await sendToSupabase('analytics_user_flows', flowData);
+  }
+
   // Event listeners
   window.addEventListener('scroll', trackScrollDepth, { passive: true });
   
-  // Track clicks on all links and buttons
-  document.addEventListener('click', function(e) {
-    const target = e.target.closest('a, button');
-    if (target) {
-      queueEvent('click', {
-        element: target.tagName,
-        text: target.textContent?.substring(0, 100),
-        href: target.href || null,
-        id: target.id || null,
-        class: target.className || null
-      });
-    }
-  }, true);
+  // Track all clicks with coordinates
+  document.addEventListener('click', trackClick, true);
 
   // Handle page unload
   window.addEventListener('beforeunload', trackPageExit);
   window.addEventListener('pagehide', trackPageExit);
 
-  // Handle SPA navigation
+  // Handle SPA navigation with user flow tracking
   let lastUrl = location.href;
+  let navigationStartTime = Date.now();
+  
   new MutationObserver(() => {
     const url = location.href;
     if (url !== lastUrl) {
+      const transitionTime = Date.now() - navigationStartTime;
+      const fromPage = lastPagePath;
+      
       trackPageExit();
       lastUrl = url;
       lastPagePath = window.location.pathname;
+      
+      // Track the flow from previous page to current
+      trackUserFlow(fromPage, lastPagePath, transitionTime);
+      
       trackPageview();
+      navigationStartTime = Date.now();
     }
   }).observe(document, { subtree: true, childList: true });
 

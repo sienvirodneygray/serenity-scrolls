@@ -88,6 +88,51 @@ export type Database = {
           },
         ]
       }
+      analytics_clicks: {
+        Row: {
+          click_x: number
+          click_y: number
+          element_class: string | null
+          element_id: string | null
+          element_tag: string | null
+          element_text: string | null
+          id: string
+          page_path: string
+          session_id: string
+          timestamp: string
+          viewport_height: number | null
+          viewport_width: number | null
+        }
+        Insert: {
+          click_x: number
+          click_y: number
+          element_class?: string | null
+          element_id?: string | null
+          element_tag?: string | null
+          element_text?: string | null
+          id?: string
+          page_path: string
+          session_id: string
+          timestamp?: string
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Update: {
+          click_x?: number
+          click_y?: number
+          element_class?: string | null
+          element_id?: string | null
+          element_tag?: string | null
+          element_text?: string | null
+          id?: string
+          page_path?: string
+          session_id?: string
+          timestamp?: string
+          viewport_height?: number | null
+          viewport_width?: number | null
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -225,6 +270,33 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           utm_term?: string | null
+        }
+        Relationships: []
+      }
+      analytics_user_flows: {
+        Row: {
+          from_page: string
+          id: string
+          session_id: string
+          timestamp: string
+          to_page: string
+          transition_time_ms: number | null
+        }
+        Insert: {
+          from_page: string
+          id?: string
+          session_id: string
+          timestamp?: string
+          to_page: string
+          transition_time_ms?: number | null
+        }
+        Update: {
+          from_page?: string
+          id?: string
+          session_id?: string
+          timestamp?: string
+          to_page?: string
+          transition_time_ms?: number | null
         }
         Relationships: []
       }
