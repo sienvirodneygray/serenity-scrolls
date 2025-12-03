@@ -3,13 +3,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Eye, Clock, MousePointerClick, TrendingUp, ArrowDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Users, Eye, Clock, MousePointerClick, ArrowDown, CalendarIcon } from "lucide-react";
 import { TrafficChart } from "./TrafficChart";
 import { TopPages } from "./TopPages";
 import { TrafficSources } from "./TrafficSources";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
 
 export function TrafficAnalytics() {
-  const [timeRange, setTimeRange] = useState("7d");
+  const [timeRange, setTimeRange] = useState("7");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(new Date().setDate(new Date().getDate() - 7)),
+    to: new Date()
+  });
   const [stats, setStats] = useState({
     totalVisits: 0,
     uniqueVisitors: 0,
@@ -21,44 +31,65 @@ export function TrafficAnalytics() {
 
   useEffect(() => {
     loadAnalytics();
-  }, [timeRange]);
+  }, [timeRange, dateRange]);
+
+  const getStartDate = () => {
+    if (timeRange === "custom" && dateRange?.from) {
+      return dateRange.from;
+    }
+    const days = parseInt(timeRange);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    return startDate;
+  };
+
+  const getEndDate = () => {
+    if (timeRange === "custom" && dateRange?.to) {
+      return dateRange.to;
+    }
+    return new Date();
+  };
 
   const loadAnalytics = async () => {
     setIsLoading(true);
     try {
-      const days = parseInt(timeRange);
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
+      const startDate = getStartDate();
+      const endDate = getEndDate();
 
       // Get total sessions
       const { count: totalSessions } = await supabase
         .from("analytics_sessions")
         .select("*", { count: "exact", head: true })
-        .gte("first_visit", startDate.toISOString());
+        .gte("first_visit", startDate.toISOString())
+        .lte("first_visit", endDate.toISOString());
 
       // Get unique visitors (unique session_ids)
       const { data: sessions } = await supabase
         .from("analytics_sessions")
         .select("session_id")
-        .gte("first_visit", startDate.toISOString());
+        .gte("first_visit", startDate.toISOString())
+        .lte("first_visit", endDate.toISOString());
 
       // Get total pageviews
       const { count: totalPageviews } = await supabase
         .from("analytics_pageviews")
         .select("*", { count: "exact", head: true })
-        .gte("timestamp", startDate.toISOString());
+        .gte("timestamp", startDate.toISOString())
+        .lte("timestamp", endDate.toISOString());
 
       // Get Amazon clicks
       const { count: amazonClicks } = await supabase
         .from("amazon_clicks")
         .select("*", { count: "exact", head: true })
-        .gte("timestamp", startDate.toISOString());
+        .gte("timestamp", startDate.toISOString())
+        .lte("timestamp", endDate.toISOString());
 
       // Calculate bounce rate (sessions with only 1 pageview)
       const { data: pageviewCounts } = await supabase
         .from("analytics_pageviews")
         .select("session_id")
-        .gte("timestamp", startDate.toISOString());
+        .gte("timestamp", startDate.toISOString())
+        .lte("timestamp", endDate.toISOString());
 
       const sessionPageviews = pageviewCounts?.reduce((acc: any, pv) => {
         acc[pv.session_id] = (acc[pv.session_id] || 0) + 1;
@@ -72,7 +103,8 @@ export function TrafficAnalytics() {
       const { data: sessionData } = await supabase
         .from("analytics_sessions")
         .select("total_time_seconds")
-        .gte("first_visit", startDate.toISOString());
+        .gte("first_visit", startDate.toISOString())
+        .lte("first_visit", endDate.toISOString());
 
       const avgTime = sessionData?.length
         ? Math.round(sessionData.reduce((acc, s) => acc + (s.total_time_seconds || 0), 0) / sessionData.length)
@@ -89,6 +121,17 @@ export function TrafficAnalytics() {
       console.error("Error loading analytics:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleTimeRangeChange = (value: string) => {
+    setTimeRange(value);
+    if (value !== "custom") {
+      const days = parseInt(value);
+      setDateRange({
+        from: new Date(new Date().setDate(new Date().getDate() - days)),
+        to: new Date()
+      });
     }
   };
 
@@ -113,18 +156,60 @@ export function TrafficAnalytics() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap justify-between items-center gap-4">
         <h2 className="text-2xl font-bold">Traffic Overview</h2>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="7d">Last 7 days</SelectItem>
-            <SelectItem value="30d">Last 30 days</SelectItem>
-            <SelectItem value="90d">Last 90 days</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={timeRange} onValueChange={handleTimeRangeChange}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Last 7 days</SelectItem>
+              <SelectItem value="30">Last 30 days</SelectItem>
+              <SelectItem value="90">Last 90 days</SelectItem>
+              <SelectItem value="custom">Custom</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {timeRange === "custom" && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "MMM d, yyyy")
+                    )
+                  ) : (
+                    <span>Pick a date range</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                  disabled={(date) => date > new Date()}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-5">
@@ -190,11 +275,11 @@ export function TrafficAnalytics() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <TrafficChart timeRange={timeRange} />
-        <TrafficSources timeRange={timeRange} />
+        <TrafficChart timeRange={timeRange} dateRange={dateRange} />
+        <TrafficSources timeRange={timeRange} dateRange={dateRange} />
       </div>
 
-      <TopPages timeRange={timeRange} />
+      <TopPages timeRange={timeRange} dateRange={dateRange} />
     </div>
   );
 }
