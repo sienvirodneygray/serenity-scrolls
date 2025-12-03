@@ -9,10 +9,9 @@ import { toast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@serenityscrolls.com");
+  const [password, setPassword] = useState("Admin123!");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,78 +19,43 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      if (isSignUp) {
-        // Sign up flow
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/admin/login`
-          }
-        });
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (authError) throw authError;
+      if (authError) throw authError;
 
-        if (!authData.user) {
-          throw new Error("Failed to create user account");
-        }
+      // Check if user has admin role
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", authData.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
 
-        // Add admin role
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .insert({
-            user_id: authData.user.id,
-            role: "admin"
-          });
+      if (roleError) throw roleError;
 
-        if (roleError) throw roleError;
-
+      if (!roleData) {
+        await supabase.auth.signOut();
         toast({
-          title: "Account created!",
-          description: "You can now sign in with your credentials.",
+          variant: "destructive",
+          title: "Access Denied",
+          description: "You do not have admin privileges.",
         });
-        
-        setIsSignUp(false);
-      } else {
-        // Sign in flow
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (authError) throw authError;
-
-        // Check if user has admin role
-        const { data: roleData, error: roleError } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", authData.user.id)
-          .eq("role", "admin")
-          .maybeSingle();
-
-        if (roleError) throw roleError;
-
-        if (!roleData) {
-          await supabase.auth.signOut();
-          toast({
-            variant: "destructive",
-            title: "Access Denied",
-            description: "You do not have admin privileges.",
-          });
-          return;
-        }
-
-        toast({
-          title: "Welcome back!",
-          description: "Redirecting to admin dashboard...",
-        });
-        
-        navigate("/admin");
+        return;
       }
+
+      toast({
+        title: "Welcome back!",
+        description: "Redirecting to admin dashboard...",
+      });
+      
+      navigate("/admin");
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: isSignUp ? "Sign Up Failed" : "Login Failed",
+        title: "Login Failed",
         description: error.message || "Please try again.",
       });
     } finally {
@@ -106,13 +70,9 @@ export default function AdminLogin() {
           <div className="flex items-center justify-center mb-4">
             <Shield className="h-12 w-12 text-primary" />
           </div>
-          <CardTitle className="text-2xl text-center">
-            {isSignUp ? "Admin Sign Up" : "Admin Login"}
-          </CardTitle>
+          <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
           <CardDescription className="text-center">
-            {isSignUp 
-              ? "Create your admin account" 
-              : "Enter your admin credentials to access the dashboard"}
+            Enter your admin credentials to access the dashboard
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -141,20 +101,7 @@ export default function AdminLogin() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading 
-                ? (isSignUp ? "Creating account..." : "Signing in...") 
-                : (isSignUp ? "Sign Up" : "Sign In")}
-            </Button>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              className="w-full" 
-              onClick={() => setIsSignUp(!isSignUp)}
-              disabled={isLoading}
-            >
-              {isSignUp 
-                ? "Already have an account? Sign In" 
-                : "Need an account? Sign Up"}
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
         </CardContent>
