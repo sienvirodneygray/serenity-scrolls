@@ -83,7 +83,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="traffic" className="space-y-6">
-          <TabsList className="flex flex-wrap w-full max-w-4xl gap-1">
+          <TabsList className="flex flex-wrap justify-center mx-auto gap-1">
             <TabsTrigger value="traffic" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
