@@ -95,7 +95,7 @@ const Index = () => {
               href="/admin/login" 
               className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
             >
-              Admin Dashboard
+              Admin
             </a>
           </div>
         </div>
