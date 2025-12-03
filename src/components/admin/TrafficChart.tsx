@@ -3,26 +3,44 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DateRange } from "react-day-picker";
 
-export function TrafficChart({ timeRange }: { timeRange: string }) {
+interface TrafficChartProps {
+  timeRange: string;
+  dateRange?: DateRange;
+}
+
+export function TrafficChart({ timeRange, dateRange }: TrafficChartProps) {
   const [chartData, setChartData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadChartData();
-  }, [timeRange]);
+  }, [timeRange, dateRange]);
+
+  const getDateRange = () => {
+    if (timeRange === "custom" && dateRange?.from) {
+      return {
+        start: dateRange.from,
+        end: dateRange.to || new Date()
+      };
+    }
+    const days = parseInt(timeRange);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    return { start: startDate, end: new Date() };
+  };
 
   const loadChartData = async () => {
     setIsLoading(true);
     try {
-      const days = parseInt(timeRange);
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
+      const { start, end } = getDateRange();
 
       const { data: pageviews } = await supabase
         .from("analytics_pageviews")
         .select("timestamp")
-        .gte("timestamp", startDate.toISOString())
+        .gte("timestamp", start.toISOString())
+        .lte("timestamp", end.toISOString())
         .order("timestamp", { ascending: true });
 
       // Group by day

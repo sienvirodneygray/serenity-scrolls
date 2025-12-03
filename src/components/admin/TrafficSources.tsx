@@ -3,28 +3,46 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DateRange } from "react-day-picker";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', '#8884d8', '#82ca9d', '#ffc658'];
 
-export function TrafficSources({ timeRange }: { timeRange: string }) {
+interface TrafficSourcesProps {
+  timeRange: string;
+  dateRange?: DateRange;
+}
+
+export function TrafficSources({ timeRange, dateRange }: TrafficSourcesProps) {
   const [sourceData, setSourceData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadSourceData();
-  }, [timeRange]);
+  }, [timeRange, dateRange]);
+
+  const getDateRange = () => {
+    if (timeRange === "custom" && dateRange?.from) {
+      return {
+        start: dateRange.from,
+        end: dateRange.to || new Date()
+      };
+    }
+    const days = parseInt(timeRange);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    return { start: startDate, end: new Date() };
+  };
 
   const loadSourceData = async () => {
     setIsLoading(true);
     try {
-      const days = parseInt(timeRange);
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
+      const { start, end } = getDateRange();
 
       const { data: sessions } = await supabase
         .from("analytics_sessions")
         .select("utm_source, utm_medium, referrer")
-        .gte("first_visit", startDate.toISOString());
+        .gte("first_visit", start.toISOString())
+        .lte("first_visit", end.toISOString());
 
       const sources: any = {};
       sessions?.forEach((session) => {

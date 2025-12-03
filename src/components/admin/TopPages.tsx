@@ -3,26 +3,44 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DateRange } from "react-day-picker";
 
-export function TopPages({ timeRange }: { timeRange: string }) {
+interface TopPagesProps {
+  timeRange: string;
+  dateRange?: DateRange;
+}
+
+export function TopPages({ timeRange, dateRange }: TopPagesProps) {
   const [pages, setPages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadTopPages();
-  }, [timeRange]);
+  }, [timeRange, dateRange]);
+
+  const getDateRange = () => {
+    if (timeRange === "custom" && dateRange?.from) {
+      return {
+        start: dateRange.from,
+        end: dateRange.to || new Date()
+      };
+    }
+    const days = parseInt(timeRange);
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    return { start: startDate, end: new Date() };
+  };
 
   const loadTopPages = async () => {
     setIsLoading(true);
     try {
-      const days = parseInt(timeRange);
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
+      const { start, end } = getDateRange();
 
       const { data: pageviews } = await supabase
         .from("analytics_pageviews")
         .select("page_path, page_title")
-        .gte("timestamp", startDate.toISOString());
+        .gte("timestamp", start.toISOString())
+        .lte("timestamp", end.toISOString());
 
       const pageCounts: any = {};
       pageviews?.forEach((pv) => {
