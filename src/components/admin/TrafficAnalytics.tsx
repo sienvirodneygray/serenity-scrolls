@@ -99,16 +99,31 @@ export function TrafficAnalytics() {
       const bounces = Object.values(sessionPageviews).filter((count: any) => count === 1).length;
       const bounceRate = totalSessions ? Math.round((bounces / totalSessions) * 100) : 0;
 
-      // Get average time on page
+      // Get average time on page from started_at and ended_at
       const { data: sessionData } = await supabase
         .from("analytics_sessions")
-        .select("total_time_seconds")
+        .select("started_at, ended_at")
         .gte("first_visit", startDate.toISOString())
-        .lte("first_visit", endDate.toISOString());
+        .lte("first_visit", endDate.toISOString())
+        .not("ended_at", "is", null);
 
-      const avgTime = sessionData?.length
-        ? Math.round(sessionData.reduce((acc, s) => acc + (s.total_time_seconds || 0), 0) / sessionData.length)
-        : 0;
+      let avgTime = 0;
+      if (sessionData?.length) {
+        const totalSeconds = sessionData.reduce((acc, s) => {
+          if (s.started_at && s.ended_at) {
+            const duration = (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 1000;
+            // Cap at 1 hour to filter outliers
+            return acc + (duration > 0 && duration < 3600 ? duration : 0);
+          }
+          return acc;
+        }, 0);
+        const validSessions = sessionData.filter(s => {
+          if (!s.started_at || !s.ended_at) return false;
+          const duration = (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 1000;
+          return duration > 0 && duration < 3600;
+        }).length;
+        avgTime = validSessions > 0 ? Math.round(totalSeconds / validSessions) : 0;
+      }
 
       setStats({
         totalVisits: totalPageviews || 0,
