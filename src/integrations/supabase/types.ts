@@ -163,31 +163,40 @@ export type Database = {
       analytics_pageviews: {
         Row: {
           id: string
+          load_time_ms: number | null
           page_path: string
           page_title: string | null
+          path: string | null
           referrer: string | null
           scroll_depth_percent: number | null
           session_id: string
+          time_on_page_ms: number | null
           time_on_page_seconds: number | null
           timestamp: string
         }
         Insert: {
           id?: string
+          load_time_ms?: number | null
           page_path: string
           page_title?: string | null
+          path?: string | null
           referrer?: string | null
           scroll_depth_percent?: number | null
           session_id: string
+          time_on_page_ms?: number | null
           time_on_page_seconds?: number | null
           timestamp?: string
         }
         Update: {
           id?: string
+          load_time_ms?: number | null
           page_path?: string
           page_title?: string | null
+          path?: string | null
           referrer?: string | null
           scroll_depth_percent?: number | null
           session_id?: string
+          time_on_page_ms?: number | null
           time_on_page_seconds?: number | null
           timestamp?: string
         }
@@ -205,10 +214,12 @@ export type Database = {
         Row: {
           browser: string | null
           device_type: string | null
+          ended_at: string | null
           entry_page: string | null
           exit_page: string | null
           first_visit: string
           id: string
+          is_bounce: boolean | null
           is_return_visitor: boolean | null
           last_activity: string
           os: string | null
@@ -216,6 +227,7 @@ export type Database = {
           screen_height: number | null
           screen_width: number | null
           session_id: string
+          started_at: string | null
           total_pageviews: number | null
           total_time_seconds: number | null
           user_id: string | null
@@ -224,14 +236,17 @@ export type Database = {
           utm_medium: string | null
           utm_source: string | null
           utm_term: string | null
+          visitor_id: string | null
         }
         Insert: {
           browser?: string | null
           device_type?: string | null
+          ended_at?: string | null
           entry_page?: string | null
           exit_page?: string | null
           first_visit?: string
           id?: string
+          is_bounce?: boolean | null
           is_return_visitor?: boolean | null
           last_activity?: string
           os?: string | null
@@ -239,6 +254,7 @@ export type Database = {
           screen_height?: number | null
           screen_width?: number | null
           session_id: string
+          started_at?: string | null
           total_pageviews?: number | null
           total_time_seconds?: number | null
           user_id?: string | null
@@ -247,14 +263,17 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           utm_term?: string | null
+          visitor_id?: string | null
         }
         Update: {
           browser?: string | null
           device_type?: string | null
+          ended_at?: string | null
           entry_page?: string | null
           exit_page?: string | null
           first_visit?: string
           id?: string
+          is_bounce?: boolean | null
           is_return_visitor?: boolean | null
           last_activity?: string
           os?: string | null
@@ -262,6 +281,7 @@ export type Database = {
           screen_height?: number | null
           screen_width?: number | null
           session_id?: string
+          started_at?: string | null
           total_pageviews?: number | null
           total_time_seconds?: number | null
           user_id?: string | null
@@ -270,6 +290,7 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           utm_term?: string | null
+          visitor_id?: string | null
         }
         Relationships: []
       }
