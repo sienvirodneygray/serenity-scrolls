@@ -137,26 +137,35 @@ export type Database = {
         Row: {
           created_at: string
           event_name: string
+          event_type: string | null
           id: string
+          page_path: string | null
           properties: Json | null
           session_id: string | null
           user_id: string | null
+          visitor_id: string | null
         }
         Insert: {
           created_at?: string
           event_name: string
+          event_type?: string | null
           id?: string
+          page_path?: string | null
           properties?: Json | null
           session_id?: string | null
           user_id?: string | null
+          visitor_id?: string | null
         }
         Update: {
           created_at?: string
           event_name?: string
+          event_type?: string | null
           id?: string
+          page_path?: string | null
           properties?: Json | null
           session_id?: string | null
           user_id?: string | null
+          visitor_id?: string | null
         }
         Relationships: []
       }
@@ -236,7 +245,7 @@ export type Database = {
           utm_medium: string | null
           utm_source: string | null
           utm_term: string | null
-          visitor_id: string | null
+          visitor_id: string
         }
         Insert: {
           browser?: string | null
@@ -263,7 +272,7 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           utm_term?: string | null
-          visitor_id?: string | null
+          visitor_id: string
         }
         Update: {
           browser?: string | null
@@ -290,7 +299,7 @@ export type Database = {
           utm_medium?: string | null
           utm_source?: string | null
           utm_term?: string | null
-          visitor_id?: string | null
+          visitor_id?: string
         }
         Relationships: []
       }
