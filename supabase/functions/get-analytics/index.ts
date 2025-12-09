@@ -18,8 +18,10 @@ serve(async (req) => {
     
     // Validate API key
     const expectedApiKey = Deno.env.get('ANALYTICS_API_KEY');
+    console.log('[get-analytics] Validating API key...');
+    
     if (!apiKey || apiKey !== expectedApiKey) {
-      console.error('Invalid or missing API key');
+      console.error('[get-analytics] Invalid or missing API key');
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -27,102 +29,117 @@ serve(async (req) => {
     }
 
     if (!startDate || !endDate) {
+      console.error('[get-analytics] Missing date parameters');
       return new Response(
         JSON.stringify({ error: 'startDate and endDate are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Fetching analytics from ${startDate} to ${endDate}`);
+    console.log(`[get-analytics] Fetching analytics from ${startDate} to ${endDate}`);
 
     // Create Supabase client with service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch page view events in date range
-    const { data: events, error: eventsError } = await supabase
-      .from('analytics_events')
-      .select('*')
-      .eq('event_type', 'page_view')
-      .gte('created_at', startDate)
-      .lte('created_at', endDate)
-      .order('created_at', { ascending: true });
+    // ==========================================
+    // MATCH ADMIN DASHBOARD LOGIC EXACTLY
+    // ==========================================
 
-    if (eventsError) {
-      console.error('Error fetching events:', eventsError);
-      throw eventsError;
-    }
-
-    // Fetch sessions for duration calculation
+    // 1. Get unique visitors (count of sessions)
     const { data: sessions, error: sessionsError } = await supabase
       .from('analytics_sessions')
-      .select('*')
-      .gte('started_at', startDate)
-      .lte('started_at', endDate);
+      .select('session_id, started_at, ended_at')
+      .gte('first_visit', startDate)
+      .lte('first_visit', endDate);
 
     if (sessionsError) {
-      console.error('Error fetching sessions:', sessionsError);
+      console.error('[get-analytics] Error fetching sessions:', sessionsError);
       throw sessionsError;
     }
 
-    // Group events by visitor_id for bounce rate calculation
-    const visitorPageCounts: Record<string, number> = {};
-    for (const event of events || []) {
-      const visitorId = event.visitor_id;
-      if (!visitorId) continue;
-      visitorPageCounts[visitorId] = (visitorPageCounts[visitorId] || 0) + 1;
+    const visitors = sessions?.length || 0;
+    console.log(`[get-analytics] Found ${visitors} unique visitors (sessions)`);
+
+    // 2. Get total pageviews from analytics_pageviews table
+    const { count: pageViews, error: pageviewsError } = await supabase
+      .from('analytics_pageviews')
+      .select('*', { count: 'exact', head: true })
+      .gte('timestamp', startDate)
+      .lte('timestamp', endDate);
+
+    if (pageviewsError) {
+      console.error('[get-analytics] Error fetching pageviews:', pageviewsError);
+      throw pageviewsError;
     }
 
-    const visitorIds = Object.keys(visitorPageCounts);
-    const visitors = visitorIds.length;
-    const pageViews = events?.length || 0;
+    console.log(`[get-analytics] Found ${pageViews} total pageviews`);
 
-    // Calculate average duration from sessions (ended_at - started_at)
-    let totalDuration = 0;
-    let sessionsWithDuration = 0;
+    // 3. Calculate bounce rate (sessions with only 1 pageview)
+    const { data: pageviewData, error: pvDataError } = await supabase
+      .from('analytics_pageviews')
+      .select('session_id')
+      .gte('timestamp', startDate)
+      .lte('timestamp', endDate);
+
+    if (pvDataError) {
+      console.error('[get-analytics] Error fetching pageview data:', pvDataError);
+      throw pvDataError;
+    }
+
+    const sessionPageviews: Record<string, number> = {};
+    for (const pv of pageviewData || []) {
+      if (pv.session_id) {
+        sessionPageviews[pv.session_id] = (sessionPageviews[pv.session_id] || 0) + 1;
+      }
+    }
+
+    const totalSessions = Object.keys(sessionPageviews).length;
+    const bounces = Object.values(sessionPageviews).filter(count => count === 1).length;
+    const bounceRate = totalSessions > 0 ? Math.round((bounces / totalSessions) * 100) : 0;
+
+    console.log(`[get-analytics] Bounce rate: ${bounceRate}% (${bounces} bounces out of ${totalSessions} sessions)`);
+
+    // 4. Calculate average duration from started_at and ended_at
+    let avgDuration = 0;
+    const sessionsWithEndTime = sessions?.filter(s => s.started_at && s.ended_at) || [];
     
-    for (const session of sessions || []) {
-      if (session.started_at && session.ended_at) {
+    if (sessionsWithEndTime.length > 0) {
+      let totalSeconds = 0;
+      let validSessions = 0;
+      
+      for (const session of sessionsWithEndTime) {
         const start = new Date(session.started_at).getTime();
         const end = new Date(session.ended_at).getTime();
         const duration = (end - start) / 1000; // seconds
-        if (duration > 0 && duration < 3600) { // Cap at 1 hour to filter outliers
-          totalDuration += duration;
-          sessionsWithDuration++;
+        
+        // Cap at 1 hour to filter outliers (same as admin dashboard)
+        if (duration > 0 && duration < 3600) {
+          totalSeconds += duration;
+          validSessions++;
         }
       }
+      
+      avgDuration = validSessions > 0 ? Math.round(totalSeconds / validSessions) : 0;
     }
-    
-    const avgDuration = sessionsWithDuration > 0 
-      ? Math.round(totalDuration / sessionsWithDuration) 
-      : 0;
 
-    // Calculate bounce rate (% of visitors with only 1 page view)
-    let bouncedVisitors = 0;
-    for (const visitorId of visitorIds) {
-      if (visitorPageCounts[visitorId] === 1) {
-        bouncedVisitors++;
-      }
-    }
-    const bounceRate = visitors > 0 
-      ? Math.round((bouncedVisitors / visitors) * 1000) / 10 
-      : 0;
+    console.log(`[get-analytics] Avg duration: ${avgDuration}s (from ${sessionsWithEndTime.length} sessions with end time)`);
 
-    // Calculate pages per visit
-    const pagesPerVisit = visitors > 0 
-      ? Math.round((pageViews / visitors) * 10) / 10 
-      : 0;
+    // 5. Calculate pages per visit
+    const pagesPerVisit = visitors > 0 ? Math.round(((pageViews || 0) / visitors) * 10) / 10 : 0;
+
+    console.log(`[get-analytics] Pages per visit: ${pagesPerVisit}`);
 
     const analytics = {
       visitors,
-      pageViews,
+      pageViews: pageViews || 0,
       avgDuration,
       bounceRate,
       pagesPerVisit,
     };
 
-    console.log('Analytics calculated:', analytics);
+    console.log('[get-analytics] Final analytics:', JSON.stringify(analytics));
 
     return new Response(
       JSON.stringify({ analytics }),
@@ -130,7 +147,7 @@ serve(async (req) => {
     );
 
   } catch (error: unknown) {
-    console.error('Error in get-analytics function:', error);
+    console.error('[get-analytics] Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
