@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 serve(async (req) => {
@@ -14,24 +14,21 @@ serve(async (req) => {
   }
 
   try {
-    // Validate API key
-    const apiKey = req.headers.get('x-api-key');
-    const expectedApiKey = Deno.env.get('ANALYTICS_API_KEY');
+    const { startDate, endDate, apiKey } = await req.json();
     
+    // Validate API key
+    const expectedApiKey = Deno.env.get('ANALYTICS_API_KEY');
     if (!apiKey || apiKey !== expectedApiKey) {
       console.error('Invalid or missing API key');
       return new Response(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Parse request body
-    const { startDate, endDate } = await req.json();
-    
     if (!startDate || !endDate) {
       return new Response(
-        JSON.stringify({ success: false, error: 'startDate and endDate are required' }),
+        JSON.stringify({ error: 'startDate and endDate are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -43,71 +40,84 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch sessions data
-    const { data: sessions, error: sessionsError } = await supabase
-      .from('analytics_sessions')
+    // Fetch page view events in date range
+    const { data: events, error: eventsError } = await supabase
+      .from('analytics_events')
       .select('*')
-      .gte('started_at', startDate)
-      .lte('started_at', endDate);
+      .eq('event_type', 'page_view')
+      .gte('created_at', startDate)
+      .lte('created_at', endDate)
+      .order('created_at', { ascending: true });
 
-    if (sessionsError) {
-      console.error('Error fetching sessions:', sessionsError);
-      throw sessionsError;
+    if (eventsError) {
+      console.error('Error fetching events:', eventsError);
+      throw eventsError;
     }
 
-    // Fetch page views data
-    const { data: pageViews, error: pageViewsError } = await supabase
-      .from('analytics_pageviews')
-      .select('*')
-      .gte('timestamp', startDate)
-      .lte('timestamp', endDate);
-
-    if (pageViewsError) {
-      console.error('Error fetching page views:', pageViewsError);
-      throw pageViewsError;
+    // Group events by visitor_id
+    const visitorEvents: Record<string, { pages: string[], timestamps: Date[] }> = {};
+    
+    for (const event of events || []) {
+      const visitorId = event.visitor_id;
+      if (!visitorId) continue;
+      
+      if (!visitorEvents[visitorId]) {
+        visitorEvents[visitorId] = { pages: [], timestamps: [] };
+      }
+      visitorEvents[visitorId].pages.push(event.page_path || '/');
+      visitorEvents[visitorId].timestamps.push(new Date(event.created_at));
     }
 
-    // Calculate metrics
-    const totalSessions = sessions?.length || 0;
-    const uniqueVisitors = new Set(sessions?.map(s => s.visitor_id).filter(Boolean)).size;
-    const totalPageViews = pageViews?.length || 0;
+    const visitorIds = Object.keys(visitorEvents);
+    const visitors = visitorIds.length;
+    const pageViews = events?.length || 0;
+
+    // Calculate average duration (time between first and last event per visitor)
+    let totalDuration = 0;
+    let visitorsWithDuration = 0;
     
-    // Bounce rate
-    const bouncedSessions = sessions?.filter(s => s.is_bounce === true).length || 0;
-    const bounceRate = totalSessions > 0 
-      ? Math.round((bouncedSessions / totalSessions) * 1000) / 10 
-      : 0;
-    
-    // Average duration (from sessions with ended_at)
-    const sessionsWithDuration = sessions?.filter(s => s.started_at && s.ended_at) || [];
-    let avgDuration = 0;
-    if (sessionsWithDuration.length > 0) {
-      const totalDuration = sessionsWithDuration.reduce((sum, s) => {
-        const start = new Date(s.started_at).getTime();
-        const end = new Date(s.ended_at).getTime();
-        return sum + (end - start) / 1000; // Convert to seconds
-      }, 0);
-      avgDuration = Math.round(totalDuration / sessionsWithDuration.length);
+    for (const visitorId of visitorIds) {
+      const timestamps = visitorEvents[visitorId].timestamps;
+      if (timestamps.length >= 2) {
+        const first = timestamps[0].getTime();
+        const last = timestamps[timestamps.length - 1].getTime();
+        totalDuration += (last - first) / 1000; // Convert to seconds
+        visitorsWithDuration++;
+      }
     }
     
-    // Pages per visit
-    const pagesPerVisit = totalSessions > 0 
-      ? Math.round((totalPageViews / totalSessions) * 10) / 10 
+    const avgDuration = visitorsWithDuration > 0 
+      ? Math.round(totalDuration / visitorsWithDuration) 
       : 0;
 
-    const data = {
-      visitors: uniqueVisitors,
-      pageViews: totalPageViews,
+    // Calculate bounce rate (% of visitors with only 1 page view)
+    let bouncedVisitors = 0;
+    for (const visitorId of visitorIds) {
+      if (visitorEvents[visitorId].pages.length === 1) {
+        bouncedVisitors++;
+      }
+    }
+    const bounceRate = visitors > 0 
+      ? Math.round((bouncedVisitors / visitors) * 1000) / 10 
+      : 0;
+
+    // Calculate pages per visit
+    const pagesPerVisit = visitors > 0 
+      ? Math.round((pageViews / visitors) * 10) / 10 
+      : 0;
+
+    const analytics = {
+      visitors,
+      pageViews,
       avgDuration,
       bounceRate,
       pagesPerVisit,
-      totalSessions,
     };
 
-    console.log('Analytics data calculated:', data);
+    console.log('Analytics calculated:', analytics);
 
     return new Response(
-      JSON.stringify({ success: true, data }),
+      JSON.stringify({ analytics }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -115,7 +125,7 @@ serve(async (req) => {
     console.error('Error in get-analytics function:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ success: false, error: errorMessage }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
