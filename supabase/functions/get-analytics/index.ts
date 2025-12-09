@@ -54,46 +54,54 @@ serve(async (req) => {
       throw eventsError;
     }
 
-    // Group events by visitor_id
-    const visitorEvents: Record<string, { pages: string[], timestamps: Date[] }> = {};
-    
+    // Fetch sessions for duration calculation
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('analytics_sessions')
+      .select('*')
+      .gte('started_at', startDate)
+      .lte('started_at', endDate);
+
+    if (sessionsError) {
+      console.error('Error fetching sessions:', sessionsError);
+      throw sessionsError;
+    }
+
+    // Group events by visitor_id for bounce rate calculation
+    const visitorPageCounts: Record<string, number> = {};
     for (const event of events || []) {
       const visitorId = event.visitor_id;
       if (!visitorId) continue;
-      
-      if (!visitorEvents[visitorId]) {
-        visitorEvents[visitorId] = { pages: [], timestamps: [] };
-      }
-      visitorEvents[visitorId].pages.push(event.page_path || '/');
-      visitorEvents[visitorId].timestamps.push(new Date(event.created_at));
+      visitorPageCounts[visitorId] = (visitorPageCounts[visitorId] || 0) + 1;
     }
 
-    const visitorIds = Object.keys(visitorEvents);
+    const visitorIds = Object.keys(visitorPageCounts);
     const visitors = visitorIds.length;
     const pageViews = events?.length || 0;
 
-    // Calculate average duration (time between first and last event per visitor)
+    // Calculate average duration from sessions (ended_at - started_at)
     let totalDuration = 0;
-    let visitorsWithDuration = 0;
+    let sessionsWithDuration = 0;
     
-    for (const visitorId of visitorIds) {
-      const timestamps = visitorEvents[visitorId].timestamps;
-      if (timestamps.length >= 2) {
-        const first = timestamps[0].getTime();
-        const last = timestamps[timestamps.length - 1].getTime();
-        totalDuration += (last - first) / 1000; // Convert to seconds
-        visitorsWithDuration++;
+    for (const session of sessions || []) {
+      if (session.started_at && session.ended_at) {
+        const start = new Date(session.started_at).getTime();
+        const end = new Date(session.ended_at).getTime();
+        const duration = (end - start) / 1000; // seconds
+        if (duration > 0 && duration < 3600) { // Cap at 1 hour to filter outliers
+          totalDuration += duration;
+          sessionsWithDuration++;
+        }
       }
     }
     
-    const avgDuration = visitorsWithDuration > 0 
-      ? Math.round(totalDuration / visitorsWithDuration) 
+    const avgDuration = sessionsWithDuration > 0 
+      ? Math.round(totalDuration / sessionsWithDuration) 
       : 0;
 
     // Calculate bounce rate (% of visitors with only 1 page view)
     let bouncedVisitors = 0;
     for (const visitorId of visitorIds) {
-      if (visitorEvents[visitorId].pages.length === 1) {
+      if (visitorPageCounts[visitorId] === 1) {
         bouncedVisitors++;
       }
     }

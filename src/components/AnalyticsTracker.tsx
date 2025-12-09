@@ -45,6 +45,7 @@ export const AnalyticsTracker = () => {
   const location = useLocation();
   const sessionInitialized = useRef(false);
   const visitorId = useRef<string>('');
+  const sessionId = useRef<string>('');
 
   // Initialize session on mount
   useEffect(() => {
@@ -52,30 +53,42 @@ export const AnalyticsTracker = () => {
     sessionInitialized.current = true;
 
     visitorId.current = getVisitorId();
+    sessionId.current = 'sess_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
     const { device, browser } = getDeviceInfo();
     const utmParams = getUtmParams();
 
     const initSession = async () => {
       try {
-        // Using type assertion as the types may not be updated yet
         await (supabase.from('analytics_sessions') as any).insert({
+          session_id: sessionId.current,
           visitor_id: visitorId.current,
           started_at: new Date().toISOString(),
+          last_activity: new Date().toISOString(),
           device_type: device,
           browser,
           referrer: document.referrer || null,
           ...utmParams,
         });
-        console.log('[Analytics] Session initialized for visitor:', visitorId.current);
+        console.log('[Analytics] Session initialized:', sessionId.current);
       } catch (error) {
         console.error('[Analytics] Failed to init session:', error);
       }
     };
 
     initSession();
+
+    // Update ended_at on page unload
+    const handleUnload = () => {
+      navigator.sendBeacon && (supabase.from('analytics_sessions') as any)
+        .update({ ended_at: new Date().toISOString(), last_activity: new Date().toISOString() })
+        .eq('session_id', sessionId.current);
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
   }, []);
 
-  // Track page views on route changes
+  // Track page views on route changes and update session activity
   useEffect(() => {
     if (!visitorId.current) {
       visitorId.current = getVisitorId();
@@ -83,13 +96,24 @@ export const AnalyticsTracker = () => {
 
     const trackPageView = async () => {
       try {
-        // Using type assertion as the types may not be updated yet
+        const now = new Date().toISOString();
+        
+        // Insert page view event
         await (supabase.from('analytics_events') as any).insert({
           visitor_id: visitorId.current,
+          session_id: sessionId.current,
           event_type: 'page_view',
           page_path: location.pathname,
           event_name: 'page_view',
         });
+
+        // Update session last_activity and ended_at for duration tracking
+        if (sessionId.current) {
+          await (supabase.from('analytics_sessions') as any)
+            .update({ last_activity: now, ended_at: now })
+            .eq('session_id', sessionId.current);
+        }
+
         console.log('[Analytics] Page view tracked:', location.pathname);
       } catch (error) {
         console.error('[Analytics] Failed to track page view:', error);
