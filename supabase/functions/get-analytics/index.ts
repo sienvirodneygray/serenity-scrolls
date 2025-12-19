@@ -50,17 +50,20 @@ serve(async (req) => {
     const pageViews = events || [];
     console.log(`[get-analytics] Found ${pageViews.length} page views`);
 
-    // Group events by visitor_id
+    // Group events by visitor_id OR session_id (fallback)
     const visitorEvents: Record<string, any[]> = {};
     
-    for (const ev of pageViews) {
-      if (!ev.visitor_id) continue;
-      if (!visitorEvents[ev.visitor_id]) visitorEvents[ev.visitor_id] = [];
-      visitorEvents[ev.visitor_id].push(ev);
+    for (const pv of pageViews) {
+      const visitorId = pv.visitor_id || pv.session_id;
+      if (!visitorId) continue;
+      if (!visitorEvents[visitorId]) visitorEvents[visitorId] = [];
+      visitorEvents[visitorId].push(pv);
     }
 
     const visitorIds = Object.keys(visitorEvents);
     const uniqueVisitors = visitorIds.length;
+    
+    console.log(`[get-analytics] Processing ${visitorIds.length} unique visitors/sessions`);
     
     let totalDuration = 0;
     let sessionsWithDuration = 0;
@@ -74,9 +77,19 @@ serve(async (req) => {
         bounces++;
       }
       
-      // Calculate duration (time between first and last event)
-      if (vEvents.length > 1) {
-        const timestamps = vEvents.map(e => new Date(e.created_at).getTime()).sort((a, b) => a - b);
+      // Calculate duration with multiple timestamp field fallbacks
+      const timestamps = vEvents
+        .map((e: any) => {
+          const ts = e.created_at || e.viewed_at || e.timestamp;
+          if (!ts) return null;
+          const time = new Date(ts).getTime();
+          return isNaN(time) ? null : time;
+        })
+        .filter((t): t is number => t !== null)
+        .sort((a, b) => a - b);
+      
+      // Only calculate duration when there are at least 2 valid timestamps
+      if (timestamps.length >= 2) {
         const duration = (timestamps[timestamps.length - 1] - timestamps[0]) / 1000;
         // Cap at 2 hours to filter outliers
         if (duration > 0 && duration < 7200) {
@@ -85,6 +98,8 @@ serve(async (req) => {
         }
       }
     }
+    
+    console.log(`[get-analytics] Duration calculation: ${sessionsWithDuration} sessions with duration, total: ${totalDuration}s`);
 
     const analytics = {
       visitors: uniqueVisitors,
