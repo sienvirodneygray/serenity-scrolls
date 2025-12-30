@@ -8,6 +8,7 @@ import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Servant from "./pages/Servant";
+import ServantAccess from "./pages/ServantAccess";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import Shop from "./pages/Shop";
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/servant" element={<Servant />} />
+            <Route path="/servant-access" element={<ServantAccess />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
