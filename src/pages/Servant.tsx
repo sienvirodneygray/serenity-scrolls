@@ -38,8 +38,8 @@ const Servant = () => {
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
-      toast.error("Please sign in to continue");
-      navigate("/auth");
+      // Redirect to new verification flow instead of old auth
+      navigate("/servant-access");
       return;
     }
 
@@ -53,8 +53,8 @@ const Servant = () => {
       .single();
 
     if (!profile?.has_access) {
-      toast.error("Please redeem an access code first");
-      navigate("/redeem");
+      toast.error("Please verify your purchase first");
+      navigate("/servant-access");
       return;
     }
 

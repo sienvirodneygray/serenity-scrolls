@@ -4,13 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText } from "lucide-react";
+import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
 import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
 import { DevicesAnalytics } from "@/components/admin/DevicesAnalytics";
 import { UserBehaviorAnalytics } from "@/components/admin/UserBehaviorAnalytics";
 import { PagesAnalytics } from "@/components/admin/PagesAnalytics";
+import { AccessRequestsManagement } from "@/components/admin/AccessRequestsManagement";
+
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,6 +90,10 @@ export default function AdminDashboard() {
               <BarChart3 className="h-4 w-4" />
               Overview
             </TabsTrigger>
+            <TabsTrigger value="access" className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4" />
+              Access
+            </TabsTrigger>
             <TabsTrigger value="devices" className="flex items-center gap-2">
               <Monitor className="h-4 w-4" />
               Devices
@@ -112,6 +118,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="traffic" className="space-y-6">
             <TrafficAnalytics />
+          </TabsContent>
+
+          <TabsContent value="access" className="space-y-6">
+            <AccessRequestsManagement />
           </TabsContent>
 
           <TabsContent value="devices" className="space-y-6">
