@@ -6,11 +6,22 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzZWV1dWl0Y3Z3cW1ob3Fka3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNzUyNzksImV4cCI6MjA3Nzg1MTI3OX0.y_Owf9btBHf20oeShFasYlfv2ekzU1QMEis3kgFyX9k';
 
   let sessionId = null;
+  let visitorId = null;
   let eventQueue = [];
   let flushTimer = null;
   let pageStartTime = Date.now();
   let maxScrollDepth = 0;
   let lastPagePath = window.location.pathname;
+
+  // Generate or retrieve visitor ID (persists across sessions)
+  function getVisitorId() {
+    let vid = localStorage.getItem('_analytics_vid');
+    if (!vid) {
+      vid = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('_analytics_vid', vid);
+    }
+    return vid;
+  }
 
   // Generate or retrieve session ID
   function getSessionId() {
@@ -97,12 +108,14 @@
 
   // Initialize session
   async function initSession() {
+    visitorId = getVisitorId();
     sessionId = getSessionId();
     const deviceInfo = getDeviceInfo();
     const utmParams = getUTMParams();
     
     const sessionData = {
       session_id: sessionId,
+      visitor_id: visitorId,
       first_visit: new Date().toISOString(),
       last_activity: new Date().toISOString(),
       device_type: deviceInfo.deviceType,
