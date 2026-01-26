@@ -1,6 +1,7 @@
 import { Hero } from "@/components/Hero";
 import { ProductCard } from "@/components/ProductCard";
 import { Testimonials } from "@/components/Testimonials";
+import { FAQ } from "@/components/FAQ";
 import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
 import tubeProduct from "@/assets/tube-product-real.png";
@@ -57,6 +58,8 @@ const Index = () => {
       </section>
 
       <Testimonials />
+
+      <FAQ />
 
       {/* Story Section */}
       <section className="py-20 bg-background">
