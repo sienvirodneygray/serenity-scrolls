@@ -2,6 +2,7 @@ import { Hero } from "@/components/Hero";
 import { ProductCard } from "@/components/ProductCard";
 import { Testimonials } from "@/components/Testimonials";
 import { FAQ } from "@/components/FAQ";
+import { FeaturedBlogPosts } from "@/components/FeaturedBlogPosts";
 import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
 import tubeProduct from "@/assets/tube-product-real.png";
@@ -58,6 +59,8 @@ const Index = () => {
       </section>
 
       <Testimonials />
+
+      <FeaturedBlogPosts />
 
       <FAQ />
 
