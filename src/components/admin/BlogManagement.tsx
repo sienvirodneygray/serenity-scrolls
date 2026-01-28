@@ -74,6 +74,7 @@ export const BlogManagement = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [formData, setFormData] = useState<BlogFormData>(initialFormData);
+  const [generateTopic, setGenerateTopic] = useState("");
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["admin-blog-posts"],
@@ -136,7 +137,7 @@ export const BlogManagement = () => {
     setIsGenerating(true);
     try {
       const response = await supabase.functions.invoke("generate-blog", {
-        body: { topic: "faith and emotions" },
+        body: { topic: generateTopic || undefined },
       });
 
       if (response.error) throw response.error;
@@ -203,149 +204,39 @@ export const BlogManagement = () => {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Blog Posts</CardTitle>
-          <div className="flex gap-2">
-            <Button onClick={generateBlog} disabled={isGenerating} variant="outline">
+        <CardHeader className="flex flex-col gap-4">
+          <div className="flex flex-row items-center justify-between">
+            <CardTitle>Blog Posts</CardTitle>
+            <Button onClick={() => { setEditingPost(null); setFormData(initialFormData); setIsDialogOpen(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Post
+            </Button>
+          </div>
+          
+          {/* AI Generator Section */}
+          <div className="flex flex-col sm:flex-row gap-2 p-4 bg-muted/50 rounded-lg">
+            <div className="flex-1">
+              <Input
+                placeholder="Enter a topic (e.g., 'finding joy in difficult times', 'dealing with anxiety through faith')..."
+                value={generateTopic}
+                onChange={(e) => setGenerateTopic(e.target.value)}
+                disabled={isGenerating}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Leave empty for a default faith & emotions topic. The Servant's voice will guide the content.
+              </p>
+            </div>
+            <Button onClick={generateBlog} disabled={isGenerating} variant="outline" className="shrink-0">
               {isGenerating ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
                 <Sparkles className="h-4 w-4 mr-2" />
               )}
-              Generate Blog
+              Generate with AI
             </Button>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => { setEditingPost(null); setFormData(initialFormData); }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Post
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>{editingPost ? "Edit Post" : "Create New Post"}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Title</Label>
-                      <Input
-                        id="title"
-                        value={formData.title}
-                        onChange={(e) => {
-                          setFormData({
-                            ...formData,
-                            title: e.target.value,
-                            slug: generateSlug(e.target.value),
-                          });
-                        }}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="slug">Slug</Label>
-                      <Input
-                        id="slug"
-                        value={formData.slug}
-                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
-                      <Input
-                        id="category"
-                        value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="author">Author</Label>
-                      <Input
-                        id="author"
-                        value={formData.author}
-                        onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="excerpt">Excerpt</Label>
-                    <Textarea
-                      id="excerpt"
-                      value={formData.excerpt}
-                      onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                      rows={2}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="content">Content</Label>
-                    <Textarea
-                      id="content"
-                      value={formData.content}
-                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                      rows={10}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="featured_image">Featured Image URL</Label>
-                    <Input
-                      id="featured_image"
-                      value={formData.featured_image}
-                      onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="meta_title">Meta Title</Label>
-                      <Input
-                        id="meta_title"
-                        value={formData.meta_title}
-                        onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="meta_description">Meta Description</Label>
-                      <Input
-                        id="meta_description"
-                        value={formData.meta_description}
-                        onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="published"
-                      checked={formData.published}
-                      onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
-                    />
-                    <Label htmlFor="published">Published</Label>
-                  </div>
-
-                  <div className="flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={resetForm}>
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                      {editingPost ? "Update" : "Create"} Post
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
           </div>
         </CardHeader>
+
         <CardContent>
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
@@ -413,6 +304,132 @@ export const BlogManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit/Create Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingPost ? "Edit Post" : "Create New Post"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      title: e.target.value,
+                      slug: generateSlug(e.target.value),
+                    });
+                  }}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug</Label>
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Input
+                  id="category"
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="author">Author</Label>
+                <Input
+                  id="author"
+                  value={formData.author}
+                  onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="excerpt">Excerpt</Label>
+              <Textarea
+                id="excerpt"
+                value={formData.excerpt}
+                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                rows={2}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="content">Content</Label>
+              <Textarea
+                id="content"
+                value={formData.content}
+                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                rows={10}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="featured_image">Featured Image URL</Label>
+              <Input
+                id="featured_image"
+                value={formData.featured_image}
+                onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="meta_title">Meta Title</Label>
+                <Input
+                  id="meta_title"
+                  value={formData.meta_title}
+                  onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="meta_description">Meta Description</Label>
+                <Input
+                  id="meta_description"
+                  value={formData.meta_description}
+                  onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="published"
+                checked={formData.published}
+                onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
+              />
+              <Label htmlFor="published">Published</Label>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={resetForm}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                {editingPost ? "Update" : "Create"} Post
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
