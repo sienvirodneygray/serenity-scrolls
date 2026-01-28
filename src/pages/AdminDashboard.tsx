@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck } from "lucide-react";
+import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
 import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
@@ -12,6 +12,7 @@ import { DevicesAnalytics } from "@/components/admin/DevicesAnalytics";
 import { UserBehaviorAnalytics } from "@/components/admin/UserBehaviorAnalytics";
 import { PagesAnalytics } from "@/components/admin/PagesAnalytics";
 import { AccessRequestsManagement } from "@/components/admin/AccessRequestsManagement";
+import { BlogManagement } from "@/components/admin/BlogManagement";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -110,6 +111,10 @@ export default function AdminDashboard() {
               <ShoppingCart className="h-4 w-4" />
               Amazon
             </TabsTrigger>
+            <TabsTrigger value="blog" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Blog
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -138,6 +143,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="amazon" className="space-y-6">
             <AmazonAnalytics />
+          </TabsContent>
+
+          <TabsContent value="blog" className="space-y-6">
+            <BlogManagement />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
