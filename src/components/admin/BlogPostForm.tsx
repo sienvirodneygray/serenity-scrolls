@@ -13,6 +13,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Settings, Search } from "lucide-react";
+import { FeaturedImageUpload } from "./FeaturedImageUpload";
 
 interface BlogFormData {
   title: string;
@@ -217,19 +218,11 @@ export const BlogPostForm = ({
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="featured_image">Featured Image URL</Label>
-                <Input
-                  id="featured_image"
-                  value={formData.featured_image}
-                  onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                  type="url"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Optional. Displays at the top of the post and in listings.
-                </p>
-              </div>
+              <FeaturedImageUpload
+                value={formData.featured_image}
+                onChange={(url) => setFormData({ ...formData, featured_image: url })}
+                blogTitle={formData.title}
+              />
 
               <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                 <div>
