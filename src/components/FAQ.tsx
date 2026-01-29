@@ -11,8 +11,8 @@ const faqs = [
     answer: "Serenity Scrolls is a collection of 96 color-coded Bible verse scrolls organized by emotion. Each scroll contains a carefully curated Scripture passage designed to speak to your current emotional state—whether you're feeling grateful, frustrated, anxious, happy, sad, or troubled.",
   },
   {
-    question: "What is a journal with prompts and how does Serenity Scrolls include them?",
-    answer: "A journal with prompts is a guided journaling tool that provides thought-provoking questions or statements to inspire deeper reflection. Our Serenity Scrolls Reflection Journal includes Scripture-based journal prompts for each emotion category, helping you process feelings through faith-centered writing exercises.",
+    question: "What is the Serenity Journal?",
+    answer: "The Serenity Journal is a guided reflection journal with prompts designed to deepen your Scripture experience. It includes 96 emotion-based journal prompts that help you process feelings through faith-centered writing exercises, making it the perfect companion to your scrolls.",
   },
   {
     question: "How do I use the Serenity Scrolls Tube?",
@@ -27,7 +27,7 @@ const faqs = [
     answer: "The scrolls are organized into 6 emotional categories: Grateful (gold), Frustrated (red), Anxious (purple), Happy (yellow), Sad (blue), and Troubled (gray). Each category contains 16 carefully selected Bible verses with corresponding journal entry prompts.",
   },
   {
-    question: "How do I start journaling with prompts?",
+    question: "How do I start journaling?",
     answer: "Start by choosing how you feel in the moment, then draw a scroll from that color category. Read the Scripture verse, reflect on its meaning in your life, and use the accompanying journal prompt to write your thoughts. Even 5-10 minutes of prompted journaling can provide clarity and peace.",
   },
   {
@@ -35,8 +35,8 @@ const faqs = [
     answer: "The AI Servant is a digital companion available to product owners. It provides personalized Scripture-based guidance, helps you explore the meaning of verses, and offers prayer prompts based on your current emotional needs. Access is included with purchase of the Reflection Journal.",
   },
   {
-    question: "What are the benefits of a gratitude journal with prompts?",
-    answer: "A gratitude journal with prompts helps you develop a consistent thankfulness practice, reduces anxiety, and shifts focus toward blessings. Our Serenity Scrolls includes gold-colored gratitude scrolls with 16 prompts specifically designed to cultivate appreciation through Scripture.",
+    question: "What are the benefits of a gratitude journal?",
+    answer: "A gratitude journal helps you develop a consistent thankfulness practice, reduces anxiety, and shifts focus toward blessings. Our Serenity Scrolls includes gold-colored gratitude scrolls with 16 prompts specifically designed to cultivate appreciation through Scripture.",
   },
   {
     question: "How do I get access to the AI Servant?",
