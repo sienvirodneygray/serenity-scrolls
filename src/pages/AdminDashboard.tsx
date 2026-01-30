@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen } from "lucide-react";
+import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
 import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
@@ -13,6 +13,7 @@ import { UserBehaviorAnalytics } from "@/components/admin/UserBehaviorAnalytics"
 import { PagesAnalytics } from "@/components/admin/PagesAnalytics";
 import { AccessRequestsManagement } from "@/components/admin/AccessRequestsManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
+import { FAQManagement } from "@/components/admin/FAQManagement";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -115,6 +116,10 @@ export default function AdminDashboard() {
               <BookOpen className="h-4 w-4" />
               Blog
             </TabsTrigger>
+            <TabsTrigger value="faq" className="flex items-center gap-2">
+              <HelpCircle className="h-4 w-4" />
+              FAQ
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -147,6 +152,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="blog" className="space-y-6">
             <BlogManagement />
+          </TabsContent>
+
+          <TabsContent value="faq" className="space-y-6">
+            <FAQManagement />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
