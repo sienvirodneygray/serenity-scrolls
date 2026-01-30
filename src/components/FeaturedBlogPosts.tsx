@@ -16,6 +16,7 @@ interface BlogPost {
   category: string;
   featured_image: string | null;
   created_at: string;
+  published_at: string | null;
 }
 
 export const FeaturedBlogPosts = () => {
@@ -24,8 +25,8 @@ export const FeaturedBlogPosts = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("blog_posts")
-        .select("id, title, slug, excerpt, category, featured_image, created_at")
-        .eq("published", true)
+        .select("id, title, slug, excerpt, category, featured_image, created_at, published_at")
+        .or("status.eq.published,and(status.is.null,published.eq.true)")
         .order("created_at", { ascending: false })
         .limit(3);
 
@@ -89,7 +90,7 @@ export const FeaturedBlogPosts = () => {
                       </Badge>
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        {format(new Date(post.created_at), "MMM d")}
+                        {format(new Date(post.published_at || post.created_at), "MMM d")}
                       </span>
                     </div>
                     <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">

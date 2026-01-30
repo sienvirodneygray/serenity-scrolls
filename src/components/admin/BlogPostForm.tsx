@@ -1,7 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -14,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Settings, Search } from "lucide-react";
 import { FeaturedImageUpload } from "./FeaturedImageUpload";
+import { TagInput } from "@/components/ui/tag-input";
+import { format } from "date-fns";
 
 interface BlogFormData {
   title: string;
@@ -26,6 +27,10 @@ interface BlogFormData {
   featured_image: string;
   meta_title: string;
   meta_description: string;
+  seo_keywords: string[];
+  long_tail_queries: string[];
+  status: string;
+  published_at: string | null;
 }
 
 interface BlogPostFormProps {
@@ -78,6 +83,20 @@ export const BlogPostForm = ({
       excerpt: value,
       meta_description: value.length <= 160 ? value : formData.meta_description,
     });
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    const updates: Partial<BlogFormData> = {
+      status: newStatus,
+      published: newStatus === "published",
+    };
+    
+    // Set published_at when first publishing
+    if (newStatus === "published" && !formData.published_at) {
+      updates.published_at = new Date().toISOString();
+    }
+    
+    setFormData({ ...formData, ...updates });
   };
 
   return (
@@ -224,20 +243,34 @@ export const BlogPostForm = ({
                 blogTitle={formData.title}
               />
 
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                <div>
-                  <Label htmlFor="published" className="text-base font-medium">
-                    Publish Post
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    {formData.published ? "Post is visible to the public" : "Post is saved as draft"}
-                  </p>
+              <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={handleStatusChange}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Switch
-                  id="published"
-                  checked={formData.published}
-                  onCheckedChange={(checked) => setFormData({ ...formData, published: checked })}
-                />
+                
+                {formData.status === "published" && formData.published_at && (
+                  <p className="text-xs text-muted-foreground">
+                    Published on {format(new Date(formData.published_at), "MMM d, yyyy 'at' h:mm a")}
+                  </p>
+                )}
+                
+                <p className="text-sm text-muted-foreground">
+                  {formData.status === "published" 
+                    ? "Post is visible to the public" 
+                    : "Post is saved as draft and not visible"}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -248,7 +281,7 @@ export const BlogPostForm = ({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Search Engine Optimization</CardTitle>
-              <CardDescription>Optimize your post for search engines</CardDescription>
+              <CardDescription>Optimize your post for search engines and AI assistants</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -280,6 +313,32 @@ export const BlogPostForm = ({
                 </p>
               </div>
 
+              <div className="space-y-2">
+                <Label>SEO Keywords</Label>
+                <TagInput
+                  value={formData.seo_keywords}
+                  onChange={(keywords) => setFormData({ ...formData, seo_keywords: keywords })}
+                  placeholder="Add keyword..."
+                  maxTags={10}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Add keywords that describe your post (press Enter or comma to add)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Long-Tail Queries (AEO)</Label>
+                <TagInput
+                  value={formData.long_tail_queries}
+                  onChange={(queries) => setFormData({ ...formData, long_tail_queries: queries })}
+                  placeholder="Add question phrase..."
+                  maxTags={8}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Question phrases people search for (e.g., "How do I start journaling?")
+                </p>
+              </div>
+
               {/* SEO Preview */}
               <div className="p-4 bg-muted/50 rounded-lg space-y-1">
                 <p className="text-xs text-muted-foreground mb-2">Search Preview:</p>
@@ -293,6 +352,16 @@ export const BlogPostForm = ({
                   {formData.meta_description || formData.excerpt || "Post description will appear here..."}
                 </p>
               </div>
+
+              {/* Keywords Preview */}
+              {formData.seo_keywords.length > 0 && (
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <p className="text-xs text-muted-foreground mb-2">Keywords ({formData.seo_keywords.length}):</p>
+                  <p className="text-sm text-muted-foreground">
+                    {formData.seo_keywords.join(", ")}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

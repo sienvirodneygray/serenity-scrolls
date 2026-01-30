@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ArrowLeft, Calendar, User, BookOpen } from "lucide-react";
+import { Helmet } from "react-helmet";
 
 interface BlogPost {
   id: string;
@@ -19,11 +20,14 @@ interface BlogPost {
   featured_image: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  seo_keywords: string[] | null;
+  long_tail_queries: string[] | null;
   created_at: string;
+  published_at: string | null;
   updated_at: string;
 }
 
-const BlogPost = () => {
+const BlogPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
 
   const { data: post, isLoading, error } = useQuery({
@@ -33,7 +37,7 @@ const BlogPost = () => {
         .from("blog_posts")
         .select("*")
         .eq("slug", slug)
-        .eq("published", true)
+        .or("status.eq.published,and(status.is.null,published.eq.true)")
         .maybeSingle();
 
       if (error) throw error;
@@ -42,14 +46,37 @@ const BlogPost = () => {
     enabled: !!slug,
   });
 
-  // Update document title and meta
-  if (post) {
-    document.title = post.meta_title || post.title;
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-      metaDesc.setAttribute("content", post.meta_description || post.excerpt);
-    }
-  }
+  // Generate JSON-LD structured data
+  const generateStructuredData = () => {
+    if (!post) return null;
+    
+    return {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": post.title,
+      "description": post.meta_description || post.excerpt,
+      "image": post.featured_image || undefined,
+      "author": {
+        "@type": "Person",
+        "name": post.author
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Serenity Scrolls",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://serenityscrollsservant.lovable.app/logo.png"
+        }
+      },
+      "datePublished": post.published_at || post.created_at,
+      "dateModified": post.updated_at,
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": `https://serenityscrollsservant.lovable.app/blog/${post.slug}`
+      },
+      "keywords": post.seo_keywords?.join(", ")
+    };
+  };
 
   if (isLoading) {
     return (
@@ -143,6 +170,20 @@ const BlogPost = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>{post.meta_title || post.title}</title>
+        <meta name="description" content={post.meta_description || post.excerpt} />
+        {post.seo_keywords && <meta name="keywords" content={post.seo_keywords.join(", ")} />}
+        <meta property="og:title" content={post.meta_title || post.title} />
+        <meta property="og:description" content={post.meta_description || post.excerpt} />
+        {post.featured_image && <meta property="og:image" content={post.featured_image} />}
+        <meta property="og:type" content="article" />
+        <link rel="canonical" href={`https://serenityscrollsservant.lovable.app/blog/${post.slug}`} />
+        <script type="application/ld+json">
+          {JSON.stringify(generateStructuredData())}
+        </script>
+      </Helmet>
+      
       <Navbar />
       
       <main className="container mx-auto px-4 py-20 max-w-4xl">
@@ -173,7 +214,7 @@ const BlogPost = () => {
               </span>
               <span className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(post.created_at), "MMMM d, yyyy")}
+                {format(new Date(post.published_at || post.created_at), "MMMM d, yyyy")}
               </span>
             </div>
           </header>
@@ -193,6 +234,34 @@ const BlogPost = () => {
           <div className="prose prose-lg max-w-none">
             {renderContent(post.content)}
           </div>
+
+          {/* Related Questions (AEO) */}
+          {post.long_tail_queries && post.long_tail_queries.length > 0 && (
+            <section className="mt-12 p-6 bg-muted/30 rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Related Questions</h3>
+              <ul className="space-y-2">
+                {post.long_tail_queries.map((query, i) => (
+                  <li key={i} className="text-muted-foreground">
+                    • {query}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {/* Keywords */}
+          {post.seo_keywords && post.seo_keywords.length > 0 && (
+            <div className="mt-8 flex flex-wrap gap-2">
+              {post.seo_keywords.map((keyword) => (
+                <span 
+                  key={keyword} 
+                  className="text-sm px-3 py-1 bg-muted rounded-full text-muted-foreground"
+                >
+                  {keyword}
+                </span>
+              ))}
+            </div>
+          )}
         </article>
 
         {/* CTA Section */}
@@ -215,4 +284,4 @@ const BlogPost = () => {
   );
 };
 
-export default BlogPost;
+export default BlogPostPage;

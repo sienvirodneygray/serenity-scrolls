@@ -16,7 +16,9 @@ interface BlogPost {
   category: string;
   author: string;
   featured_image: string | null;
+  seo_keywords: string[] | null;
   created_at: string;
+  published_at: string | null;
 }
 
 const Blog = () => {
@@ -25,8 +27,8 @@ const Blog = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("blog_posts")
-        .select("id, title, slug, excerpt, category, author, featured_image, created_at")
-        .eq("published", true)
+        .select("id, title, slug, excerpt, category, author, featured_image, seo_keywords, created_at, published_at")
+        .or("status.eq.published,and(status.is.null,published.eq.true)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -108,6 +110,21 @@ const Blog = () => {
                     <p className="text-muted-foreground line-clamp-3 mb-4">
                       {post.excerpt}
                     </p>
+                    
+                    {/* Keywords */}
+                    {post.seo_keywords && post.seo_keywords.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-4">
+                        {post.seo_keywords.slice(0, 3).map((keyword) => (
+                          <span 
+                            key={keyword} 
+                            className="text-xs px-2 py-0.5 bg-muted rounded-full text-muted-foreground"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <User className="h-4 w-4" />
@@ -115,7 +132,7 @@ const Blog = () => {
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {format(new Date(post.created_at), "MMM d, yyyy")}
+                        {format(new Date(post.published_at || post.created_at), "MMM d, yyyy")}
                       </span>
                     </div>
                   </CardContent>

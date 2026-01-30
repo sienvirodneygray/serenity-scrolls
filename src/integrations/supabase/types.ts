@@ -375,10 +375,14 @@ export type Database = {
           excerpt: string
           featured_image: string | null
           id: string
+          long_tail_queries: string[] | null
           meta_description: string | null
           meta_title: string | null
           published: boolean
+          published_at: string | null
+          seo_keywords: string[] | null
           slug: string
+          status: string | null
           title: string
           updated_at: string
         }
@@ -390,10 +394,14 @@ export type Database = {
           excerpt: string
           featured_image?: string | null
           id?: string
+          long_tail_queries?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
           published?: boolean
+          published_at?: string | null
+          seo_keywords?: string[] | null
           slug: string
+          status?: string | null
           title: string
           updated_at?: string
         }
@@ -405,10 +413,14 @@ export type Database = {
           excerpt?: string
           featured_image?: string | null
           id?: string
+          long_tail_queries?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
           published?: boolean
+          published_at?: string | null
+          seo_keywords?: string[] | null
           slug?: string
+          status?: string | null
           title?: string
           updated_at?: string
         }
@@ -480,6 +492,39 @@ export type Database = {
           id?: string
           role?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      faqs: {
+        Row: {
+          answer: string
+          category: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          question: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          answer: string
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          question: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: string
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          question?: string
+          sort_order?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }

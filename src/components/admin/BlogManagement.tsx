@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -35,6 +36,10 @@ interface BlogPost {
   featured_image: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  seo_keywords: string[] | null;
+  long_tail_queries: string[] | null;
+  status: string | null;
+  published_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +55,10 @@ interface BlogFormData {
   featured_image: string;
   meta_title: string;
   meta_description: string;
+  seo_keywords: string[];
+  long_tail_queries: string[];
+  status: string;
+  published_at: string | null;
 }
 
 const initialFormData: BlogFormData = {
@@ -63,6 +72,10 @@ const initialFormData: BlogFormData = {
   featured_image: "",
   meta_title: "",
   meta_description: "",
+  seo_keywords: [],
+  long_tail_queries: [],
+  status: "draft",
+  published_at: null,
 };
 
 export const BlogManagement = () => {
@@ -72,6 +85,7 @@ export const BlogManagement = () => {
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [formData, setFormData] = useState<BlogFormData>(initialFormData);
   const [generateTopic, setGenerateTopic] = useState("");
+  const [additionalContext, setAdditionalContext] = useState("");
 
   const { data: posts, isLoading } = useQuery({
     queryKey: ["admin-blog-posts"],
@@ -88,7 +102,11 @@ export const BlogManagement = () => {
 
   const createMutation = useMutation({
     mutationFn: async (data: BlogFormData) => {
-      const { error } = await supabase.from("blog_posts").insert([data]);
+      const { error } = await supabase.from("blog_posts").insert([{
+        ...data,
+        seo_keywords: data.seo_keywords,
+        long_tail_queries: data.long_tail_queries,
+      }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -103,7 +121,11 @@ export const BlogManagement = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: BlogFormData }) => {
-      const { error } = await supabase.from("blog_posts").update(data).eq("id", id);
+      const { error } = await supabase.from("blog_posts").update({
+        ...data,
+        seo_keywords: data.seo_keywords,
+        long_tail_queries: data.long_tail_queries,
+      }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -134,7 +156,10 @@ export const BlogManagement = () => {
     setIsGenerating(true);
     try {
       const response = await supabase.functions.invoke("generate-blog", {
-        body: { topic: generateTopic || undefined },
+        body: { 
+          topic: generateTopic || undefined,
+          additionalContext: additionalContext || undefined,
+        },
       });
 
       if (response.error) throw response.error;
@@ -149,6 +174,11 @@ export const BlogManagement = () => {
         category: generated.category || "faith",
         meta_title: generated.meta_title || "",
         meta_description: generated.meta_description || "",
+        seo_keywords: generated.seo_keywords || generated.seoKeywords || [],
+        long_tail_queries: generated.long_tail_queries || generated.longTailQueries || [],
+        status: "draft",
+        published: false,
+        published_at: null,
       });
       setIsDialogOpen(true);
       toast({ title: "Blog generated!", description: "Review and edit before publishing." });
@@ -178,6 +208,10 @@ export const BlogManagement = () => {
       featured_image: post.featured_image || "",
       meta_title: post.meta_title || "",
       meta_description: post.meta_description || "",
+      seo_keywords: post.seo_keywords || [],
+      long_tail_queries: post.long_tail_queries || [],
+      status: post.status || (post.published ? "published" : "draft"),
+      published_at: post.published_at,
     });
     setIsDialogOpen(true);
   };
@@ -189,6 +223,11 @@ export const BlogManagement = () => {
     } else {
       createMutation.mutate(formData);
     }
+  };
+
+  const getPostStatus = (post: BlogPost) => {
+    const status = post.status || (post.published ? "published" : "draft");
+    return status;
   };
 
   return (
@@ -204,26 +243,36 @@ export const BlogManagement = () => {
           </div>
           
           {/* AI Generator Section */}
-          <div className="flex flex-col sm:flex-row gap-2 p-4 bg-muted/50 rounded-lg">
-            <div className="flex-1">
-              <Input
-                placeholder="Enter a topic (e.g., 'finding joy in difficult times', 'dealing with anxiety through faith')..."
-                value={generateTopic}
-                onChange={(e) => setGenerateTopic(e.target.value)}
-                disabled={isGenerating}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Leave empty for a default faith & emotions topic. The Servant's voice will guide the content.
-              </p>
+          <div className="flex flex-col gap-3 p-4 bg-muted/50 rounded-lg">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1">
+                <Input
+                  placeholder="Enter a topic (e.g., 'finding joy in difficult times', 'dealing with anxiety through faith')..."
+                  value={generateTopic}
+                  onChange={(e) => setGenerateTopic(e.target.value)}
+                  disabled={isGenerating}
+                />
+              </div>
+              <Button onClick={generateBlog} disabled={isGenerating} variant="outline" className="shrink-0">
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                Generate with AI
+              </Button>
             </div>
-            <Button onClick={generateBlog} disabled={isGenerating} variant="outline" className="shrink-0">
-              {isGenerating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Sparkles className="h-4 w-4 mr-2" />
-              )}
-              Generate with AI
-            </Button>
+            <Textarea
+              placeholder="Additional context (optional): target audience, specific Scripture to include, tone preferences..."
+              value={additionalContext}
+              onChange={(e) => setAdditionalContext(e.target.value)}
+              disabled={isGenerating}
+              rows={2}
+              className="text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              AI generates AEO-optimized content with question-style headings, SEO keywords, and long-tail queries.
+            </p>
           </div>
         </CardHeader>
 
@@ -243,52 +292,66 @@ export const BlogManagement = () => {
                   <TableHead>Title</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Keywords</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {posts?.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="font-medium">{post.title}</TableCell>
-                    <TableCell>{post.category}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          post.published
-                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                            : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                        }`}
-                      >
-                        {post.published ? "Published" : "Draft"}
-                      </span>
-                    </TableCell>
-                    <TableCell>{format(new Date(post.created_at), "MMM d, yyyy")}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button size="icon" variant="ghost" asChild>
-                          <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
-                            <Eye className="h-4 w-4" />
-                          </a>
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(post)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => {
-                            if (confirm("Are you sure you want to delete this post?")) {
-                              deleteMutation.mutate(post.id);
-                            }
-                          }}
+                {posts?.map((post) => {
+                  const status = getPostStatus(post);
+                  return (
+                    <TableRow key={post.id}>
+                      <TableCell className="font-medium max-w-[200px] truncate">{post.title}</TableCell>
+                      <TableCell className="capitalize">{post.category}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            status === "published"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                          }`}
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {status === "published" ? "Published" : "Draft"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="max-w-[150px]">
+                        {post.seo_keywords && post.seo_keywords.length > 0 ? (
+                          <span className="text-xs text-muted-foreground truncate block">
+                            {post.seo_keywords.slice(0, 2).join(", ")}
+                            {post.seo_keywords.length > 2 && ` +${post.seo_keywords.length - 2}`}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{format(new Date(post.created_at), "MMM d, yyyy")}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button size="icon" variant="ghost" asChild>
+                            <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
+                              <Eye className="h-4 w-4" />
+                            </a>
+                          </Button>
+                          <Button size="icon" variant="ghost" onClick={() => handleEdit(post)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              if (confirm("Are you sure you want to delete this post?")) {
+                                deleteMutation.mutate(post.id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
