@@ -5,8 +5,15 @@ import { FAQ } from "@/components/FAQ";
 import { FeaturedBlogPosts } from "@/components/FeaturedBlogPosts";
 import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import tubeProduct from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal-product.jpg";
+import journal1 from "@/assets/journal-1.jpg";
+import journal2 from "@/assets/journal-2.jpg";
+import journal4 from "@/assets/journal-4.jpg";
+import journal5 from "@/assets/journal-5.jpg";
+import journal6 from "@/assets/journal-6.jpg";
+import journal7 from "@/assets/journal-7.jpg";
 
 const Index = () => {
   return (
@@ -24,37 +31,68 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            <ProductCard
-              title="Serenity Scrolls Tube"
-              description="96 color-coded Bible verse scrolls organized by emotion"
-              image={tubeProduct}
-              badge="Bestseller"
-              amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
-              features={[
-                "96 carefully curated Bible verses",
-                "Color-coded for 6 emotions: Grateful, Frustrated, Anxious, Happy, Sad, Troubled",
-                "Portable tube design - take peace anywhere",
-                "Draw a scroll that speaks to your current mood",
-                "Perfect for daily devotions or group sharing",
-              ]}
-            />
-
-            <ProductCard
-              title="Serenity Scrolls Reflection Journal"
-              description="Your companion for deep spiritual reflection and growth"
-              image={journalProduct}
-              badge="Coming Soon"
-              amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
-              features={[
-                "All 96 verses with 2-page spreads",
-                "10 reflection questions per verse",
-                "Guided prayers for each emotion",
-                "Space for personal notes and insights",
-                "Includes product access code for AI Servant",
-              ]}
-            />
-          </div>
+          <Tabs defaultValue="scrolls" className="max-w-5xl mx-auto">
+            <TabsList className="grid w-full grid-cols-2 mb-8 h-auto">
+              <TabsTrigger value="scrolls" className="text-lg py-3">Serenity Scrolls Tube</TabsTrigger>
+              <TabsTrigger value="journal" className="text-lg py-3">Reflection Journal</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="scrolls" className="mt-0">
+              <div className="max-w-2xl mx-auto">
+                <ProductCard
+                  title="Serenity Scrolls Tube"
+                  description="96 color-coded Bible verse scrolls organized by emotion"
+                  image={tubeProduct}
+                  badge="Bestseller"
+                  amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
+                  features={[
+                    "96 carefully curated Bible verses",
+                    "Color-coded for 6 emotions: Grateful, Frustrated, Anxious, Happy, Sad, Troubled",
+                    "Portable tube design - take peace anywhere",
+                    "Draw a scroll that speaks to your current mood",
+                    "Perfect for daily devotions or group sharing",
+                  ]}
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="journal" className="mt-0">
+              <div className="max-w-4xl mx-auto">
+                <div className="grid md:grid-cols-2 gap-8 items-start">
+                  <ProductCard
+                    title="Serenity Scrolls Reflection Journal"
+                    description="Your companion for deep spiritual reflection and growth"
+                    image={journalProduct}
+                    badge="Coming Soon"
+                    amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
+                    features={[
+                      "All 96 verses with 2-page spreads",
+                      "10 reflection questions per verse",
+                      "Guided prayers for each emotion",
+                      "Space for personal notes and insights",
+                      "Includes product access code for AI Servant",
+                    ]}
+                  />
+                  
+                  {/* Journal Gallery */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-center mb-4">Inside the Journal</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <img src={journal1} alt="Journal cover and pages" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
+                      <img src={journal2} alt="Journal emotion tabs" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
+                      <img src={journal4} alt="Journal reflection pages" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
+                      <img src={journal5} alt="Journal guided prompts" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-4 text-center">
+                      <p className="text-sm text-muted-foreground italic">
+                        "Our journal passages are drawn from the King James Version (KJV), chosen for its timeless language, poetic beauty, and deep roots in Christian tradition."
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
