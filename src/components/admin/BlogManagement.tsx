@@ -235,10 +235,10 @@ export const BlogManagement = () => {
       <Card>
         <CardHeader className="flex flex-col gap-4">
           <div className="flex flex-row items-center justify-between">
-            <CardTitle>Blog Posts</CardTitle>
+            <CardTitle>Website SEAL Generator</CardTitle>
             <Button onClick={() => { setEditingPost(null); setFormData(initialFormData); setIsDialogOpen(true); }}>
               <Plus className="h-4 w-4 mr-2" />
-              New Post
+              New SEAL
             </Button>
           </div>
           
@@ -259,7 +259,7 @@ export const BlogManagement = () => {
                 ) : (
                   <Sparkles className="h-4 w-4 mr-2" />
                 )}
-                Generate with AI
+                Generate SEAL with AI
               </Button>
             </div>
             <Textarea
@@ -271,7 +271,7 @@ export const BlogManagement = () => {
               className="text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              AI generates AEO-optimized content with question-style headings, SEO keywords, and long-tail queries.
+              AI generates AEO-optimized SEAL content with question-style headings, SEO keywords, and long-tail queries.
             </p>
           </div>
         </CardHeader>
@@ -283,7 +283,7 @@ export const BlogManagement = () => {
             </div>
           ) : posts?.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No blog posts yet. Create your first post or generate one with AI!
+              No SEAL content yet. Create your first post or generate one with AI!
             </div>
           ) : (
             <Table>
@@ -362,7 +362,7 @@ export const BlogManagement = () => {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingPost ? "Edit Post" : "Create New Post"}</DialogTitle>
+            <DialogTitle>{editingPost ? "Edit SEAL Content" : "Create New SEAL Content"}</DialogTitle>
           </DialogHeader>
           <BlogPostForm
             formData={formData}
