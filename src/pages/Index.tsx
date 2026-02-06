@@ -32,12 +32,28 @@ const Index = () => {
           </div>
 
           <Tabs defaultValue="scrolls" className="max-w-5xl mx-auto">
-            <TabsList className="grid w-full grid-cols-2 mb-8 h-auto">
-              <TabsTrigger value="scrolls" className="text-lg py-3">Serenity Scrolls Tube</TabsTrigger>
-              <TabsTrigger value="journal" className="text-lg py-3">Reflection Journal</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-10 h-auto bg-transparent gap-4 p-0">
+              <TabsTrigger 
+                value="scrolls" 
+                className="text-lg py-4 px-6 rounded-xl border-2 border-border bg-card shadow-sm transition-all duration-300 data-[state=active]:border-primary data-[state=active]:bg-primary/5 data-[state=active]:shadow-lg data-[state=active]:scale-[1.02] hover:border-primary/50 hover:bg-muted/50"
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="font-semibold">📜 Serenity Scrolls Tube</span>
+                  <span className="text-xs text-muted-foreground font-normal">96 Bible Verse Scrolls</span>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="journal" 
+                className="text-lg py-4 px-6 rounded-xl border-2 border-border bg-card shadow-sm transition-all duration-300 data-[state=active]:border-primary data-[state=active]:bg-primary/5 data-[state=active]:shadow-lg data-[state=active]:scale-[1.02] hover:border-primary/50 hover:bg-muted/50"
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="font-semibold">📓 Reflection Journal</span>
+                  <span className="text-xs text-muted-foreground font-normal">Deep Spiritual Growth</span>
+                </div>
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="scrolls" className="mt-0">
+            <TabsContent value="scrolls" className="mt-0 animate-in fade-in-50 duration-300">
               <div className="max-w-2xl mx-auto">
                 <ProductCard
                   title="Serenity Scrolls Tube"
@@ -56,7 +72,7 @@ const Index = () => {
               </div>
             </TabsContent>
             
-            <TabsContent value="journal" className="mt-0">
+            <TabsContent value="journal" className="mt-0 animate-in fade-in-50 duration-300">
               <div className="max-w-4xl mx-auto">
                 <div className="grid md:grid-cols-2 gap-8 items-start">
                   <ProductCard
@@ -78,12 +94,12 @@ const Index = () => {
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold text-center mb-4">Inside the Journal</h3>
                     <div className="grid grid-cols-2 gap-3">
-                      <img src={journal1} alt="Journal cover and pages" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
-                      <img src={journal2} alt="Journal emotion tabs" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
-                      <img src={journal4} alt="Journal reflection pages" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
-                      <img src={journal5} alt="Journal guided prompts" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
+                      <img src={journal1} alt="Journal cover and pages" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer shadow-md" />
+                      <img src={journal2} alt="Journal emotion tabs" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer shadow-md" />
+                      <img src={journal4} alt="Journal reflection pages" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer shadow-md" />
+                      <img src={journal5} alt="Journal guided prompts" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer shadow-md" />
                     </div>
-                    <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
                       <p className="text-sm text-muted-foreground italic">
                         "Our journal passages are drawn from the King James Version (KJV), chosen for its timeless language, poetic beauty, and deep roots in Christian tradition."
                       </p>
