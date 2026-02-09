@@ -1,3 +1,5 @@
+import { useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -11,9 +13,10 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Settings, Search } from "lucide-react";
+import { FileText, Settings, Search, Upload, Loader2, ImagePlus } from "lucide-react";
 import { FeaturedImageUpload } from "./FeaturedImageUpload";
 import { TagInput } from "@/components/ui/tag-input";
+import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 interface BlogFormData {
@@ -68,6 +71,10 @@ export const BlogPostForm = ({
   isEditing,
   isPending,
 }: BlogPostFormProps) => {
+  const [isInsertingImage, setIsInsertingImage] = useState(false);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const inlineFileRef = useRef<HTMLInputElement>(null);
+
   const handleTitleChange = (value: string) => {
     setFormData({
       ...formData,
@@ -90,13 +97,56 @@ export const BlogPostForm = ({
       status: newStatus,
       published: newStatus === "published",
     };
-    
-    // Set published_at when first publishing
     if (newStatus === "published" && !formData.published_at) {
       updates.published_at = new Date().toISOString();
     }
-    
     setFormData({ ...formData, ...updates });
+  };
+
+  const handleInlineImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ variant: "destructive", title: "Invalid file type", description: "Please upload an image file." });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: "destructive", title: "File too large", description: "Max 5MB." });
+      return;
+    }
+
+    setIsInsertingImage(true);
+    try {
+      const filename = `inline-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, "_")}`;
+      const { error } = await supabase.storage
+        .from("blog-images")
+        .upload(filename, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from("blog-images")
+        .getPublicUrl(filename);
+
+      const textarea = contentRef.current;
+      const imageMarkdown = `\n![${file.name}](${publicUrlData.publicUrl})\n`;
+
+      if (textarea) {
+        const start = textarea.selectionStart;
+        const before = formData.content.substring(0, start);
+        const after = formData.content.substring(start);
+        setFormData({ ...formData, content: before + imageMarkdown + after });
+      } else {
+        setFormData({ ...formData, content: formData.content + imageMarkdown });
+      }
+
+      toast({ title: "Image inserted into content!" });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: error.message });
+    } finally {
+      setIsInsertingImage(false);
+      if (inlineFileRef.current) inlineFileRef.current.value = "";
+    }
   };
 
   return (
@@ -122,9 +172,16 @@ export const BlogPostForm = ({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Post Details</CardTitle>
-              <CardDescription>Write your blog post content</CardDescription>
+              <CardDescription>Write your SEAL content</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Featured Image - moved here for visibility */}
+              <FeaturedImageUpload
+                value={formData.featured_image}
+                onChange={(url) => setFormData({ ...formData, featured_image: url })}
+                blogTitle={formData.title}
+              />
+
               <div className="space-y-2">
                 <Label htmlFor="title">Title *</Label>
                 <Input
@@ -155,12 +212,39 @@ export const BlogPostForm = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Content *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="content">Content *</Label>
+                  <div>
+                    <input
+                      ref={inlineFileRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleInlineImageUpload}
+                      className="hidden"
+                      disabled={isInsertingImage}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => inlineFileRef.current?.click()}
+                      disabled={isInsertingImage}
+                    >
+                      {isInsertingImage ? (
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      ) : (
+                        <ImagePlus className="h-4 w-4 mr-1" />
+                      )}
+                      Insert Image
+                    </Button>
+                  </div>
+                </div>
                 <Textarea
+                  ref={contentRef}
                   id="content"
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  placeholder="Write your blog post content here... Use markdown for formatting:
+                  placeholder="Write your SEAL content here... Use markdown for formatting:
                   
 ## Headers
 > Scripture blockquotes
@@ -171,7 +255,7 @@ export const BlogPostForm = ({
                   required
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Supports Markdown formatting</span>
+                  <span>Supports Markdown · Click "Insert Image" to add images inline</span>
                   <span>{formData.content.split(/\s+/).filter(Boolean).length} words</span>
                 </div>
               </div>
@@ -237,11 +321,7 @@ export const BlogPostForm = ({
                 </p>
               </div>
 
-              <FeaturedImageUpload
-                value={formData.featured_image}
-                onChange={(url) => setFormData({ ...formData, featured_image: url })}
-                blogTitle={formData.title}
-              />
+              {/* Featured image moved to Content tab */}
 
               <div className="p-4 bg-muted/50 rounded-lg space-y-3">
                 <div className="space-y-2">
