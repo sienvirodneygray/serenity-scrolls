@@ -14,3 +14,12 @@ verify_jwt = false
 
 [functions.generate-blog-image]
 verify_jwt = false
+
+[functions.seo-engine-generate]
+verify_jwt = false
+
+[functions.seo-engine-scheduler]
+verify_jwt = false
+
+[functions.seo-engine-validate]
+verify_jwt = false

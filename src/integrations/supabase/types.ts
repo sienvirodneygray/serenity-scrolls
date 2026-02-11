@@ -369,62 +369,127 @@ export type Database = {
       blog_posts: {
         Row: {
           author: string
+          avg_time_on_page: number | null
           category: string
+          cluster_id: string | null
           content: string
           created_at: string
           excerpt: string
+          external_links: string[] | null
+          faq_schema: Json | null
           featured_image: string | null
+          format_type: string | null
           id: string
+          image_prompt: string | null
+          internal_links: string[] | null
+          last_refreshed_at: string | null
           long_tail_queries: string[] | null
           meta_description: string | null
           meta_title: string | null
+          og_description: string | null
+          og_title: string | null
+          post_type: string | null
+          primary_keyword: string | null
+          publish_at: string | null
           published: boolean
           published_at: string | null
+          ranking_notes: string | null
+          search_intent: string | null
+          secondary_keywords: string[] | null
           seo_keywords: string[] | null
           slug: string
           status: string | null
+          target_persona: string | null
           title: string
           updated_at: string
+          views: number | null
+          word_count: number | null
         }
         Insert: {
           author?: string
+          avg_time_on_page?: number | null
           category: string
+          cluster_id?: string | null
           content: string
           created_at?: string
           excerpt: string
+          external_links?: string[] | null
+          faq_schema?: Json | null
           featured_image?: string | null
+          format_type?: string | null
           id?: string
+          image_prompt?: string | null
+          internal_links?: string[] | null
+          last_refreshed_at?: string | null
           long_tail_queries?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
+          og_description?: string | null
+          og_title?: string | null
+          post_type?: string | null
+          primary_keyword?: string | null
+          publish_at?: string | null
           published?: boolean
           published_at?: string | null
+          ranking_notes?: string | null
+          search_intent?: string | null
+          secondary_keywords?: string[] | null
           seo_keywords?: string[] | null
           slug: string
           status?: string | null
+          target_persona?: string | null
           title: string
           updated_at?: string
+          views?: number | null
+          word_count?: number | null
         }
         Update: {
           author?: string
+          avg_time_on_page?: number | null
           category?: string
+          cluster_id?: string | null
           content?: string
           created_at?: string
           excerpt?: string
+          external_links?: string[] | null
+          faq_schema?: Json | null
           featured_image?: string | null
+          format_type?: string | null
           id?: string
+          image_prompt?: string | null
+          internal_links?: string[] | null
+          last_refreshed_at?: string | null
           long_tail_queries?: string[] | null
           meta_description?: string | null
           meta_title?: string | null
+          og_description?: string | null
+          og_title?: string | null
+          post_type?: string | null
+          primary_keyword?: string | null
+          publish_at?: string | null
           published?: boolean
           published_at?: string | null
+          ranking_notes?: string | null
+          search_intent?: string | null
+          secondary_keywords?: string[] | null
           seo_keywords?: string[] | null
           slug?: string
           status?: string | null
+          target_persona?: string | null
           title?: string
           updated_at?: string
+          views?: number | null
+          word_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "blog_posts_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "topic_clusters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cart_items: {
         Row: {
@@ -698,6 +763,98 @@ export type Database = {
         }
         Relationships: []
       }
+      publish_log: {
+        Row: {
+          action_type: string
+          attempted_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          post_id: string | null
+          retry_count: number
+          scheduled_for: string
+          status: string
+        }
+        Insert: {
+          action_type?: string
+          attempted_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          post_id?: string | null
+          retry_count?: number
+          scheduled_for: string
+          status?: string
+        }
+        Update: {
+          action_type?: string
+          attempted_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          post_id?: string | null
+          retry_count?: number
+          scheduled_for?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publish_log_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seo_config: {
+        Row: {
+          audience_personas: string | null
+          brand_voice: Json | null
+          created_at: string
+          cta_preference: string | null
+          id: string
+          niche_summary: string | null
+          publish_enabled: boolean
+          publish_time: string
+          schedule_days: string[]
+          seo_targets: Json | null
+          site_name: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          audience_personas?: string | null
+          brand_voice?: Json | null
+          created_at?: string
+          cta_preference?: string | null
+          id?: string
+          niche_summary?: string | null
+          publish_enabled?: boolean
+          publish_time?: string
+          schedule_days?: string[]
+          seo_targets?: Json | null
+          site_name?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          audience_personas?: string | null
+          brand_voice?: Json | null
+          created_at?: string
+          cta_preference?: string | null
+          id?: string
+          niche_summary?: string | null
+          publish_enabled?: boolean
+          publish_time?: string
+          schedule_days?: string[]
+          seo_targets?: Json | null
+          site_name?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           consent_status: string
@@ -727,6 +884,94 @@ export type Database = {
           tag?: string | null
         }
         Relationships: []
+      }
+      topic_backlog: {
+        Row: {
+          cluster_id: string | null
+          created_at: string
+          format_type: string | null
+          id: string
+          notes: string | null
+          primary_keyword: string | null
+          priority: number
+          status: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          cluster_id?: string | null
+          created_at?: string
+          format_type?: string | null
+          id?: string
+          notes?: string | null
+          primary_keyword?: string | null
+          priority?: number
+          status?: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          cluster_id?: string | null
+          created_at?: string
+          format_type?: string | null
+          id?: string
+          notes?: string | null
+          primary_keyword?: string | null
+          priority?: number
+          status?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topic_backlog_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "topic_clusters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topic_clusters: {
+        Row: {
+          created_at: string
+          description: string | null
+          goals: string | null
+          id: string
+          name: string
+          notes: string | null
+          pillar_post_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          goals?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          pillar_post_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          goals?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          pillar_post_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_pillar_post"
+            columns: ["pillar_post_id"]
+            isOneToOne: false
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
