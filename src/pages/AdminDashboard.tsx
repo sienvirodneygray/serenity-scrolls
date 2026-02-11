@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle } from "lucide-react";
+import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle, Rocket } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
 import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
@@ -14,6 +14,7 @@ import { PagesAnalytics } from "@/components/admin/PagesAnalytics";
 import { AccessRequestsManagement } from "@/components/admin/AccessRequestsManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
 import { FAQManagement } from "@/components/admin/FAQManagement";
+import { SEOAuthorityEngine } from "@/components/admin/SEOAuthorityEngine";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -120,6 +121,10 @@ export default function AdminDashboard() {
               <HelpCircle className="h-4 w-4" />
               FAQ
             </TabsTrigger>
+            <TabsTrigger value="seo-engine" className="flex items-center gap-2">
+              <Rocket className="h-4 w-4" />
+              SEO Engine
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -156,6 +161,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="faq" className="space-y-6">
             <FAQManagement />
+          </TabsContent>
+
+          <TabsContent value="seo-engine" className="space-y-6">
+            <SEOAuthorityEngine />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
