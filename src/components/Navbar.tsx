@@ -36,11 +36,16 @@ export const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
+          <Button variant="ghost" asChild>
+            <Link to="/servant-landing">
+              <Sparkles className="mr-2 h-4 w-4" />
+              AI Servant
+            </Link>
+          </Button>
           {user ? (
             <>
               <Button variant="ghost" asChild>
                 <Link to="/servant">
-                  <Sparkles className="mr-2 h-4 w-4" />
                   Your Servant
                 </Link>
               </Button>

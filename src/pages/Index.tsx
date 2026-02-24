@@ -6,6 +6,7 @@ import { FeaturedBlogPosts } from "@/components/FeaturedBlogPosts";
 import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WEBSITE_AMAZON_URL } from "@/lib/amazonAttribution";
 import tubeProduct from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal-product.jpg";
 import journal1 from "@/assets/journal-1.jpg";
@@ -36,7 +37,7 @@ const Index = () => {
               <TabsTrigger value="scrolls" className="text-lg py-3">Serenity Scrolls Tube</TabsTrigger>
               <TabsTrigger value="journal" className="text-lg py-3">Reflection Journal</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="scrolls" className="mt-0">
               <div className="max-w-2xl mx-auto">
                 <ProductCard
@@ -44,7 +45,7 @@ const Index = () => {
                   description="96 color-coded Bible verse scrolls organized by emotion"
                   image={tubeProduct}
                   badge="Bestseller"
-                  amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
+                  amazonUrl={WEBSITE_AMAZON_URL}
                   features={[
                     "96 carefully curated Bible verses",
                     "Color-coded for 6 emotions: Grateful, Frustrated, Anxious, Happy, Sad, Troubled",
@@ -55,7 +56,7 @@ const Index = () => {
                 />
               </div>
             </TabsContent>
-            
+
             <TabsContent value="journal" className="mt-0">
               <div className="max-w-4xl mx-auto">
                 <div className="grid md:grid-cols-2 gap-8 items-start">
@@ -64,7 +65,7 @@ const Index = () => {
                     description="Your companion for deep spiritual reflection and growth"
                     image={journalProduct}
                     badge="Coming Soon"
-                    amazonUrl="https://www.amazon.com/SERENITY-SCROLLS-Scrolls-Scriptures-Inspirational/dp/B0F1HKXBFM"
+                    amazonUrl={WEBSITE_AMAZON_URL}
                     features={[
                       "All 96 verses with 2-page spreads",
                       "10 reflection questions per verse",
@@ -73,7 +74,7 @@ const Index = () => {
                       "Includes product access code for AI Servant",
                     ]}
                   />
-                  
+
                   {/* Journal Gallery */}
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold text-center mb-4">Inside the Journal</h3>
@@ -109,15 +110,15 @@ const Index = () => {
             <h2 className="text-4xl font-bold mb-6">Our Story</h2>
             <div className="space-y-4 text-lg text-muted-foreground">
               <p>
-                Serenity Scrolls was born from a simple truth: we all experience a spectrum of emotions, 
+                Serenity Scrolls was born from a simple truth: we all experience a spectrum of emotions,
                 and Scripture has wisdom for every one of them.
               </p>
               <p>
-                Whether you're overflowing with gratitude, feeling frustrated, wrestling with anxiety, celebrating joy, 
+                Whether you're overflowing with gratitude, feeling frustrated, wrestling with anxiety, celebrating joy,
                 navigating sadness, or facing troubled times - there's a verse waiting to meet you where you are.
               </p>
               <p>
-                Our color-coded system makes it effortless to find the right word at the right time. 
+                Our color-coded system makes it effortless to find the right word at the right time.
                 No more endless searching. Just reach for your emotion, and let Scripture guide you home.
               </p>
             </div>
@@ -135,8 +136,8 @@ const Index = () => {
             <p className="text-sm text-muted-foreground text-center">
               Find peace in every emotion through Scripture
             </p>
-            <a 
-              href="/admin/login" 
+            <a
+              href="/admin/login"
               className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
             >
               Admin
