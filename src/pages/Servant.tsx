@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
-import { Send, Loader2, Sparkles, BookOpen, ArrowRight } from "lucide-react";
+import { Send, Loader2, Sparkles, BookOpen, ArrowRight, Lock, Clock } from "lucide-react";
 
 type Message = {
   role: "user" | "assistant";
@@ -20,10 +20,19 @@ const Servant = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
-  const [version, setVersion] = useState<"1.0" | "2.0">("2.0");
+  const [version, setVersion] = useState<"1.0" | "2.0">("1.0");
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>("none");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const canAccessV2 = subscriptionStatus === "active";
+
   const handleVersionSwitch = (v: "1.0" | "2.0") => {
+    if (v === "2.0" && !canAccessV2) {
+      // Show upgrade prompt instead of switching
+      toast.info("Servant+ requires a subscription. Upgrade to unlock advanced reflections!");
+      return;
+    }
     if (v !== version) {
       setVersion(v);
       setMessages([]);
@@ -47,24 +56,43 @@ const Servant = () => {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
-      // Redirect to new verification flow instead of old auth
-      navigate("/servant-access");
+      navigate("/unlock");
       return;
     }
 
     setUser(session.user);
 
-    // Check if user has access
+    // Check access + expiry
     const { data: profile } = await supabase
       .from("profiles")
-      .select("has_access")
+      .select("has_access, access_expires_at, subscription_status")
       .eq("id", session.user.id)
       .single();
 
     if (!profile?.has_access) {
       toast.error("Please verify your purchase first");
-      navigate("/servant-access");
+      navigate("/unlock");
       return;
+    }
+
+    // Check if access has expired
+    if (profile.access_expires_at) {
+      const expiresAt = new Date(profile.access_expires_at);
+      const now = new Date();
+      const remaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      setDaysRemaining(remaining);
+
+      if (remaining <= 0 && profile.subscription_status !== "active") {
+        navigate("/servant-expired");
+        return;
+      }
+    }
+
+    setSubscriptionStatus(profile.subscription_status || "none");
+
+    // If user has active subscription, allow v2.0
+    if (profile.subscription_status === "active") {
+      setVersion("2.0");
     }
 
     // Load previous messages
@@ -236,10 +264,28 @@ const Servant = () => {
                 : "text-muted-foreground hover:text-foreground"
                 }`}
             >
-              <Sparkles className="h-4 w-4" />
+              {canAccessV2 ? (
+                <Sparkles className="h-4 w-4" />
+              ) : (
+                <Lock className="h-4 w-4" />
+              )}
               2.0 Advanced
+              {!canAccessV2 && (
+                <span className="text-[10px] bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1 py-0.5 rounded-full ml-1">PRO</span>
+              )}
             </button>
           </div>
+
+          {/* Days Remaining Badge */}
+          {daysRemaining !== null && subscriptionStatus !== "active" && (
+            <div className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full text-xs font-medium ${daysRemaining > 10 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : daysRemaining > 3 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+              }`}>
+              <Clock className="h-3 w-3" />
+              {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining
+            </div>
+          )}
         </div>
 
         <Card className="flex-1 flex flex-col overflow-hidden">

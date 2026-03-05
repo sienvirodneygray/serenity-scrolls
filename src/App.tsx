@@ -11,6 +11,8 @@ import Servant from "./pages/Servant";
 import ServantAccess from "./pages/ServantAccess";
 import ServantLanding from "./pages/ServantLanding";
 import ServantTest from "./pages/ServantTest";
+import Unlock from "./pages/Unlock";
+import ServantExpired from "./pages/ServantExpired";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import Shop from "./pages/Shop";
@@ -36,6 +38,8 @@ const App = () => (
             <Route path="/servant" element={<Servant />} />
             <Route path="/servant-access" element={<ServantAccess />} />
             <Route path="/servant-landing" element={<ServantLanding />} />
+            <Route path="/unlock" element={<Unlock />} />
+            <Route path="/servant-expired" element={<ServantExpired />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
