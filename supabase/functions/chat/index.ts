@@ -215,6 +215,12 @@ Prayer: "God, calm my heart and guide my next step."`;
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    // Prepend system prompt as first content entry
+    const allContents = [
+      { role: "user", parts: [{ text: systemPrompt }] },
+      { role: "model", parts: [{ text: "Understood. I will follow these instructions." }] },
+      ...contents,
+    ];
 
     // Call Google Gemini API directly with streaming
     const aiResponse = await fetch(
@@ -225,10 +231,7 @@ Prayer: "God, calm my heart and guide my next step."`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: systemPrompt }],
-          },
-          contents,
+          contents: allContents,
         }),
       }
     );
@@ -242,7 +245,7 @@ Prayer: "God, calm my heart and guide my next step."`;
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      return new Response(JSON.stringify({ error: "AI service error" }), {
+      return new Response(JSON.stringify({ error: `AI service error: ${aiResponse.status} ${txt.slice(0, 200)}` }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

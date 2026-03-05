@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Servant from "./pages/Servant";
 import ServantAccess from "./pages/ServantAccess";
 import ServantLanding from "./pages/ServantLanding";
+import ServantTest from "./pages/ServantTest";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import Shop from "./pages/Shop";
@@ -42,6 +43,7 @@ const App = () => (
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/servant-test" element={<ServantTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
