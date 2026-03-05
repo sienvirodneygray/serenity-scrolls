@@ -62,6 +62,38 @@ const faqs = [
     question: "Do you offer bulk or church orders?",
     answer: "Yes! We offer special pricing for churches, Bible study groups, counseling centers, and bulk orders. Please contact us directly for group pricing and customization options.",
   },
+  {
+    question: "What does the Bible say about artificial intelligence?",
+    answer: "The Bible does not mention artificial intelligence directly, but Scripture speaks clearly about wisdom, knowledge, human responsibility, and how we use what we create. Humans are creators made in God's image (Genesis 1:27), but we are not the Creator. Proverbs teaches that wisdom matters more than raw knowledge. Technology itself is neutral; the heart behind it matters. Genesis 2:15 calls us to steward creation with care and accountability, and Proverbs 4:23 reminds us to guard our hearts. The Bible encourages us to ask: Is this aligned with love? Is it truthful? Does it honor human dignity?",
+  },
+  {
+    question: "Is it okay for Christians to use AI?",
+    answer: "The Bible does not mention AI directly, so the answer comes down to wisdom and heart posture. Most Christian thinkers would say yes, it is okay for Christians to use AI, but how it is used matters deeply. Key principles include: Does it reflect love? Does it support truth? Does it replace healthy dependence on prayer and real relationships? Is it used with humility? AI is a tool that can be used for learning, creativity, work, and serving others. For Christians, the deeper question is: Does my use of this tool reflect Christ's character?",
+  },
+  {
+    question: "Is AI mentioned in the book of Revelation?",
+    answer: "No, artificial intelligence is not mentioned in the book of Revelation. Revelation was written in the first century and uses symbolic language to describe spiritual realities, persecution, judgment, and hope. Some readers point to symbolic passages like the 'image of the beast' in Revelation 13 and speculate about modern technology, but most biblical scholars understand Revelation as highly symbolic and focused on spiritual allegiance and faithfulness, not technical predictions of modern inventions.",
+  },
+  {
+    question: "Where is AI mentioned in the Bible?",
+    answer: "AI is not mentioned anywhere in the Bible. The word 'artificial intelligence' does not appear, and there are no direct references to computers, software, or modern technology. However, the Bible does talk about themes that relate to how we think about AI: wisdom and knowledge, human creativity, power and responsibility, truth and deception, and stewardship over what we build. Biblical principles can guide how people think about using and developing technology.",
+  },
+  {
+    question: "Why is Matthew 17:21 missing from some Bibles?",
+    answer: "Matthew 17:21 is missing in some modern Bible versions because the earliest and most reliable Greek manuscripts of the Gospel of Matthew do not contain that verse. Scholars believe the verse was likely added later by a copyist, possibly harmonized from a similar passage in Mark 9:29. Modern translations aim to reflect the earliest available manuscripts. When a verse appears in later manuscripts but not the earliest, translators usually omit it from the main text and add it as a footnote. Nothing doctrinal is changed by this verse.",
+  },
+  {
+    question: "What does 444 mean in the Bible?",
+    answer: "The number 444 does not have a specific meaning connected to Jesus or a symbolic meaning in Scripture. In modern culture, some people associate repeating numbers like 444 with 'angel numbers' or spiritual signs, but these ideas do not come from the Bible. Jesus did not teach that repeating numbers carry hidden messages. If someone keeps noticing 444, it is usually pattern recognition, as the human brain is wired to notice repetition. The Bible does have numbers with symbolic meaning, but 444 is not one of them.",
+  },
+  {
+    question: "What is the difference between Servant 1.0 and Servant 2.0?",
+    answer: "Servant 1.0 is the standard customer companion that provides Scripture Snapshots, gentle reflections, journal prompts, and small actionable steps based on your mood or moment. Servant 2.0 (Servant+) is the advanced version that adds emotional intelligence (EQ) mapping, virtue-based reflections, and insights from the Serenity Leadership Framework. It connects each mood to an EQ dimension and related virtue for deeper self-awareness and growth.",
+  },
+  {
+    question: "What Bible translation do the Scrolls use?",
+    answer: "We primarily use the New International Version (NIV) for its balance of accuracy and readability. Some verses may include the English Standard Version (ESV) or King James Version (KJV) when they particularly resonate with the emotional context of the scroll.",
+  },
 ];
 
 export const FAQ = () => {
