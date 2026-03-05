@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { renderMarkdown } from "@/components/ChatMarkdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -413,11 +414,15 @@ const ServantTestFlow = () => {
 
                             {messages.map((msg, i) => (
                                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                                    <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${msg.role === "user"
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-muted"
+                                    <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${msg.role === "user"
+                                        ? "bg-primary text-primary-foreground rounded-br-md"
+                                        : "bg-muted/80 border border-border/50 rounded-bl-md"
                                         }`}>
-                                        {msg.content || "..."}
+                                        {msg.role === "assistant" ? (
+                                            <div className="prose-chat space-y-0.5">{renderMarkdown(msg.content || "...")}</div>
+                                        ) : (
+                                            <p className="whitespace-pre-wrap">{msg.content}</p>
+                                        )}
                                     </div>
                                 </div>
                             ))}

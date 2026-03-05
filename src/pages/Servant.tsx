@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { renderMarkdown } from "@/components/ChatMarkdown";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -279,8 +280,8 @@ const Servant = () => {
           {/* Days Remaining Badge */}
           {daysRemaining !== null && subscriptionStatus !== "active" && (
             <div className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full text-xs font-medium ${daysRemaining > 10 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                : daysRemaining > 3 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+              : daysRemaining > 3 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
               }`}>
               <Clock className="h-3 w-3" />
               {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining
@@ -335,12 +336,16 @@ const Servant = () => {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted"
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${msg.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-md"
+                    : "bg-muted/80 border border-border/50 rounded-bl-md"
                     }`}
                 >
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                  {msg.role === "assistant" ? (
+                    <div className="prose-chat space-y-0.5">{renderMarkdown(msg.content)}</div>
+                  ) : (
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                  )}
                 </div>
               </div>
             ))}
