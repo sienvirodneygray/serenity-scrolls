@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Sparkles, BookOpen } from "lucide-react";
 
 type Message = {
   role: "user" | "assistant";
@@ -20,7 +20,16 @@ const Servant = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
+  const [version, setVersion] = useState<"1.0" | "2.0">("2.0");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleVersionSwitch = (v: "1.0" | "2.0") => {
+    if (v !== version) {
+      setVersion(v);
+      setMessages([]);
+      setThreadId(null);
+    }
+  };
 
   useEffect(() => {
     checkAccess();
@@ -36,7 +45,7 @@ const Servant = () => {
 
   const checkAccess = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     if (!session) {
       // Redirect to new verification flow instead of old auth
       navigate("/servant-access");
@@ -91,15 +100,22 @@ const Servant = () => {
     });
 
     try {
+      const allMessages = [...messages, userMessage].map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
+          messages: allMessages,
           message: messageText,
-          threadId: threadId
+          threadId: threadId,
+          version: version
         }),
       });
 
@@ -119,13 +135,13 @@ const Servant = () => {
 
       if (reader) {
         let buffer = "";
-        
+
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
-          
+
           let newlineIndex: number;
           while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
             let line = buffer.slice(0, newlineIndex);
@@ -139,20 +155,20 @@ const Servant = () => {
 
             try {
               const parsed = JSON.parse(jsonStr);
-              
+
               // Handle thread ID
               if (parsed.type === "thread_id") {
                 setThreadId(parsed.threadId);
                 console.log("Thread ID:", parsed.threadId);
               }
-              
+
               // Handle content
               if (parsed.type === "content") {
                 assistantContent += parsed.content;
                 setMessages(prev => {
                   const last = prev[prev.length - 1];
                   if (last?.role === "assistant") {
-                    return prev.map((m, i) => 
+                    return prev.map((m, i) =>
                       i === prev.length - 1 ? { ...m, content: assistantContent } : m
                     );
                   }
@@ -191,41 +207,74 @@ const Servant = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      
+
       <div className="flex-1 container mx-auto px-4 py-20 max-w-4xl flex flex-col">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">Serenity Scrolls Servant</h1>
-          <p className="text-muted-foreground">
-            Your spiritual companion for reflection and guidance
+          <h1 className="text-4xl font-bold mb-2">
+            {version === "1.0" ? "Serenity Scrolls Servant" : "Serenity Scrolls Servant+"}
+          </h1>
+          <p className="text-muted-foreground mb-4">
+            {version === "1.0"
+              ? "Your spiritual companion for reflection and guidance"
+              : "Advanced reflection with emotional intelligence and servant-leadership"}
           </p>
+          <div className="inline-flex items-center gap-1 bg-muted rounded-lg p-1">
+            <button
+              onClick={() => handleVersionSwitch("1.0")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${version === "1.0"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+                }`}
+            >
+              <BookOpen className="h-4 w-4" />
+              1.0 Basic
+            </button>
+            <button
+              onClick={() => handleVersionSwitch("2.0")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${version === "2.0"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+                }`}
+            >
+              <Sparkles className="h-4 w-4" />
+              2.0 Advanced
+            </button>
+          </div>
         </div>
 
         <Card className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.length === 0 && (
               <div className="text-center text-muted-foreground py-12">
-                <p className="text-lg mb-2">Welcome to Serenity Scrolls Servant</p>
-                <p className="text-sm">Ask me about Scripture, emotions, or spiritual guidance</p>
+                <p className="text-lg mb-2">
+                  {version === "1.0"
+                    ? "Welcome to Serenity Scrolls Servant"
+                    : "Welcome to Serenity Scrolls Servant+"}
+                </p>
+                <p className="text-sm">
+                  {version === "1.0"
+                    ? "Tell me your mood, a moment, or the name or color of a scroll"
+                    : "Tell me your mood, a moment, or the color of a scroll for an EQ-informed reflection"}
+                </p>
               </div>
             )}
-            
+
             {messages.map((msg, i) => (
               <div
                 key={i}
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                    msg.role === "user"
+                  className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted"
-                  }`}
+                    }`}
                 >
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
             ))}
-            
+
             {loading && (
               <div className="flex justify-start">
                 <div className="bg-muted rounded-lg px-4 py-2">
@@ -233,7 +282,7 @@ const Servant = () => {
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 
