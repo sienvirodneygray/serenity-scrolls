@@ -24,6 +24,7 @@ const Servant = () => {
   const [version, setVersion] = useState<"1.0" | "2.0">("1.0");
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>("none");
+  const [upsellDismissed, setUpsellDismissed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const canAccessV2 = subscriptionStatus === "active";
@@ -363,7 +364,7 @@ const Servant = () => {
             )}
 
             {/* Upsell Banner */}
-            {version === "1.0" && messages.filter(m => m.role === "user").length >= 3 && (
+            {version === "1.0" && !upsellDismissed && messages.filter(m => m.role === "user").length >= 3 && (
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mx-auto max-w-md text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-2">
                   <Sparkles className="h-4 w-4 text-amber-600" />
@@ -377,13 +378,21 @@ const Servant = () => {
                   <span className="text-lg font-bold text-amber-700 dark:text-amber-300">$19.99</span>
                   <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">50% OFF</span>
                 </div>
-                <Button
-                  size="sm"
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
-                  onClick={() => window.open('/servant-upgrade', '_blank')}
-                >
-                  Upgrade Now <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                </Button>
+                <div className="flex items-center justify-center gap-2">
+                  <Button
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-700 text-white"
+                    onClick={() => window.open('/servant-upgrade', '_blank')}
+                  >
+                    Upgrade Now <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                  </Button>
+                  <button
+                    onClick={() => setUpsellDismissed(true)}
+                    className="text-xs text-amber-600/70 dark:text-amber-400/70 hover:text-amber-800 dark:hover:text-amber-300 underline underline-offset-2 transition-colors"
+                  >
+                    Maybe next time
+                  </button>
+                </div>
               </div>
             )}
 
