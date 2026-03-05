@@ -129,7 +129,7 @@ const ServantTestFlow = () => {
                             try {
                                 const data = JSON.parse(dataStr);
                                 if (data.type === "done") continue;
-                                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                                const text = data.content || data.candidates?.[0]?.content?.parts?.[0]?.text;
                                 if (text) {
                                     assistantContent += text;
                                     setMessages(prev => {
@@ -351,8 +351,8 @@ const ServantTestFlow = () => {
                         {/* Days Remaining Badge */}
                         <div className="mt-3">
                             <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${daysRemaining > 10 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                    : daysRemaining > 3 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                        : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                : daysRemaining > 3 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                                 }`}>
                                 <Clock className="h-3 w-3" />
                                 {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining
@@ -414,8 +414,8 @@ const ServantTestFlow = () => {
                             {messages.map((msg, i) => (
                                 <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                                     <div className={`max-w-[80%] rounded-lg px-4 py-2 text-sm whitespace-pre-wrap ${msg.role === "user"
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted"
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-muted"
                                         }`}>
                                         {msg.content || "..."}
                                     </div>
