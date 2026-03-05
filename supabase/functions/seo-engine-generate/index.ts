@@ -79,48 +79,45 @@ function determineClusterNeed(clusters: TopicCluster[], posts: ExistingPost[]): 
 }
 
 const seoPostTool = {
-  type: "function",
-  function: {
-    name: "create_seo_post",
-    description: "Creates a complete SEO-optimized blog post",
-    parameters: {
-      type: "object",
-      properties: {
-        title: { type: "string", description: "H1 title" },
-        slug: { type: "string", description: "URL-friendly slug" },
-        excerpt: { type: "string", description: "1-2 sentence summary (100-160 chars)" },
-        content: { type: "string", description: "Full blog post in markdown with TOC, H2/H3, FAQ, Key Takeaways" },
-        category: { type: "string" },
-        meta_title: { type: "string", description: "50-60 chars" },
-        meta_description: { type: "string", description: "150-160 chars" },
-        og_title: { type: "string", description: "OG title" },
-        og_description: { type: "string", description: "OG description" },
-        primary_keyword: { type: "string" },
-        secondary_keywords: { type: "array", items: { type: "string" }, description: "3-8 secondary keywords" },
-        search_intent: { type: "string", enum: ["informational", "commercial", "transactional"] },
-        target_persona: { type: "string" },
-        format_type: { type: "string", enum: ["how-to", "list", "problem-solution"] },
-        post_type: { type: "string", enum: ["pillar", "spoke"] },
-        image_prompt: { type: "string", description: "Suggested featured image prompt" },
-        faq_items: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: { question: { type: "string" }, answer: { type: "string" } },
-            required: ["question", "answer"],
-          },
-          description: "3-6 FAQ items",
+  name: "create_seo_post",
+  description: "Creates a complete SEO-optimized blog post",
+  parameters: {
+    type: "object",
+    properties: {
+      title: { type: "string", description: "H1 title" },
+      slug: { type: "string", description: "URL-friendly slug" },
+      excerpt: { type: "string", description: "1-2 sentence summary (100-160 chars)" },
+      content: { type: "string", description: "Full blog post in markdown with TOC, H2/H3, FAQ, Key Takeaways" },
+      category: { type: "string" },
+      meta_title: { type: "string", description: "50-60 chars" },
+      meta_description: { type: "string", description: "150-160 chars" },
+      og_title: { type: "string", description: "OG title" },
+      og_description: { type: "string", description: "OG description" },
+      primary_keyword: { type: "string" },
+      secondary_keywords: { type: "array", items: { type: "string" }, description: "3-8 secondary keywords" },
+      search_intent: { type: "string", enum: ["informational", "commercial", "transactional"] },
+      target_persona: { type: "string" },
+      format_type: { type: "string", enum: ["how-to", "list", "problem-solution"] },
+      post_type: { type: "string", enum: ["pillar", "spoke"] },
+      image_prompt: { type: "string", description: "Suggested featured image prompt" },
+      faq_items: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { question: { type: "string" }, answer: { type: "string" } },
+          required: ["question", "answer"],
         },
-        internal_link_suggestions: {
-          type: "array",
-          items: { type: "string" },
-          description: "Slugs of existing posts to link to",
-        },
-        seo_keywords: { type: "array", items: { type: "string" } },
-        long_tail_queries: { type: "array", items: { type: "string" } },
+        description: "3-6 FAQ items",
       },
-      required: ["title", "slug", "excerpt", "content", "category", "meta_title", "meta_description", "primary_keyword", "secondary_keywords", "format_type", "post_type", "faq_items"],
+      internal_link_suggestions: {
+        type: "array",
+        items: { type: "string" },
+        description: "Slugs of existing posts to link to",
+      },
+      seo_keywords: { type: "array", items: { type: "string" } },
+      long_tail_queries: { type: "array", items: { type: "string" } },
     },
+    required: ["title", "slug", "excerpt", "content", "category", "meta_title", "meta_description", "primary_keyword", "secondary_keywords", "format_type", "post_type", "faq_items"],
   },
 };
 
@@ -130,8 +127,8 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    if (!GOOGLE_API_KEY) throw new Error("GOOGLE_API_KEY not configured");
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     const body = await req.json();
@@ -207,37 +204,46 @@ ${postType === "spoke" ? "Link to the cluster pillar if it exists." : "Link to 3
 
 You MUST call create_seo_post with all required fields.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: topicInstruction },
-        ],
-        tools: [seoPostTool],
-        tool_choice: { type: "function", function: { name: "create_seo_post" } },
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
+          },
+          contents: [
+            { role: "user", parts: [{ text: topicInstruction }] },
+          ],
+          tools: [{ functionDeclarations: [seoPostTool] }],
+          toolConfig: {
+            functionCallingConfig: {
+              mode: "ANY",
+              allowedFunctionNames: ["create_seo_post"],
+            },
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("AI error:", response.status, errText);
+      console.error("Gemini API error:", response.status, errText);
       throw new Error(`AI generation failed: ${response.status}`);
     }
 
     const aiRes = await response.json();
-    const toolCall = aiRes.choices?.[0]?.message?.tool_calls?.[0];
+    const parts = aiRes.candidates?.[0]?.content?.parts || [];
+    const functionCallPart = parts.find((p: any) => p.functionCall);
 
-    if (!toolCall?.function?.arguments) {
+    if (!functionCallPart?.functionCall?.args) {
       throw new Error("No valid response from AI");
     }
 
-    const postData = JSON.parse(toolCall.function.arguments);
+    const postData = functionCallPart.functionCall.args;
 
     // Count words
     const wordCount = (postData.content || "").split(/\s+/).filter(Boolean).length;

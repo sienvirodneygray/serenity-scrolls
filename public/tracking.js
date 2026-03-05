@@ -1,9 +1,9 @@
 // Serenity Scrolls Analytics Tracking Script
-(function() {
+(function () {
   'use strict';
 
-  const SUPABASE_URL = 'https://rseeuuitcvwqmhoqdkty.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzZWV1dWl0Y3Z3cW1ob3Fka3R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNzUyNzksImV4cCI6MjA3Nzg1MTI3OX0.y_Owf9btBHf20oeShFasYlfv2ekzU1QMEis3kgFyX9k';
+  const SUPABASE_URL = 'https://ytaporbcmtlidafbssyc.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0YXBvcmJjbXRsaWRhZmJzc3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MjA4ODksImV4cCI6MjA4ODI5Njg4OX0.OtsXhTimnK_VUcZns-ygq5tFBuQLKYjvhfDPBk9NLlw';
 
   let sessionId = null;
   let visitorId = null;
@@ -97,7 +97,7 @@
         },
         body: JSON.stringify(data)
       });
-      
+
       if (!response.ok) {
         console.error('Analytics error:', response.statusText);
       }
@@ -112,7 +112,7 @@
     sessionId = getSessionId();
     const deviceInfo = getDeviceInfo();
     const utmParams = getUTMParams();
-    
+
     const sessionData = {
       session_id: sessionId,
       visitor_id: visitorId,
@@ -175,7 +175,7 @@
   // Flush queued events
   async function flushEvents() {
     if (eventQueue.length === 0) return;
-    
+
     clearTimeout(flushTimer);
     flushTimer = null;
 
@@ -192,16 +192,16 @@
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
     const scrollPercent = Math.round((scrollTop / docHeight) * 100);
-    
+
     if (scrollPercent > maxScrollDepth) {
       maxScrollDepth = scrollPercent;
     }
   }
 
   // Track Amazon button clicks (critical - send immediately)
-  window.trackAmazonClick = async function(productName, buttonLocation) {
+  window.trackAmazonClick = async function (productName, buttonLocation) {
     const utmParams = getUTMParams();
-    
+
     const clickData = {
       session_id: sessionId,
       product_name: productName || 'Unknown Product',
@@ -218,7 +218,7 @@
   // Track page exit
   async function trackPageExit() {
     const timeOnPage = Math.round((Date.now() - pageStartTime) / 1000);
-    
+
     // Update last pageview with time and scroll depth
     queueEvent('page_exit', {
       page_path: lastPagePath,
@@ -232,7 +232,7 @@
   // Track click with coordinates for heatmap
   async function trackClick(e) {
     const target = e.target.closest('a, button, [data-track]') || e.target;
-    
+
     const clickData = {
       session_id: sessionId,
       page_path: window.location.pathname,
@@ -265,7 +265,7 @@
 
   // Event listeners
   window.addEventListener('scroll', trackScrollDepth, { passive: true });
-  
+
   // Track all clicks with coordinates
   document.addEventListener('click', trackClick, true);
 
@@ -276,20 +276,20 @@
   // Handle SPA navigation with user flow tracking
   let lastUrl = location.href;
   let navigationStartTime = Date.now();
-  
+
   new MutationObserver(() => {
     const url = location.href;
     if (url !== lastUrl) {
       const transitionTime = Date.now() - navigationStartTime;
       const fromPage = lastPagePath;
-      
+
       trackPageExit();
       lastUrl = url;
       lastPagePath = window.location.pathname;
-      
+
       // Track the flow from previous page to current
       trackUserFlow(fromPage, lastPagePath, transitionTime);
-      
+
       trackPageview();
       navigationStartTime = Date.now();
     }

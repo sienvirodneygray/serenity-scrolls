@@ -111,37 +111,40 @@ serve(async (req) => {
 
       const post = oldPosts[0];
 
-      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-      if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+      const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+      if (!GOOGLE_API_KEY) throw new Error("GOOGLE_API_KEY not configured");
 
-      const refreshResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: `You are an SEO content refresher. Given an existing blog post, add one new relevant section (H2 with 150-200 words), improve the meta description if needed, and suggest additional internal links. Return JSON with fields: new_section (markdown), updated_meta_description (string or null if no change needed), suggested_internal_links (array of slugs).`,
+      const refreshResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_API_KEY}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: `You are an SEO content refresher. Given an existing blog post, add one new relevant section (H2 with 150-200 words), improve the meta description if needed, and suggest additional internal links. Return JSON with fields: new_section (markdown), updated_meta_description (string or null if no change needed), suggested_internal_links (array of slugs).` }],
             },
-            {
-              role: "user",
-              content: `Refresh this post:\nTitle: ${post.title}\nKeyword: ${post.primary_keyword}\nContent (first 1000 chars): ${(post.content || "").substring(0, 1000)}`,
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: `Refresh this post:\nTitle: ${post.title}\nKeyword: ${post.primary_keyword}\nContent (first 1000 chars): ${(post.content || "").substring(0, 1000)}` }],
+              },
+            ],
+            generationConfig: {
+              responseMimeType: "application/json",
             },
-          ],
-          response_format: { type: "json_object" },
-        }),
-      });
+          }),
+        }
+      );
 
       if (!refreshResponse.ok) throw new Error("Refresh AI call failed");
 
       const refreshResult = await refreshResponse.json();
       let refreshData;
       try {
-        refreshData = JSON.parse(refreshResult.choices[0].message.content);
+        const textContent = refreshResult.candidates?.[0]?.content?.parts?.[0]?.text;
+        refreshData = textContent ? JSON.parse(textContent) : { new_section: "", updated_meta_description: null };
       } catch {
         refreshData = { new_section: "", updated_meta_description: null };
       }
@@ -177,7 +180,7 @@ serve(async (req) => {
       const slots = [];
       const now = new Date();
       let date = new Date(now);
-      
+
       while (slots.length < 30) {
         const dayName = dayNames[date.getDay()];
         if (config.schedule_days.includes(dayName)) {

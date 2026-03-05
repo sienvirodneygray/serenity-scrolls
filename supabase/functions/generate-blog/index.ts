@@ -5,57 +5,54 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Tool definition for structured output
+// Tool definition for structured output (Gemini format)
 const blogPostTool = {
-  type: "function",
-  function: {
-    name: "create_blog_post",
-    description: "Creates a structured blog post with SEO optimization",
-    parameters: {
-      type: "object",
-      properties: {
-        title: {
-          type: "string",
-          description: "Engaging blog post title (include journal/prompt keywords when relevant)"
-        },
-        slug: {
-          type: "string",
-          description: "URL-friendly slug (lowercase, hyphens only)"
-        },
-        excerpt: {
-          type: "string",
-          description: "Compelling 1-2 sentence summary with relevant keywords (100-160 chars)"
-        },
-        content: {
-          type: "string",
-          description: "Full blog post content with markdown formatting"
-        },
-        category: {
-          type: "string",
-          enum: ["faith", "emotions", "family", "devotional", "scripture", "prayer", "gratitude", "healing"],
-          description: "Post category"
-        },
-        meta_title: {
-          type: "string",
-          description: "SEO-optimized title under 60 characters"
-        },
-        meta_description: {
-          type: "string",
-          description: "SEO meta description under 160 characters"
-        },
-        seo_keywords: {
-          type: "array",
-          items: { type: "string" },
-          description: "5-8 SEO keywords for the post"
-        },
-        long_tail_queries: {
-          type: "array",
-          items: { type: "string" },
-          description: "3-5 question phrases people search for (AEO optimization)"
-        }
+  name: "create_blog_post",
+  description: "Creates a structured blog post with SEO optimization",
+  parameters: {
+    type: "object",
+    properties: {
+      title: {
+        type: "string",
+        description: "Engaging blog post title (include journal/prompt keywords when relevant)"
       },
-      required: ["title", "slug", "excerpt", "content", "category", "meta_title", "meta_description", "seo_keywords", "long_tail_queries"]
-    }
+      slug: {
+        type: "string",
+        description: "URL-friendly slug (lowercase, hyphens only)"
+      },
+      excerpt: {
+        type: "string",
+        description: "Compelling 1-2 sentence summary with relevant keywords (100-160 chars)"
+      },
+      content: {
+        type: "string",
+        description: "Full blog post content with markdown formatting"
+      },
+      category: {
+        type: "string",
+        enum: ["faith", "emotions", "family", "devotional", "scripture", "prayer", "gratitude", "healing"],
+        description: "Post category"
+      },
+      meta_title: {
+        type: "string",
+        description: "SEO-optimized title under 60 characters"
+      },
+      meta_description: {
+        type: "string",
+        description: "SEO meta description under 160 characters"
+      },
+      seo_keywords: {
+        type: "array",
+        items: { type: "string" },
+        description: "5-8 SEO keywords for the post"
+      },
+      long_tail_queries: {
+        type: "array",
+        items: { type: "string" },
+        description: "3-5 question phrases people search for (AEO optimization)"
+      }
+    },
+    required: ["title", "slug", "excerpt", "content", "category", "meta_title", "meta_description", "seo_keywords", "long_tail_queries"]
   }
 };
 
@@ -65,9 +62,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    if (!GOOGLE_API_KEY) {
+      throw new Error("GOOGLE_API_KEY is not configured");
     }
 
     const { topic, additionalContext } = await req.json();
@@ -124,7 +121,7 @@ Write engaging, faith-centered blog posts with:
 
 You MUST call the create_blog_post function with all required fields.`;
 
-    const userPrompt = topic 
+    const userPrompt = topic
       ? `Write a blog post about: ${topic}${additionalContext ? `\n\nAdditional context: ${additionalContext}` : ''}
 
 Remember to:
@@ -144,67 +141,64 @@ Remember to:
 
     console.log("Generating AEO-optimized blog post with tool calling...");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [blogPostTool],
-        tool_choice: { type: "function", function: { name: "create_blog_post" } },
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
+          },
+          contents: [
+            { role: "user", parts: [{ text: userPrompt }] },
+          ],
+          tools: [{ functionDeclarations: [blogPostTool] }],
+          toolConfig: {
+            functionCallingConfig: {
+              mode: "ANY",
+              allowedFunctionNames: ["create_blog_post"],
+            },
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
+      console.error("Gemini API error:", response.status, errorText);
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits depleted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
+
       throw new Error(`AI generation failed: ${response.status}`);
     }
 
     const aiResponse = await response.json();
     console.log("AI Response:", JSON.stringify(aiResponse, null, 2));
 
-    // Extract tool call arguments
-    const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
-    
-    if (toolCall?.function?.arguments) {
-      let blogData;
-      try {
-        blogData = JSON.parse(toolCall.function.arguments);
-      } catch (parseError) {
-        console.error("Failed to parse tool call arguments:", parseError);
-        throw new Error("Failed to parse AI response");
-      }
+    // Extract function call from Gemini response
+    const parts = aiResponse.candidates?.[0]?.content?.parts || [];
+    const functionCallPart = parts.find((p: any) => p.functionCall);
 
-      console.log("Generated blog data via tool calling:", blogData);
+    if (functionCallPart?.functionCall?.args) {
+      const blogData = functionCallPart.functionCall.args;
+      console.log("Generated blog data via function calling:", blogData);
 
       return new Response(JSON.stringify(blogData), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fallback: try to extract from content if tool calling didn't work
-    const content = aiResponse.choices?.[0]?.message?.content;
+    // Fallback: try to extract from text content if function calling didn't work
+    const textPart = parts.find((p: any) => p.text);
+    const content = textPart?.text;
     if (content) {
       console.log("Falling back to content parsing...");
       let blogData;
@@ -212,11 +206,11 @@ Remember to:
         const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || content.match(/\{[\s\S]*\}/);
         const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content;
         blogData = JSON.parse(jsonStr);
-        
+
         // Ensure arrays exist
         blogData.seo_keywords = blogData.seo_keywords || blogData.seoKeywords || [];
         blogData.long_tail_queries = blogData.long_tail_queries || blogData.longTailQueries || [];
-        
+
         return new Response(JSON.stringify(blogData), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -101,61 +100,68 @@ One Small Step: "Write the worry on a card, fold it, place it by your jar, then 
 Prayer Option: "God, here is what I fear today: ____. Meet me with peace as I take the next step."
 Keep Going: "Want a related scroll on rest or hope?"`;
 
-    // Build messages payload: prefer provided messages, otherwise wrap single message
-    const messages = Array.isArray(incomingMessages) && incomingMessages.length
-      ? [{ role: "system", content: systemPrompt }, ...incomingMessages]
-      : message
-      ? [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: String(message) },
-        ]
-      : [{ role: "system", content: systemPrompt }];
+    // Convert OpenAI-style messages to Gemini contents format
+    // Gemini uses: { role: "user" | "model", parts: [{ text }] }
+    const contents: Array<{ role: string; parts: Array<{ text: string }> }> = [];
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("Missing LOVABLE_API_KEY");
+    if (Array.isArray(incomingMessages) && incomingMessages.length) {
+      for (const msg of incomingMessages) {
+        if (msg.role === "system") continue; // system handled via systemInstruction
+        contents.push({
+          role: msg.role === "assistant" ? "model" : "user",
+          parts: [{ text: msg.content }],
+        });
+      }
+    } else if (message) {
+      contents.push({
+        role: "user",
+        parts: [{ text: String(message) }],
+      });
+    }
+
+    const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+    if (!GOOGLE_API_KEY) {
+      console.error("Missing GOOGLE_API_KEY");
       return new Response(JSON.stringify({ error: "AI key not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Call Lovable AI Gateway with streaming enabled
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages,
-        stream: true,
-      }),
-    });
+    // Call Google Gemini API directly with streaming
+    const aiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GOOGLE_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
+          },
+          contents,
+        }),
+      }
+    );
 
     if (!aiResponse.ok) {
       const txt = await aiResponse.text().catch(() => "");
-      console.error("AI gateway error", aiResponse.status, txt);
+      console.error("Gemini API error", aiResponse.status, txt);
       if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limits exceeded, please try again later." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Payment required. Please add credits to your Lovable AI workspace." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
+      return new Response(JSON.stringify({ error: "AI service error" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Convert AI SSE to our app's SSE format: { type: "content", content }
+    // Convert Gemini SSE to our app's SSE format: { type: "content", content }
+    // Gemini streams: data: { "candidates": [{ "content": { "parts": [{ "text": "..." }] } }] }
     const encoder = new TextEncoder();
     const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
@@ -185,18 +191,16 @@ Keep Going: "Want a related scroll on rest or hope?"`;
               if (!line.startsWith("data: ")) continue;
 
               const jsonStr = line.slice(6).trim();
-              if (jsonStr === "[DONE]") {
-                // We'll emit our own done event below
-                continue;
-              }
+              if (jsonStr === "[DONE]") continue;
 
               try {
                 const parsed = JSON.parse(jsonStr);
-                const content = parsed?.choices?.[0]?.delta?.content as string | undefined;
-                if (content) {
+                // Extract text from Gemini's response format
+                const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text as string | undefined;
+                if (text) {
                   controller.enqueue(
                     encoder.encode(
-                      `data: ${JSON.stringify({ type: "content", content })}\n\n`
+                      `data: ${JSON.stringify({ type: "content", content: text })}\n\n`
                     )
                   );
                 }
