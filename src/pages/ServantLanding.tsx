@@ -413,8 +413,8 @@ const ServantLanding = () => {
                                 </a>
                             </Button>
                             <Button size="lg" variant="outline" className="h-14 px-10 text-lg" asChild>
-                                <Link to="/servant-access">
-                                    Already Purchased? Get Access
+                                <Link to="/unlock">
+                                    Already Purchased? Unlock Access
                                 </Link>
                             </Button>
                         </div>
