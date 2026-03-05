@@ -189,10 +189,28 @@ const ServantAccess = () => {
                 </div>
                 <CardTitle className="text-green-600">Access Approved!</CardTitle>
                 <CardDescription>
-                  Your purchase has been verified. Click below to access your AI Servant.
+                  Your purchase has been verified. Here's how to get started with your AI Servant.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                  <h3 className="font-semibold text-sm">How to Use Servant 1.0 with Your Scrolls</h3>
+                  <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+                    <li><strong>Draw a scroll</strong> from your Serenity Scrolls tube based on your mood or color.</li>
+                    <li><strong>Tell the Servant</strong> your mood, your scroll's name, or the color you drew.</li>
+                    <li><strong>Receive guidance</strong> — a Scripture Snapshot, reflection, journal prompts, and one small step.</li>
+                    <li><strong>Journal your thoughts</strong> using the prompts, with or without the printed journal.</li>
+                    <li><strong>Come back anytime</strong> — the Servant remembers your conversation within each session.</li>
+                  </ol>
+                </div>
+
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-center">
+                  <p className="text-xs text-amber-700 dark:text-amber-400">
+                    <Sparkles className="w-3 h-3 inline mr-1" />
+                    <strong>Tip:</strong> Inside the Servant, you can upgrade to <strong>Servant+</strong> for deeper EQ-informed reflections at a special discount.
+                  </p>
+                </div>
+
                 <Button onClick={handleAccessServant} className="w-full" size="lg">
                   <Sparkles className="w-4 h-4 mr-2" />
                   Enter AI Servant
@@ -269,9 +287,9 @@ const ServantAccess = () => {
                       Found in your order confirmation email
                     </p>
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full"
                     disabled={status === "submitting"}
                   >
                     {status === "submitting" ? (

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
-import { Send, Loader2, Sparkles, BookOpen } from "lucide-react";
+import { Send, Loader2, Sparkles, BookOpen, ArrowRight } from "lucide-react";
 
 type Message = {
   role: "user" | "assistant";
@@ -222,8 +222,8 @@ const Servant = () => {
             <button
               onClick={() => handleVersionSwitch("1.0")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${version === "1.0"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               <BookOpen className="h-4 w-4" />
@@ -232,8 +232,8 @@ const Servant = () => {
             <button
               onClick={() => handleVersionSwitch("2.0")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${version === "2.0"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
                 }`}
             >
               <Sparkles className="h-4 w-4" />
@@ -259,6 +259,30 @@ const Servant = () => {
               </div>
             )}
 
+            {version === "1.0" && messages.filter(m => m.role === "user").length >= 3 && (
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mx-auto max-w-md text-center">
+                <div className="flex items-center justify-center gap-1.5 mb-2">
+                  <Sparkles className="h-4 w-4 text-amber-600" />
+                  <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Upgrade to Servant+</span>
+                </div>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mb-3">
+                  Get deeper EQ-informed reflections, virtue-based insights, and the Serenity Leadership Framework.
+                </p>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <span className="text-sm text-muted-foreground line-through">$39.99</span>
+                  <span className="text-lg font-bold text-amber-700 dark:text-amber-300">$19.99</span>
+                  <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">50% OFF</span>
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  onClick={() => window.open('/servant-upgrade', '_blank')}
+                >
+                  Upgrade Now <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              </div>
+            )}
+
             {messages.map((msg, i) => (
               <div
                 key={i}
@@ -266,8 +290,8 @@ const Servant = () => {
               >
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${msg.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted"
                     }`}
                 >
                   <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -301,6 +325,10 @@ const Servant = () => {
             </div>
           </form>
         </Card>
+
+        <p className="text-xs text-muted-foreground text-center mt-4 max-w-2xl mx-auto">
+          <strong>Disclaimer:</strong> The Serenity Scrolls Servant is an AI-powered companion designed for spiritual reflection and Scripture-based guidance. It is not a substitute for professional counseling, medical advice, or pastoral care. Please consult qualified professionals for specific guidance.
+        </p>
       </div>
     </div>
   );
