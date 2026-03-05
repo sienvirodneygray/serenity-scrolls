@@ -234,19 +234,26 @@ const Servant = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-background to-background dark:from-gray-950 dark:via-background flex flex-col">
       <Navbar />
 
-      <div className="flex-1 container mx-auto px-4 py-20 max-w-4xl flex flex-col">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">
-            {version === "1.0" ? "Serenity Scrolls Servant" : "Serenity Scrolls Servant+"}
+      <div className="flex-1 container mx-auto px-4 py-20 max-w-3xl flex flex-col">
+        {/* Header */}
+        <div className="text-center mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold mb-1">
+            {version === "1.0" ? (
+              <>Serenity Scrolls <span className="text-primary">Servant</span></>
+            ) : (
+              <>Serenity Scrolls <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Servant+</span></>
+            )}
           </h1>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground text-sm mb-3">
             {version === "1.0"
               ? "Your spiritual companion for reflection and guidance"
               : "Advanced reflection with emotional intelligence and servant-leadership"}
           </p>
+
+          {/* Version Toggle */}
           <div className="inline-flex items-center gap-1 bg-muted rounded-lg p-1">
             <button
               onClick={() => handleVersionSwitch("1.0")}
@@ -279,35 +286,85 @@ const Servant = () => {
 
           {/* Days Remaining Badge */}
           {daysRemaining !== null && subscriptionStatus !== "active" && (
-            <div className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full text-xs font-medium ${daysRemaining > 10 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              : daysRemaining > 3 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-              }`}>
-              <Clock className="h-3 w-3" />
-              {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining
+            <div className="mt-3">
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${daysRemaining > 10 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : daysRemaining > 3 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                }`}>
+                <Clock className="h-3 w-3" />
+                {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining
+              </div>
             </div>
           )}
         </div>
 
-        <Card className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Chat Card */}
+        <Card className="flex-1 flex flex-col overflow-hidden shadow-lg border-border/50">
+          {/* Chat Header Bar */}
+          <div className="bg-primary/5 border-b border-border px-5 py-3 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-amber-200/30 dark:to-amber-800/30 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-sm">
+                {version === "1.0" ? "Servant" : "Servant+"}
+              </p>
+              <p className="text-[11px] text-muted-foreground">Scripture-guided spiritual companion</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[11px] text-muted-foreground">Online</span>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gradient-to-b from-background to-muted/10">
             {messages.length === 0 && (
-              <div className="text-center text-muted-foreground py-12">
-                <p className="text-lg mb-2">
-                  {version === "1.0"
-                    ? "Welcome to Serenity Scrolls Servant"
-                    : "Welcome to Serenity Scrolls Servant+"}
-                </p>
-                <p className="text-sm">
-                  {version === "1.0"
-                    ? "Tell me your mood, a moment, or the name or color of a scroll"
-                    : "Tell me your mood, a moment, or the color of a scroll for an EQ-informed reflection"}
-                </p>
+              <div className="flex flex-col items-center justify-center py-10 space-y-6">
+                {/* Welcome Icon */}
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full scale-150" />
+                  <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary/15 to-amber-100/40 dark:to-amber-900/20 flex items-center justify-center border border-primary/10">
+                    <span className="text-3xl">📜</span>
+                  </div>
+                </div>
+
+                {/* Welcome Text */}
+                <div className="text-center space-y-1 max-w-sm">
+                  <p className="text-lg font-semibold">
+                    {version === "1.0" ? "Welcome, friend" : "Welcome to Servant+"}
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Share how you're feeling, name a scroll you drew, or tell me a color — and I'll meet you right where you are with Scripture and reflection.
+                  </p>
+                </div>
+
+                {/* Suggestion Prompts */}
+                <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
+                  {[
+                    { emoji: "💙", label: "I'm feeling sad" },
+                    { emoji: "😰", label: "I feel anxious" },
+                    { emoji: "🙏", label: "I'm grateful today" },
+                    { emoji: "💜", label: "I drew a purple scroll" },
+                  ].map((prompt) => (
+                    <button
+                      key={prompt.label}
+                      onClick={() => {
+                        setInput(prompt.label);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border/60 bg-background hover:bg-muted/50 hover:border-primary/30 transition-all text-left text-sm group"
+                    >
+                      <span className="text-base group-hover:scale-110 transition-transform">{prompt.emoji}</span>
+                      <span className="text-muted-foreground group-hover:text-foreground transition-colors">{prompt.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
+            {/* Upsell Banner */}
             {version === "1.0" && messages.filter(m => m.role === "user").length >= 3 && (
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mx-auto max-w-md text-center">
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mx-auto max-w-md text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-2">
                   <Sparkles className="h-4 w-4 text-amber-600" />
                   <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Upgrade to Servant+</span>
@@ -330,15 +387,22 @@ const Servant = () => {
               </div>
             )}
 
+            {/* Chat Messages */}
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
+                {/* AI Avatar */}
+                {msg.role === "assistant" && (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/15 to-amber-100/40 dark:to-amber-900/20 flex items-center justify-center shrink-0 mt-1 border border-primary/10">
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                )}
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${msg.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-md"
-                    : "bg-muted/80 border border-border/50 rounded-bl-md"
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${msg.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-sm"
+                    : "bg-card border border-border/50 shadow-sm rounded-bl-sm"
                     }`}
                 >
                   {msg.role === "assistant" ? (
@@ -350,10 +414,18 @@ const Servant = () => {
               </div>
             ))}
 
+            {/* Typing Indicator */}
             {loading && (
-              <div className="flex justify-start">
-                <div className="bg-muted rounded-lg px-4 py-2">
-                  <Loader2 className="h-5 w-5 animate-spin" />
+              <div className="flex gap-2.5 justify-start">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/15 to-amber-100/40 dark:to-amber-900/20 flex items-center justify-center shrink-0 mt-1 border border-primary/10">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <div className="bg-card border border-border/50 shadow-sm rounded-2xl rounded-bl-sm px-4 py-3">
+                  <div className="flex gap-1.5 items-center h-5">
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
                 </div>
               </div>
             )}
@@ -361,24 +433,30 @@ const Servant = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={sendMessage} className="p-4 border-t">
-            <div className="flex gap-2">
+          {/* Input Bar */}
+          <form onSubmit={sendMessage} className="p-4 border-t bg-card/80 backdrop-blur-sm">
+            <div className="flex items-center gap-2">
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
+                placeholder="Share how you're feeling…"
                 disabled={loading}
-                className="flex-1"
+                className="flex-1 rounded-full border-border/60 bg-muted/30 focus:bg-background px-4 h-11 text-sm transition-colors"
               />
-              <Button type="submit" disabled={loading}>
+              <Button
+                type="submit"
+                disabled={loading || !input.trim()}
+                size="icon"
+                className="rounded-full h-11 w-11 shrink-0 bg-primary hover:bg-primary/90 disabled:opacity-30"
+              >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
           </form>
         </Card>
 
-        <p className="text-xs text-muted-foreground text-center mt-4 max-w-2xl mx-auto">
-          <strong>Disclaimer:</strong> The Serenity Scrolls Servant is an AI-powered companion designed for spiritual reflection and Scripture-based guidance. It is not a substitute for professional counseling, medical advice, or pastoral care. Please consult qualified professionals for specific guidance.
+        <p className="text-[11px] text-muted-foreground text-center mt-4 max-w-xl mx-auto leading-relaxed">
+          <strong>Disclaimer:</strong> The Serenity Scrolls Servant is an AI-powered companion designed for spiritual reflection and Scripture-based guidance. It is not a substitute for professional counseling, medical advice, or pastoral care.
         </p>
       </div>
     </div>
