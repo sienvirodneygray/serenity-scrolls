@@ -340,17 +340,13 @@ const ServantTestFlow = () => {
                                 1.0 Basic
                             </button>
                             <button
-                                onClick={() => {
-                                    if (version === "2.0") return;
-                                    setUpgradeStatus("idle");
-                                    setPhase("upgrade");
-                                }}
+                                onClick={() => { if (version !== "2.0") { setVersion("2.0"); setMessages([]); } }}
                                 className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${version === "2.0"
-                                        ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm"
-                                        : "text-muted-foreground hover:text-foreground"
+                                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
-                                {version === "2.0" ? <Star className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                                {version === "2.0" ? <Star className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
                                 2.0 Advanced
                                 <span className="text-[10px] bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1 py-0.5 rounded-full ml-1">PRO</span>
                             </button>
