@@ -31,8 +31,8 @@ const Servant = () => {
 
   const handleVersionSwitch = (v: "1.0" | "2.0") => {
     if (v === "2.0" && !canAccessV2) {
-      // Show upgrade prompt instead of switching
-      toast.info("Servant+ requires a subscription. Upgrade to unlock advanced reflections!");
+      // Route to upgrade simulation
+      navigate("/servant-test-flow");
       return;
     }
     if (v !== version) {
@@ -382,7 +382,7 @@ const Servant = () => {
                   <Button
                     size="sm"
                     className="bg-amber-600 hover:bg-amber-700 text-white"
-                    onClick={() => window.open('/servant-upgrade', '_blank')}
+                    onClick={() => navigate('/servant-test-flow')}
                   >
                     Upgrade Now <ArrowRight className="h-3.5 w-3.5 ml-1" />
                   </Button>
