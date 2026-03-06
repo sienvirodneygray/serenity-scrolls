@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import {
     Send, Loader2, Sparkles, BookOpen, ArrowRight, Lock, Clock,
-    CheckCircle, HelpCircle, ChevronRight
+    CheckCircle, HelpCircle, ChevronRight, CreditCard, Star
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -17,7 +17,7 @@ type Message = {
     content: string;
 };
 
-type Phase = "unlock" | "servant" | "expired";
+type Phase = "unlock" | "servant" | "upgrade" | "expired";
 
 const ServantTestFlow = () => {
     // Phase state
@@ -30,6 +30,7 @@ const ServantTestFlow = () => {
     const [unlockError, setUnlockError] = useState("");
     const [upsellDismissed, setUpsellDismissed] = useState(false);
     const [unlockHint, setUnlockHint] = useState("");
+    const [upgradeStatus, setUpgradeStatus] = useState<"idle" | "processing" | "success">("idle");
 
     // Servant state
     const [messages, setMessages] = useState<Message[]>([]);
@@ -339,10 +340,17 @@ const ServantTestFlow = () => {
                                 1.0 Basic
                             </button>
                             <button
-                                onClick={() => toast.info("Servant+ requires a subscription. Upgrade to unlock advanced reflections!")}
-                                className="flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground transition-all"
+                                onClick={() => {
+                                    if (version === "2.0") return;
+                                    setUpgradeStatus("idle");
+                                    setPhase("upgrade");
+                                }}
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-all ${version === "2.0"
+                                        ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
+                                    }`}
                             >
-                                <Lock className="h-4 w-4" />
+                                {version === "2.0" ? <Star className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                                 2.0 Advanced
                                 <span className="text-[10px] bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1 py-0.5 rounded-full ml-1">PRO</span>
                             </button>
@@ -388,8 +396,14 @@ const ServantTestFlow = () => {
                                 <Sparkles className="h-4 w-4 text-primary" />
                             </div>
                             <div className="flex-1">
-                                <p className="font-semibold text-sm">Servant</p>
-                                <p className="text-[11px] text-muted-foreground">Scripture-guided spiritual companion</p>
+                                <p className="font-semibold text-sm">
+                                    {version === "2.0" ? (
+                                        <span className="flex items-center gap-1.5">Servant<span className="text-amber-600">+</span> <span className="text-[10px] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-1.5 py-0.5 rounded-full">2.0</span></span>
+                                    ) : "Servant"}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground">
+                                    {version === "2.0" ? "EQ-informed spiritual companion" : "Scripture-guided spiritual companion"}
+                                </p>
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -449,7 +463,7 @@ const ServantTestFlow = () => {
                                         <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">50% OFF</span>
                                     </div>
                                     <div className="flex items-center justify-center gap-2">
-                                        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">
+                                        <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={() => { setUpgradeStatus("idle"); setPhase("upgrade"); }}>
                                             Upgrade Now <ArrowRight className="h-3.5 w-3.5 ml-1" />
                                         </Button>
                                         <button
@@ -532,6 +546,182 @@ const ServantTestFlow = () => {
         );
     }
 
+    // ===== UPGRADE / PAYMENT SIMULATION PAGE =====
+    if (phase === "upgrade") {
+        const handleSimulatedPayment = async () => {
+            setUpgradeStatus("processing");
+            // Simulate Stripe processing delay
+            await new Promise(r => setTimeout(r, 2200));
+            setUpgradeStatus("success");
+            toast.success("Payment successful! Welcome to Servant+ 2.0");
+            // Transition to Servant 2.0 after brief success display
+            setTimeout(() => {
+                setVersion("2.0");
+                setMessages([]);
+                setUpsellDismissed(true);
+                setDaysRemaining(30);
+                setPhase("servant");
+            }, 1800);
+        };
+
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900">
+                <TestBanner />
+                <div className="flex items-center justify-center min-h-screen px-4 py-8">
+                    <div className="w-full max-w-md">
+                        <div className="text-center mb-8">
+                            <div className="flex justify-center mb-4">
+                                <img src={logo} alt="Serenity Scrolls" className="h-16 w-auto" />
+                            </div>
+                            <h1 className="text-2xl font-bold mb-1">
+                                Upgrade to <span className="text-amber-600">Servant+</span> 2.0
+                            </h1>
+                            <p className="text-sm text-muted-foreground">
+                                Unlock deeper EQ-informed reflections and virtue-based insights
+                            </p>
+                        </div>
+
+                        {upgradeStatus === "success" ? (
+                            <Card className="border-green-200 dark:border-green-800">
+                                <CardContent className="pt-8 pb-6 text-center space-y-4">
+                                    <div className="relative mx-auto w-20 h-20">
+                                        <div className="absolute inset-0 bg-green-400/20 blur-xl rounded-full animate-pulse" />
+                                        <div className="relative w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                                            <CheckCircle className="w-10 h-10 text-green-600" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-green-600 mb-1">Payment Successful!</h2>
+                                        <p className="text-sm text-muted-foreground">
+                                            Welcome to Servant+ 2.0. Preparing your upgraded experience...
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                        Loading Servant+ 2.0...
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <CreditCard className="h-5 w-5 text-amber-600" />
+                                        Complete Your Upgrade
+                                    </CardTitle>
+                                    <CardDescription>Simulated payment — no real charges</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-5">
+                                    {/* Plan Summary */}
+                                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <Sparkles className="h-4 w-4 text-amber-600" />
+                                                <span className="font-semibold text-sm">Servant+ 2.0</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-sm text-muted-foreground line-through">$39.99</span>
+                                                <span className="text-lg font-bold text-amber-700 dark:text-amber-300">$19.99</span>
+                                                <span className="text-[10px] bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">/mo</span>
+                                            </div>
+                                        </div>
+                                        <ul className="text-xs text-muted-foreground space-y-1.5">
+                                            <li className="flex items-center gap-1.5">
+                                                <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
+                                                EQ-informed reflections with emotional intelligence
+                                            </li>
+                                            <li className="flex items-center gap-1.5">
+                                                <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
+                                                Virtue mapping aligned to your mood
+                                            </li>
+                                            <li className="flex items-center gap-1.5">
+                                                <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
+                                                Serenity Leadership Framework insights
+                                            </li>
+                                            <li className="flex items-center gap-1.5">
+                                                <CheckCircle className="h-3 w-3 text-green-600 shrink-0" />
+                                                Priority response quality
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Fake Card Form */}
+                                    <div className="space-y-3">
+                                        <div>
+                                            <Label htmlFor="card-number" className="text-xs">Card Number</Label>
+                                            <Input
+                                                id="card-number"
+                                                defaultValue="4242 4242 4242 4242"
+                                                className="font-mono text-sm bg-muted/30"
+                                                disabled={upgradeStatus === "processing"}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <Label htmlFor="card-expiry" className="text-xs">Expiry</Label>
+                                                <Input
+                                                    id="card-expiry"
+                                                    defaultValue="12/28"
+                                                    className="font-mono text-sm bg-muted/30"
+                                                    disabled={upgradeStatus === "processing"}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label htmlFor="card-cvc" className="text-xs">CVC</Label>
+                                                <Input
+                                                    id="card-cvc"
+                                                    defaultValue="123"
+                                                    className="font-mono text-sm bg-muted/30"
+                                                    disabled={upgradeStatus === "processing"}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-muted/30 rounded-lg p-3 flex items-center gap-2 text-xs text-muted-foreground">
+                                        <Lock className="h-3.5 w-3.5 shrink-0" />
+                                        <span>This is a <strong>simulated payment</strong> for demo purposes. No real charges will be made.</span>
+                                    </div>
+
+                                    <Button
+                                        className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white shadow-lg"
+                                        size="lg"
+                                        disabled={upgradeStatus === "processing"}
+                                        onClick={handleSimulatedPayment}
+                                    >
+                                        {upgradeStatus === "processing" ? (
+                                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing Payment...</>
+                                        ) : (
+                                            <>Pay $19.99/mo <ArrowRight className="h-4 w-4 ml-1" /></>
+                                        )}
+                                    </Button>
+
+                                    <button
+                                        onClick={() => setPhase("servant")}
+                                        className="w-full text-center text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+                                        disabled={upgradeStatus === "processing"}
+                                    >
+                                        Keep using Servant 1.0
+                                    </button>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        <div className="flex items-center justify-center gap-4 mt-4">
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <Lock className="h-3 w-3" /> SSL Secured
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">Cancel anytime</span>
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                <span className="text-amber-500">50% OFF</span> launch price
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     // ===== EXPIRED PAGE =====
     return (
         <div className="min-h-screen bg-background">
@@ -586,7 +776,7 @@ const ServantTestFlow = () => {
                             <Button
                                 className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                                 size="lg"
-                                onClick={() => toast.info("Stripe subscription coming soon!")}
+                                onClick={() => { setUpgradeStatus("idle"); setPhase("upgrade"); }}
                             >
                                 Subscribe Now <ArrowRight className="h-4 w-4 ml-1" />
                             </Button>
