@@ -30,11 +30,6 @@ const Servant = () => {
   const canAccessV2 = subscriptionStatus === "active";
 
   const handleVersionSwitch = (v: "1.0" | "2.0") => {
-    if (v === "2.0" && !canAccessV2) {
-      // Route to upgrade simulation
-      navigate("/servant-test-flow");
-      return;
-    }
     if (v !== version) {
       setVersion(v);
       setMessages([]);
