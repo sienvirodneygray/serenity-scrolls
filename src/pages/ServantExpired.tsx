@@ -59,14 +59,11 @@ const ServantExpired = () => {
                                 <p className="text-xs text-muted-foreground">Cancel anytime</p>
                             </div>
 
-                            {/* Subscribe Button (placeholder — Stripe will be added later) */}
+                            {/* Subscribe Button — routes to test flow upgrade simulation */}
                             <Button
                                 className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                                 size="lg"
-                                onClick={() => {
-                                    // TODO: Stripe checkout
-                                    alert("Subscription coming soon! Please check back later.");
-                                }}
+                                onClick={() => navigate("/servant-test-flow")}
                             >
                                 Subscribe Now <ArrowRight className="h-4 w-4 ml-1" />
                             </Button>
