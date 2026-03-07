@@ -318,7 +318,7 @@ const ServantTestFlow = () => {
                 <TestBanner />
                 <Navbar />
 
-                <div className="flex-1 container mx-auto px-4 py-20 max-w-3xl flex flex-col" style={{ marginTop: "24px" }}>
+                <div className="flex-1 container mx-auto px-4 py-20 max-w-3xl flex flex-col" style={{ marginTop: "48px" }}>
                     <div className="text-center mb-6">
                         <h1 className="text-3xl md:text-4xl font-bold mb-1">
                             Serenity Scrolls <span className="text-primary">Servant</span>
