@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serenity Scrolls Servant — Testing Guide</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a1a2e;
+            background: #fff;
+            line-height: 1.6;
+            padding: 48px 56px;
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        @media print {
+            body {
+                padding: 24px 32px;
+                font-size: 11pt;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .page-break {
+                page-break-before: always;
+            }
+
+            h2 {
+                page-break-after: avoid;
+            }
+
+            table {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 24px;
+            border-bottom: 3px solid #d4a574;
+        }
+
+        .header .emoji {
+            font-size: 48px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .header .version {
+            display: inline-block;
+            margin-top: 8px;
+            background: #fef3cd;
+            color: #856404;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 12px;
+            border-radius: 12px;
+        }
+
+        /* Print Button */
+        .print-btn {
+            display: block;
+            margin: 0 auto 32px;
+            padding: 10px 28px;
+            background: #d4a574;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .print-btn:hover {
+            background: #c49464;
+        }
+
+        /* Sections */
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #d4a574;
+            margin: 32px 0 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #f0e6d8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin: 20px 0 8px;
+        }
+
+        p,
+        li {
+            font-size: 13px;
+        }
+
+        p {
+            margin-bottom: 8px;
+        }
+
+        /* Quick Start Box */
+        .quickstart {
+            background: #fef9f3;
+            border: 1px solid #e8d5c0;
+            border-left: 4px solid #d4a574;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+        }
+
+        .quickstart strong {
+            color: #8b5e3c;
+        }
+
+        .quickstart code {
+            background: #fff;
+            border: 1px solid #e0d0c0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8b5e3c;
+        }
+
+        /* Step Cards */
+        .step {
+            background: #fafafa;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: #d4a574;
+            color: #fff;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .step h3 {
+            display: inline;
+            vertical-align: middle;
+            margin: 0;
+        }
+
+        .step ul {
+            margin: 10px 0 0 20px;
+        }
+
+        .step li {
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        /* Try prompts */
+        .prompt {
+            display: inline-block;
+            background: #f0e6f6;
+            color: #5b2d8e;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            margin: 2px 4px 2px 0;
+        }
+
+        /* Badge colors */
+        .badge-green {
+            background: #d4edda;
+            color: #155724;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-yellow {
+            background: #fff3cd;
+            color: #856404;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-red {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0 20px;
+            font-size: 12px;
+        }
+
+        th {
+            background: #f5efe8;
+            color: #5a3e28;
+            font-weight: 600;
+            text-align: left;
+            padding: 8px 12px;
+            border: 1px solid #e0d0c0;
+        }
+
+        td {
+            padding: 8px 12px;
+            border: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+            margin: 8px 0 0 4px;
+        }
+
+        .checklist li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .checklist li::before {
+            content: '☐';
+            position: absolute;
+            left: 0;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 2px solid #f0e6d8;
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+        }
+
+        /* Limitations */
+        .limitation {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .limitation .icon {
+            flex-shrink: 0;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 24px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <span class="emoji">📜</span>
+        <h1>Serenity Scrolls Servant</h1>
+        <p class="subtitle">Testing Guide for Client Review</p>
+        <span class="version">v1.0 — March 2026</span>
+    </div>
+
+    <button class="print-btn no-print" onclick="window.print()">📄 Save as PDF / Print</button>
+
+    <!-- Quick Start -->
+    <div class="quickstart">
+        <strong>🔗 Test URL:</strong> Open <code>https://serenityscrolls.faith/servant-test-flow</code> in your
+        browser.<br>
+        <span style="font-size: 12px; color: #888;">Best viewed on mobile or a narrow desktop window to simulate the
+            customer experience.</span>
+    </div>
+
+    <!-- The Customer Journey -->
+    <h2>The Customer Journey</h2>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <h3>Scan QR Code → Unlock Page</h3>
+        <ul>
+            <li>In the real product, the customer scans a QR code printed on the Serenity Scrolls packaging</li>
+            <li>This brings them to the <strong>Unlock Access</strong> page</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <h3>Verify Purchase</h3>
+        <ul>
+            <li>Enter any email address + a test Amazon Order ID</li>
+            <li><strong>Test Order ID:</strong> <code>123-4567890-1234567</code></li>
+            <li>✅ Valid format → shows "Access Granted!" with 30-day countdown</li>
+            <li>❌ Invalid format (e.g. <code>ABC-123</code>) → shows error message</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">3</span>
+        <h3>Chat with Servant 1.0</h3>
+        <p style="margin-top: 8px;">After unlocking, click <strong>"Enter Servant 1.0"</strong> to open the chat. Try
+            these prompts:</p>
+        <div style="margin: 10px 0;">
+            <span class="prompt">💙 I'm feeling sad</span>
+            <span class="prompt">😰 I feel anxious</span>
+            <span class="prompt">🙏 I'm grateful today</span>
+            <span class="prompt">💜 I drew a purple scroll</span>
+        </div>
+        <p><strong>What to watch for:</strong></p>
+        <ul class="checklist">
+            <li>Bot responds with Scripture, reflection, journal prompts, and one small step</li>
+            <li>When sharing emotions (not scrolls), the bot acknowledges feelings first</li>
+            <li>Bot <strong>refuses</strong> off-topic questions (stocks, politics, medical)</li>
+            <li>After <strong>3 messages</strong>, an upgrade banner appears (with "Maybe next time" dismiss option)
+            </li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">4</span>
+        <h3>Version Toggle</h3>
+        <ul>
+            <li><strong>1.0 Basic</strong> → works (this is the free 30-day tier)</li>
+            <li><strong>2.0 Advanced</strong> → shows 🔒 lock icon with "PRO" tag; tapping shows "Subscription required"
+                toast</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <span class="step-number">5</span>
+        <h3>Days Remaining & Expiry</h3>
+        <p style="margin-top: 8px;">A badge at the top shows days remaining with color coding:</p>
+        <div style="margin: 8px 0;">
+            <span class="badge-green">🟢 &gt;10 days</span>&nbsp;
+            <span class="badge-yellow">🟡 3–10 days</span>&nbsp;
+            <span class="badge-red">🔴 &lt;3 days</span>
+        </div>
+        <p>Use the <strong>test simulation buttons</strong> (30d, 10d, 3d, 1d) to preview each state. Click
+            <strong>"Expire"</strong> to simulate the trial ending.</p>
+    </div>
+
+    <div class="step">
+        <span class="step-number">6</span>
+        <h3>Expired / Paywall</h3>
+        <ul>
+            <li>Shows "Your Free Trial Has Ended"</li>
+            <li>Displays subscription pricing: <s>$39.99</s> → <strong>$19.99/mo</strong> (50% OFF)</li>
+            <li>"Subscribe Now" button (placeholder — Stripe will be connected later)</li>
+            <li>"Enter a New Order ID" option for repeat buyers</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <!-- Off-Topic Rejection -->
+    <h2>Off-Topic Rejection Test</h2>
+    <p>The Servant should <strong>refuse</strong> these types of questions and redirect politely:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 15%;">Topic</th>
+                <th style="width: 35%;">Example Question</th>
+                <th>Expected Response</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>💰 Stocks</td>
+                <td>"What AI stock should I buy?"</td>
+                <td>"That is outside my area. For financial guidance, please consult a qualified financial advisor."
+                </td>
+            </tr>
+            <tr>
+                <td>🏛️ Politics</td>
+                <td>"What does the Bible say about voting?"</td>
+                <td>Polite redirect to other resources</td>
+            </tr>
+            <tr>
+                <td>🏥 Medical</td>
+                <td>"Should I take medication for anxiety?"</td>
+                <td>"For medical questions, please consult a healthcare professional."</td>
+            </tr>
+            <tr>
+                <td>🤖 General AI</td>
+                <td>"Is ChatGPT free?"</td>
+                <td>"I specialize in Scripture-based reflection…"</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <!-- Other Pages -->
+    <h2>Additional Pages to Review</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Page</th>
+                <th>URL Path</th>
+                <th>What It Tests</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Unlock (standalone)</td>
+                <td><code>/unlock</code></td>
+                <td>Real verification against the database</td>
+            </tr>
+            <tr>
+                <td>Expired (standalone)</td>
+                <td><code>/servant-expired</code></td>
+                <td>Paywall appearance</td>
+            </tr>
+            <tr>
+                <td>Landing Page</td>
+                <td><code>/servant-landing</code></td>
+                <td>Marketing page + chat preview</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <!-- Known Limitations -->
+    <h2>Known Limitations (To Be Built)</h2>
+
+    <div class="limitation"><span class="icon">🔧</span> <span><strong>Stripe Payments</strong> — "Subscribe Now" button
+            is a placeholder; Stripe integration is next</span></div>
+    <div class="limitation"><span class="icon">📧</span> <span><strong>Email Reminders</strong> — Day 25 and expiry
+            emails not yet connected</span></div>
+    <div class="limitation"><span class="icon">📦</span> <span><strong>Amazon SP-API</strong> — Order ID validation is
+            format-only right now (does not check Amazon's system)</span></div>
+    <div class="limitation"><span class="icon">📱</span> <span><strong>Push Notifications</strong> — Not yet
+            implemented</span></div>
+
+    <div class="footer">
+        <p>Serenity Scrolls Servant — Testing Guide — Confidential</p>
+        <p>March 2026</p>
+    </div>
+
+</body>
+
+</html>
