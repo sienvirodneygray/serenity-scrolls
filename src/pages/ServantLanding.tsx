@@ -141,13 +141,13 @@ const ServantLanding = () => {
                         </h1>
 
                         <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-                            A spiritual companion that draws from all 96 Serenity Scrolls Bible verses to guide you through every emotion — with wisdom, warmth, and Scripture.
+                            A spiritual companion that draws from Scripture to guide you through every emotion — with wisdom, warmth, and the Word of God.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                             <Button size="lg" className="h-14 px-8 text-lg group" asChild>
-                                <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer">
-                                    Get Access Now
+                                <a href="#pricing">
+                                    See Plans & Pricing
                                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                 </a>
                             </Button>
@@ -160,7 +160,7 @@ const ServantLanding = () => {
 
                         <p className="text-sm text-muted-foreground pt-4">
                             <Shield className="inline h-4 w-4 mr-1 opacity-60" />
-                            Included free with every Serenity Scrolls purchase
+                            Free with purchase or standalone at $29.99/mo — 7-day free trial
                         </p>
                     </div>
                 </div>
@@ -322,6 +322,119 @@ const ServantLanding = () => {
                 </div>
             </section>
 
+            {/* ===== PRICING SECTION ===== */}
+            <section id="pricing" className="py-24 bg-background">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-16">
+                        <p className="text-primary font-medium mb-3 tracking-wide uppercase text-sm">Choose Your Plan</p>
+                        <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                            Two Ways to{" "}
+                            <span className="bg-gradient-to-r from-[hsl(var(--grateful))] to-[hsl(var(--primary))] bg-clip-text text-transparent">
+                                Experience Servant
+                            </span>
+                        </h2>
+                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                            Start with the basics through your Serenity Scrolls purchase, or go deeper with our advanced AI companion.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        {/* Servant 1.0 Card */}
+                        <Card className="relative overflow-hidden border-border/50 hover:shadow-lg transition-all duration-500 hover:-translate-y-1">
+                            <div className="p-8">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <BookOpen className="h-6 w-6 text-primary" />
+                                    <h3 className="text-2xl font-bold">Servant 1.0</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-6">Included with your Serenity Scrolls purchase</p>
+
+                                <div className="mb-6">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-4xl font-bold">Free</span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-1">with any Serenity Scrolls product</p>
+                                </div>
+
+                                <Button size="lg" variant="outline" className="w-full h-12 text-base mb-8 group" asChild>
+                                    <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer">
+                                        <ShoppingCart className="mr-2 h-4 w-4" />
+                                        Buy on Amazon
+                                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                    </a>
+                                </Button>
+
+                                <div className="space-y-3">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">What's Included</p>
+                                    {[
+                                        "96 curated Bible verse responses",
+                                        "Emotion-based Scripture matching",
+                                        "Guided reflection prompts",
+                                        "30-day access with purchase",
+                                        "24/7 availability",
+                                    ].map((feature) => (
+                                        <div key={feature} className="flex items-start gap-2.5">
+                                            <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                            <span className="text-sm">{feature}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </Card>
+
+                        {/* Servant 2.0 Card */}
+                        <Card className="relative overflow-hidden border-2 border-amber-400/50 dark:border-amber-600/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-1 bg-gradient-to-b from-amber-50/30 to-background dark:from-amber-950/20">
+                            {/* Popular badge */}
+                            <div className="absolute top-0 right-0">
+                                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl">
+                                    MOST POPULAR
+                                </div>
+                            </div>
+
+                            <div className="p-8">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Sparkles className="h-6 w-6 text-amber-500" />
+                                    <h3 className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Servant 2.0</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-6">Advanced AI companion — no purchase required</p>
+
+                                <div className="mb-6">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-4xl font-bold">$29.99</span>
+                                        <span className="text-muted-foreground">/month</span>
+                                    </div>
+                                    <p className="text-sm text-amber-600 dark:text-amber-400 font-medium mt-1">7-day free trial included</p>
+                                </div>
+
+                                <Button size="lg" className="w-full h-12 text-base mb-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white group" asChild>
+                                    <Link to="/servant-test-flow">
+                                        Start Free Trial
+                                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                    </Link>
+                                </Button>
+
+                                <div className="space-y-3">
+                                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">Everything in 1.0, Plus</p>
+                                    {[
+                                        "Vast biblical training beyond scrolls & journal",
+                                        "Emotional intelligence (EQ) insights",
+                                        "Servant-leadership framework guidance",
+                                        "Deeper theological conversations",
+                                        "Virtue-based character reflections",
+                                        "Unlimited access — no expiration",
+                                        "Priority response quality",
+                                    ].map((feature) => (
+                                        <div key={feature} className="flex items-start gap-2.5">
+                                            <CheckCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                            <span className="text-sm">{feature}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                </div>
+            </section>
+
             {/* ===== HOW IT RESPONDS (EMOTION CARDS) ===== */}
             <section className="py-24 bg-muted/30">
                 <div className="container mx-auto px-4">
@@ -390,7 +503,7 @@ const ServantLanding = () => {
                     <div className="max-w-3xl mx-auto space-y-8">
                         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
                             <Heart className="h-4 w-4" />
-                            Included Free with Every Purchase
+                            Free with Purchase or $29.99/mo Standalone
                         </div>
 
                         <h2 className="text-4xl md:text-5xl font-bold leading-tight">
@@ -401,21 +514,22 @@ const ServantLanding = () => {
                         </h2>
 
                         <p className="text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                            Purchase Serenity Scrolls and unlock your personal AI Servant — 96 verses of wisdom, always at your fingertips.
+                            Get Servant 1.0 free with your Serenity Scrolls purchase, or unlock the full Servant 2.0 experience with a 7-day free trial.
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                            <Button size="lg" className="h-14 px-10 text-lg group" asChild>
+                            <Button size="lg" className="h-14 px-10 text-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white group" asChild>
+                                <Link to="/servant-test-flow">
+                                    <Sparkles className="mr-2 h-5 w-5" />
+                                    Start 7-Day Free Trial
+                                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                            </Button>
+                            <Button size="lg" variant="outline" className="h-14 px-10 text-lg group" asChild>
                                 <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer">
                                     <ShoppingCart className="mr-2 h-5 w-5" />
                                     Buy on Amazon
-                                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                 </a>
-                            </Button>
-                            <Button size="lg" variant="outline" className="h-14 px-10 text-lg" asChild>
-                                <Link to="/unlock">
-                                    Already Purchased? Unlock Access
-                                </Link>
                             </Button>
                         </div>
 

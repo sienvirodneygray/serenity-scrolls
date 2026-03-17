@@ -184,6 +184,33 @@ Audience: ${ctx.config?.audience_personas || "Christians seeking spiritual growt
 CTA: ${ctx.config?.cta_preference || "Encourage readers to explore Serenity Scrolls products"}
 ${clusterContext}
 
+## SEO Keyword Research (USE THESE)
+Target these high-volume keywords naturally throughout the post. Pick 1 primary keyword and 3-5 secondary keywords from this pool:
+
+### Bible Journal Keywords (9.9K monthly volume)
+Primary: bible journal, bible journal esv, bible journal niv, bible journal supplies, bible with journal, bible journal bible, esv bible journal
+Long-tail: bible journaling for beginners, how to start bible journaling, bible journaling ideas, scripture journaling prompts
+
+### Christianity / Faith Keywords (90.5K monthly volume)
+Primary: christianity, christian devotional, christian faith, christian living, christian prayer journal
+Long-tail: christian daily devotional journal, faith journal prompts, prayer journaling guide
+
+### Journal Keywords (135K monthly volume)
+Primary: journal prompts, journal entry prompts, journal with prompts, guided journal, reflection journal, journal prompts for self discovery
+Long-tail: journal prompts for mental health, gratitude journal prompts, daily journal prompts for spiritual growth
+
+### AEO Question Targets (use as H2/H3 headings when relevant)
+- "How do you do a Bible journal?"
+- "How do I start Bible journaling as a beginner?"
+- "What are common Bible journaling mistakes?"
+- "What is the 3-3-3 journaling method?"
+- "What is the purpose of a journal?"
+- "What are the 5 components of a journal?"
+- "How to structure a journal?"
+- "What are the three types of journaling?"
+
+Rotate across these keyword categories to avoid over-targeting any single cluster.
+
 ## Content Rules
 - Format: ${formatNeeded} (${formatNeeded === "how-to" ? "tutorial/guide" : formatNeeded === "list" ? "listicle/checklist" : "problem-solution/myths/mistakes"})
 - Post type: ${postType} (${postType === "pillar" ? "comprehensive hub article" : "supporting article"})

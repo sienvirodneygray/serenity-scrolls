@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.seo-engine-validate]
 verify_jwt = false
+
+[functions.auto-blog]
+verify_jwt = false

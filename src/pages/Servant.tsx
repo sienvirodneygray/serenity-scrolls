@@ -363,15 +363,14 @@ const Servant = () => {
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mx-auto max-w-md text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-2">
                   <Sparkles className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Upgrade to Servant+</span>
+                  <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Upgrade to Servant 2.0</span>
                 </div>
                 <p className="text-xs text-amber-700 dark:text-amber-400 mb-3">
-                  Get deeper EQ-informed reflections, virtue-based insights, and the Serenity Leadership Framework.
+                  Unlock vast biblical training, EQ insights, servant-leadership guidance, and deeper theological conversations.
                 </p>
                 <div className="flex items-center justify-center gap-2 mb-3">
-                  <span className="text-sm text-muted-foreground line-through">$39.99</span>
-                  <span className="text-lg font-bold text-amber-700 dark:text-amber-300">$19.99</span>
-                  <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">50% OFF</span>
+                  <span className="text-lg font-bold text-amber-700 dark:text-amber-300">$29.99/mo</span>
+                  <span className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-1.5 py-0.5 rounded-full font-medium">7-DAY FREE TRIAL</span>
                 </div>
                 <div className="flex items-center justify-center gap-2">
                   <Button
