@@ -409,7 +409,7 @@ const Servant = () => {
                     }`}
                 >
                   {msg.role === "assistant" ? (
-                    <div className="prose-chat space-y-0.5">{renderMarkdown(msg.content)}</div>
+                    <div className="prose-chat space-y-1">{renderMarkdown(msg.content)}</div>
                   ) : (
                     <p className="whitespace-pre-wrap">{msg.content}</p>
                   )}
