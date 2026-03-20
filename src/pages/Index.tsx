@@ -151,7 +151,21 @@ const Index = () => {
             <p className="text-sm text-muted-foreground text-center">
               Find peace in every emotion through Scripture
             </p>
-
+            <div className="flex items-center gap-4">
+              <a
+                href="mailto:info@serenityscrolls.faith"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                info@serenityscrolls.faith
+              </a>
+              <span className="text-muted-foreground/30">|</span>
+              <Link
+                to="/contact"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Contact Us
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

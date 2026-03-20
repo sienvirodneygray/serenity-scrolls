@@ -94,6 +94,10 @@ const faqs = [
     question: "What Bible translation do the Scrolls use?",
     answer: "We primarily use the New International Version (NIV) for its balance of accuracy and readability. Some verses may include the English Standard Version (ESV) or King James Version (KJV) when they particularly resonate with the emotional context of the scroll.",
   },
+  {
+    question: "How can I reach you?",
+    answer: "We'd love to hear from you! You can reach us anytime at info@serenityscrolls.faith. Whether you have questions about our products, need help with your AI Servant access, or want to share how Serenity Scrolls has impacted your life, we're here to listen.",
+  },
 ];
 
 export const FAQ = () => {
