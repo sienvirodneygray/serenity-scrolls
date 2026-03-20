@@ -6,6 +6,7 @@ import { FeaturedBlogPosts } from "@/components/FeaturedBlogPosts";
 import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Link } from "react-router-dom";
 import { WEBSITE_AMAZON_URL } from "@/lib/amazonAttribution";
 import tubeProduct from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal-product.jpg";
@@ -21,6 +22,20 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar />
       <Hero />
+
+      {/* Pre-order Banner */}
+      <section className="py-6 bg-gradient-to-r from-purple-600 to-pink-500">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">📖 The Serenity Scrolls Journal is Coming!</h2>
+          <p className="text-white/90 mb-4">Be among the first to get your copy — pre-order now on Amazon.</p>
+          <Link
+            to="/presale-journal"
+            className="inline-block bg-white text-purple-700 font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          >
+            Pre‑order the Journal →
+          </Link>
+        </div>
+      </section>
 
       {/* Products Section */}
       <section id="products" className="py-20 bg-background">
@@ -64,8 +79,8 @@ const Index = () => {
                     title="Serenity Scrolls Reflection Journal"
                     description="Your companion for deep spiritual reflection and growth"
                     image={journalProduct}
-                    badge="Coming Soon"
-                    amazonUrl={WEBSITE_AMAZON_URL}
+                    badge="Pre‑order"
+                    amazonUrl={import.meta.env.VITE_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0DUMMY123?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal'}
                     features={[
                       "All 96 verses with 2-page spreads",
                       "10 reflection questions per verse",
@@ -136,12 +151,7 @@ const Index = () => {
             <p className="text-sm text-muted-foreground text-center">
               Find peace in every emotion through Scripture
             </p>
-            <a
-              href="/admin/login"
-              className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-            >
-              Admin
-            </a>
+
           </div>
         </div>
       </footer>
