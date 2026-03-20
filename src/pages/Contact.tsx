@@ -16,43 +16,43 @@ const Contact = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-card rounded-xl p-6 text-center shadow-sm border border-border hover:shadow-md transition-shadow">
-              <Mail className="h-10 w-10 mx-auto mb-4 text-primary" />
+            <div className="bg-card rounded-xl p-6 text-center shadow-sm border border-border hover:shadow-md transition-shadow flex flex-col items-center">
+              <Mail className="h-10 w-10 mb-4 text-primary" />
               <h3 className="font-semibold text-lg mb-2">Email Us</h3>
+              <p className="text-sm text-muted-foreground flex-1">
+                We typically respond within 24 hours.
+              </p>
               <a
                 href="mailto:info@serenityscrolls.faith"
-                className="text-primary hover:underline font-medium"
+                className="text-primary hover:underline font-medium text-sm mt-4 inline-block"
               >
                 info@serenityscrolls.faith
               </a>
-              <p className="text-sm text-muted-foreground mt-2">
-                We typically respond within 24 hours.
-              </p>
             </div>
 
-            <div className="bg-card rounded-xl p-6 text-center shadow-sm border border-border hover:shadow-md transition-shadow">
-              <MessageCircle className="h-10 w-10 mx-auto mb-4 text-primary" />
+            <div className="bg-card rounded-xl p-6 text-center shadow-sm border border-border hover:shadow-md transition-shadow flex flex-col items-center">
+              <MessageCircle className="h-10 w-10 mb-4 text-primary" />
               <h3 className="font-semibold text-lg mb-2">AI Servant Support</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground flex-1">
                 Need help with your AI Servant access code or subscription?
               </p>
               <a
                 href="mailto:info@serenityscrolls.faith?subject=AI%20Servant%20Support"
-                className="text-primary hover:underline text-sm font-medium mt-2 inline-block"
+                className="text-primary hover:underline text-sm font-medium mt-4 inline-block"
               >
                 Email support →
               </a>
             </div>
 
-            <div className="bg-card rounded-xl p-6 text-center shadow-sm border border-border hover:shadow-md transition-shadow">
-              <Heart className="h-10 w-10 mx-auto mb-4 text-primary" />
+            <div className="bg-card rounded-xl p-6 text-center shadow-sm border border-border hover:shadow-md transition-shadow flex flex-col items-center">
+              <Heart className="h-10 w-10 mb-4 text-primary" />
               <h3 className="font-semibold text-lg mb-2">Share Your Story</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground flex-1">
                 Tell us how Serenity Scrolls has impacted your faith journey.
               </p>
               <a
                 href="mailto:info@serenityscrolls.faith?subject=My%20Serenity%20Scrolls%20Story"
-                className="text-primary hover:underline text-sm font-medium mt-2 inline-block"
+                className="text-primary hover:underline text-sm font-medium mt-4 inline-block"
               >
                 Share now →
               </a>
