@@ -7,7 +7,8 @@ import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
-import { WEBSITE_AMAZON_URL } from "@/lib/amazonAttribution";
+import { WEBSITE_AMAZON_URL, AMAZON_PRODUCTS } from "@/lib/amazonAttribution";
+import { Sparkles } from "lucide-react";
 import tubeProduct from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal-product.jpg";
 import journal1 from "@/assets/journal-1.jpg";
@@ -48,9 +49,10 @@ const Index = () => {
           </div>
 
           <Tabs defaultValue="scrolls" className="max-w-5xl mx-auto">
-            <TabsList className="grid w-full grid-cols-2 mb-8 h-auto">
+            <TabsList className="grid w-full grid-cols-3 mb-8 h-auto">
               <TabsTrigger value="scrolls" className="text-lg py-3">Serenity Scrolls Tube</TabsTrigger>
               <TabsTrigger value="journal" className="text-lg py-3">Reflection Journal</TabsTrigger>
+              <TabsTrigger value="servant" className="text-lg py-3">AI Servant</TabsTrigger>
             </TabsList>
 
             <TabsContent value="scrolls" className="mt-0">
@@ -80,7 +82,7 @@ const Index = () => {
                     description="Your companion for deep spiritual reflection and growth"
                     image={journalProduct}
                     badge="Pre‑order"
-                    amazonUrl={import.meta.env.VITE_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0DUMMY123?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal'}
+                    amazonUrl={import.meta.env.VITE_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0GGV8FQCM?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal'}
                     features={[
                       "All 96 verses with 2-page spreads",
                       "10 reflection questions per verse",
@@ -105,6 +107,57 @@ const Index = () => {
                       </p>
                     </div>
                   </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="servant" className="mt-0">
+              <div className="max-w-2xl mx-auto">
+                <div className="bg-gradient-to-br from-purple-50 to-amber-50 dark:from-purple-950/30 dark:to-amber-950/30 rounded-2xl p-8 text-center space-y-6">
+                  <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-500 to-amber-500 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-3xl font-bold">Serenity Scrolls Servant</h3>
+                  <p className="text-lg text-muted-foreground max-w-lg mx-auto">
+                    Your AI-powered spiritual companion. Share your mood or scroll color,
+                    and receive Scripture snapshots, reflections, journal prompts, and one small step — all guided by faith.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-4 max-w-md mx-auto text-left">
+                    <div className="flex items-start gap-2">
+                      <span className="text-purple-500 mt-1">✦</span>
+                      <span className="text-sm">Mood-based Scripture matching</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-purple-500 mt-1">✦</span>
+                      <span className="text-sm">Personalized reflections</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-purple-500 mt-1">✦</span>
+                      <span className="text-sm">Guided journal prompts</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-purple-500 mt-1">✦</span>
+                      <span className="text-sm">30-day free trial with purchase</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+                    <Link
+                      to="/servant-landing"
+                      className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-amber-500 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Learn More
+                    </Link>
+                    <Link
+                      to="/unlock"
+                      className="inline-flex items-center justify-center gap-2 border-2 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 font-semibold py-3 px-8 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
+                    >
+                      Already purchased? Unlock Access
+                    </Link>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Coming soon on Amazon as a digital product • Free 30-day trial included with every Scrolls purchase
+                  </p>
                 </div>
               </div>
             </TabsContent>

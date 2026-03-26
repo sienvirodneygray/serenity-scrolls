@@ -29,3 +29,33 @@ export const AMAZON_ATTRIBUTION_URLS = {
 
 /** The Attribution URL to use on the Serenity Scrolls website */
 export const WEBSITE_AMAZON_URL = AMAZON_ATTRIBUTION_URLS.website;
+
+/**
+ * Amazon Product Catalog
+ *
+ * Centralized ASINs and SKUs for all Serenity Scrolls products.
+ * Update placeholders once Amazon listings are live.
+ */
+export const AMAZON_PRODUCTS = {
+  scrolls: {
+    name: "Serenity Scrolls Tube",
+    asin: "B0F1HKXBFM",
+    sku: "PI-8N6M-AB86",
+    url: AMAZON_ATTRIBUTION_URLS.website,
+    status: "live" as const,
+  },
+  servant: {
+    name: "Serenity Scrolls Servant (Digital)",
+    asin: "PENDING", // TODO: Replace with real ASIN once Amazon digital listing is live
+    sku: "PENDING",  // TODO: Replace with real SKU once Amazon digital listing is live
+    url: "", // Will be populated once ASIN is assigned
+    status: "pending" as const,
+  },
+  journal: {
+    name: "Serenity Scrolls Reflection Journal",
+    asin: "B0GGV8FQCM",
+    sku: "78-SH1V-JG7I",
+    url: "https://www.amazon.com/dp/B0GGV8FQCM",
+    status: "live" as const,
+  },
+} as const;

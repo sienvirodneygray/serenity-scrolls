@@ -1,7 +1,7 @@
 import React from 'react';
 import QRCode from '../components/QRCode';
 
-const AMAZON_PREORDER_URL = import.meta.env.VITE_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0DUMMY123?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal';
+const AMAZON_PREORDER_URL = import.meta.env.VITE_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0GGV8FQCM?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal';
 
 const PresaleJournal: React.FC = () => {
   return (

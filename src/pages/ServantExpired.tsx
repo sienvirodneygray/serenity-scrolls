@@ -1,12 +1,61 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
-import { Lock, Sparkles, ArrowRight, BookOpen } from "lucide-react";
+import { Lock, Sparkles, ArrowRight, BookOpen, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/logo.png";
 
 const ServantExpired = () => {
     const navigate = useNavigate();
+    const [subscribing, setSubscribing] = useState(false);
+    const { toast } = useToast();
+
+    const handleSubscribe = async () => {
+        setSubscribing(true);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const userEmail = session?.user?.email || "";
+            const userId = session?.user?.id || "";
+
+            const response = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-subscription`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        email: userEmail,
+                        userId: userId,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to create checkout session");
+            }
+
+            // Redirect to Stripe Checkout
+            if (data.url) {
+                window.location.href = data.url;
+            }
+        } catch (error: any) {
+            console.error("Subscribe error:", error);
+            toast({
+                variant: "destructive",
+                title: "Subscription Error",
+                description: error.message || "Could not start checkout. Please try again.",
+            });
+        } finally {
+            setSubscribing(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -59,13 +108,17 @@ const ServantExpired = () => {
                                 <p className="text-xs text-muted-foreground">Cancel anytime</p>
                             </div>
 
-                            {/* Subscribe Button — routes to test flow upgrade simulation */}
                             <Button
                                 className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                                 size="lg"
-                                onClick={() => navigate("/servant-test-flow")}
+                                onClick={handleSubscribe}
+                                disabled={subscribing}
                             >
-                                Subscribe Now <ArrowRight className="h-4 w-4 ml-1" />
+                                {subscribing ? (
+                                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Setting up checkout...</>
+                                ) : (
+                                    <>Subscribe Now <ArrowRight className="h-4 w-4 ml-1" /></>
+                                )}
                             </Button>
 
                             <div className="text-center space-y-2">

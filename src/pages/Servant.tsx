@@ -376,7 +376,24 @@ const Servant = () => {
                   <Button
                     size="sm"
                     className="bg-amber-600 hover:bg-amber-700 text-white"
-                    onClick={() => navigate('/servant-test-flow')}
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(
+                          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-subscription`,
+                          {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                            },
+                            body: JSON.stringify({ email: user?.email || "", userId: user?.id || "", tier: "plus" }),
+                          }
+                        );
+                        const d = await res.json();
+                        if (d.url) window.location.href = d.url;
+                        else toast.error(d.error || "Could not start checkout");
+                      } catch { toast.error("Could not start checkout."); }
+                    }}
                   >
                     Upgrade Now <ArrowRight className="h-3.5 w-3.5 ml-1" />
                   </Button>

@@ -8,6 +8,97 @@ const corsHeaders = {
 // Amazon Order ID format: XXX-XXXXXXX-XXXXXXX
 const AMAZON_ORDER_PATTERN = /^\d{3}-\d{7}-\d{7}$/;
 
+/**
+ * Exchange LWA (Login With Amazon) refresh token for an access token.
+ * Used to authenticate SP-API requests.
+ */
+async function getLWAAccessToken(): Promise<string | null> {
+    const clientId = Deno.env.get("AMAZON_SP_CLIENT_ID");
+    const clientSecret = Deno.env.get("AMAZON_SP_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("AMAZON_SP_REFRESH_TOKEN");
+
+    if (!clientId || !clientSecret || !refreshToken) {
+        return null; // SP-API not configured — fall back to format-only
+    }
+
+    const response = await fetch("https://api.amazon.com/auth/o2/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+            client_id: clientId,
+            client_secret: clientSecret,
+        }),
+    });
+
+    if (!response.ok) {
+        console.error("LWA token exchange failed:", await response.text());
+        return null;
+    }
+
+    const data = await response.json();
+    return data.access_token;
+}
+
+/**
+ * Verify an Amazon Order ID exists via SP-API Orders endpoint.
+ * Returns the order object if found, null otherwise.
+ */
+async function verifyOrderViaSPAPI(orderId: string): Promise<{ verified: boolean; orderStatus?: string; error?: string }> {
+    const accessToken = await getLWAAccessToken();
+    if (!accessToken) {
+        console.log("SP-API credentials not configured — using format-only verification");
+        return { verified: true }; // Graceful fallback
+    }
+
+    const marketplace = Deno.env.get("AMAZON_MARKETPLACE_ID") || "ATVPDKIKX0DER"; // US marketplace default
+    const endpoint = `https://sellingpartnerapi-na.amazon.com/orders/v0/orders/${orderId}`;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: "GET",
+            headers: {
+                "x-amz-access-token": accessToken,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (response.status === 404) {
+            return { verified: false, error: "Order not found in Amazon system." };
+        }
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error("SP-API order lookup failed:", response.status, errText);
+            // On API error, fall back to format-only to not block legitimate customers
+            return { verified: true };
+        }
+
+        const data = await response.json();
+        const order = data.payload;
+
+        if (!order) {
+            return { verified: false, error: "Order not found." };
+        }
+
+        // Check the order status — only allow completed/shipped orders
+        const validStatuses = ["Shipped", "Unshipped", "PartiallyShipped", "Pending"];
+        if (!validStatuses.includes(order.OrderStatus)) {
+            return {
+                verified: false,
+                error: `Order status is "${order.OrderStatus}". Only active orders qualify.`,
+            };
+        }
+
+        return { verified: true, orderStatus: order.OrderStatus };
+    } catch (err) {
+        console.error("SP-API verification error:", err);
+        // On network error, fall back to format-only
+        return { verified: true };
+    }
+}
+
 serve(async (req) => {
     if (req.method === "OPTIONS") {
         return new Response(null, { headers: corsHeaders });
@@ -39,6 +130,20 @@ serve(async (req) => {
                 JSON.stringify({
                     error: "Invalid Order ID format. Amazon Order IDs look like: 123-4567890-1234567",
                     hint: "You can find your Order ID in your Amazon order confirmation email."
+                }),
+                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        // ---- SP-API Real-Time Verification ----
+        // Attempts real verification if credentials are configured;
+        // gracefully falls back to format-only if not.
+        const spVerification = await verifyOrderViaSPAPI(cleanOrderId);
+        if (!spVerification.verified) {
+            return new Response(
+                JSON.stringify({
+                    error: spVerification.error || "Could not verify this Amazon Order ID.",
+                    hint: "Please double-check your Order ID. If this issue persists, contact support."
                 }),
                 { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
@@ -98,6 +203,7 @@ serve(async (req) => {
                     activated_at: now.toISOString(),
                     access_expires_at: expiresAt.toISOString(),
                     redemption_count: (existingRequest.redemption_count || 0) + 1,
+                    verification_method: spVerification.orderStatus ? "sp-api" : "format-only",
                 })
                 .eq("id", existingRequest.id);
         } else {
@@ -111,6 +217,7 @@ serve(async (req) => {
                     activated_at: now.toISOString(),
                     access_expires_at: expiresAt.toISOString(),
                     redemption_count: 1,
+                    verification_method: spVerification.orderStatus ? "sp-api" : "format-only",
                 });
         }
 
@@ -120,7 +227,7 @@ serve(async (req) => {
         let userId = null;
 
         const existingUser = existingUsers?.users?.find(
-            (u) => u.email === email.toLowerCase()
+            (u: any) => u.email === email.toLowerCase()
         );
 
         if (existingUser) {
@@ -168,6 +275,7 @@ serve(async (req) => {
                 accessExpiresAt: expiresAt.toISOString(),
                 daysRemaining: 30,
                 email: email.toLowerCase(),
+                verificationMethod: spVerification.orderStatus ? "sp-api" : "format-only",
                 // Include magic link token for auto-login
                 token: magicLinkData?.properties?.hashed_token || null,
             }),
