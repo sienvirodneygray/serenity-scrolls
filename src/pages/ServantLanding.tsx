@@ -550,12 +550,7 @@ const ServantLanding = () => {
                         <p className="text-sm text-muted-foreground text-center">
                             Find peace in every emotion through Scripture
                         </p>
-                        <a
-                            href="/admin/login"
-                            className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-                        >
-                            Admin
-                        </a>
+
                     </div>
                 </div>
             </footer>
