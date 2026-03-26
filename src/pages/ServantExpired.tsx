@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,13 +11,31 @@ import logo from "@/assets/logo.png";
 const ServantExpired = () => {
     const navigate = useNavigate();
     const [subscribing, setSubscribing] = useState(false);
+    const [email, setEmail] = useState("");
+    const [hasSession, setHasSession] = useState<boolean | null>(null);
     const { toast } = useToast();
 
+    // Check if user is signed in on mount
+    useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setHasSession(!!session);
+            if (session?.user?.email) setEmail(session.user.email);
+        });
+    }, []);
+
     const handleSubscribe = async () => {
+        if (!email || !email.includes("@")) {
+            toast({
+                variant: "destructive",
+                title: "Email Required",
+                description: "Please enter a valid email address to continue.",
+            });
+            return;
+        }
+
         setSubscribing(true);
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            const userEmail = session?.user?.email || "";
             const userId = session?.user?.id || "";
 
             const response = await fetch(
@@ -29,7 +47,7 @@ const ServantExpired = () => {
                         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
                     },
                     body: JSON.stringify({
-                        email: userEmail,
+                        email: email,
                         userId: userId,
                     }),
                 }
@@ -108,11 +126,28 @@ const ServantExpired = () => {
                                 <p className="text-xs text-muted-foreground">Cancel anytime</p>
                             </div>
 
+                            {/* Email input for unauthenticated users */}
+                            {hasSession === false && (
+                                <div className="space-y-1.5">
+                                    <label htmlFor="subscribe-email" className="text-sm font-medium">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        id="subscribe-email"
+                                        type="email"
+                                        placeholder="you@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full px-3 py-2 border border-border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                                    />
+                                </div>
+                            )}
+
                             <Button
                                 className="w-full bg-amber-600 hover:bg-amber-700 text-white"
                                 size="lg"
                                 onClick={handleSubscribe}
-                                disabled={subscribing}
+                                disabled={subscribing || !email}
                             >
                                 {subscribing ? (
                                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Setting up checkout...</>
