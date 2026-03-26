@@ -406,7 +406,7 @@ const ServantLanding = () => {
                                 </div>
 
                                 <Button size="lg" className="w-full h-12 text-base mb-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white group" asChild>
-                                    <Link to="/servant-test-flow">
+                                    <Link to="/servant-expired">
                                         Start Free Trial
                                         <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                     </Link>
@@ -519,7 +519,7 @@ const ServantLanding = () => {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                             <Button size="lg" className="h-14 px-10 text-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white group" asChild>
-                                <Link to="/servant-test-flow">
+                                <Link to="/servant-expired">
                                     <Sparkles className="mr-2 h-5 w-5" />
                                     Start 7-Day Free Trial
                                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
