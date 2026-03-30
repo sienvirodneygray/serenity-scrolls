@@ -96,8 +96,7 @@ const DataProtectionPolicy = () => {
             <p>For questions about our data protection and security practices, contact:</p>
             <p>
                 <strong>Serenity Scrolls</strong><br />
-                Email: <a href="mailto:info@serenityscrolls.faith" className="text-primary hover:underline">info@serenityscrolls.faith</a><br />
-                Address: [INSERT BUSINESS ADDRESS]
+                Email: <a href="mailto:info@serenityscrolls.faith" className="text-primary hover:underline">info@serenityscrolls.faith</a>
             </p>
           </div>
           

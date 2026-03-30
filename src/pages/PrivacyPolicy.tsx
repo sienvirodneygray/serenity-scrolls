@@ -131,8 +131,7 @@ const PrivacyPolicy = () => {
             <p>If you have questions about this Privacy Policy or our data practices, contact us at:</p>
             <p>
                 <strong>Serenity Scrolls</strong><br />
-                Email: <a href="mailto:info@serenityscrolls.faith" className="text-primary hover:underline">info@serenityscrolls.faith</a><br />
-                Address: [INSERT BUSINESS ADDRESS]
+                Email: <a href="mailto:info@serenityscrolls.faith" className="text-primary hover:underline">info@serenityscrolls.faith</a>
             </p>
           </div>
           

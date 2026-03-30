@@ -16,8 +16,7 @@ const TermsOfService = () => {
             <p>Serenity Scrolls operates this Site and offers products and services through it.</p>
             <p>
                 Business name: Serenity Scrolls<br />
-                Email: [INSERT SUPPORT EMAIL]<br />
-                Address: [INSERT BUSINESS ADDRESS]
+                Email: [INSERT SUPPORT EMAIL]
             </p>
 
             <h2 className="text-2xl font-semibold mt-8 mb-4 text-foreground">2. Eligibility</h2>
@@ -123,8 +122,7 @@ const TermsOfService = () => {
             <p>For questions regarding these Terms, contact us at:</p>
             <p>
                 <strong>Serenity Scrolls</strong><br />
-                Email: <a href="mailto:info@serenityscrolls.faith" className="text-primary hover:underline">info@serenityscrolls.faith</a><br />
-                Address: [INSERT BUSINESS ADDRESS]
+                Email: <a href="mailto:info@serenityscrolls.faith" className="text-primary hover:underline">info@serenityscrolls.faith</a>
             </p>
           </div>
           
