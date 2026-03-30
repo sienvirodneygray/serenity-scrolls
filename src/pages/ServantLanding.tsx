@@ -550,7 +550,13 @@ const ServantLanding = () => {
                         <p className="text-sm text-muted-foreground text-center">
                             Find peace in every emotion through Scripture
                         </p>
-
+                        <div className="flex flex-wrap items-center justify-center gap-4 mt-2">
+                            <Link to="/privacy-policy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
+                            <span className="text-muted-foreground/30">|</span>
+                            <Link to="/data-protection-policy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Data Protection</Link>
+                            <span className="text-muted-foreground/30">|</span>
+                            <Link to="/terms-of-service" className="text-xs text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link>
+                        </div>
                     </div>
                 </div>
             </footer>
