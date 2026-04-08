@@ -18,9 +18,9 @@ const PresaleJournal: React.FC = () => {
       >
         Pre‑order on Amazon
       </a>
-      <div className="mt-8">
-        <QRCode url={AMAZON_PREORDER_URL} size={180} />
-        <p className="text-sm text-gray-600 mt-2">Scan the QR code to open the Amazon pre‑order page on mobile.</p>
+      <div className="mt-8 flex flex-col items-center">
+        <QRCode url="https://serenityscrolls.faith/unlock" size={180} />
+        <p className="text-sm text-gray-600 mt-4 text-center max-w-sm">Scan the QR code on your insert card to unlock the Serenity Scrolls Servant.</p>
       </div>
     </div>
   );

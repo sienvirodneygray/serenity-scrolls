@@ -81,31 +81,39 @@ serve(async (req) => {
             body: JSON.stringify({
               from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
               to: [user.email],
-              subject: `Your Serenity Scrolls access ends in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}`,
+              subject: `Your Serenity Scrolls Access Ends in ${daysLeft} Day${daysLeft !== 1 ? "s" : ""} 📜`,
               html: `
-                <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-                  <h1 style="color: #1a1a2e; font-size: 24px; margin-bottom: 16px;">
-                    📜 Your free trial ends in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}
-                  </h1>
-                  <p style="color: #555; font-size: 16px; line-height: 1.6;">
-                    Hi there! Your 30-day free access to the Serenity Scrolls Servant is coming to an end.
-                  </p>
-                  <p style="color: #555; font-size: 16px; line-height: 1.6;">
-                    Don't lose your spiritual companion — subscribe to keep your Scripture reflections,
-                    journal prompts, and guided devotions going.
-                  </p>
-                  <div style="text-align: center; margin: 32px 0;">
-                    <a href="${siteUrl}/servant-expired"
-                       style="display: inline-block; background: linear-gradient(135deg, #d97706, #b45309);
-                              color: white; font-weight: 600; padding: 14px 32px; border-radius: 8px;
-                              text-decoration: none; font-size: 16px;">
-                      Subscribe Now — $19.99/mo
-                    </a>
+                <!DOCTYPE html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <style>
+                    body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #d4af37; }
+                    .content { padding: 30px 0; }
+                    .button { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+                    .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
+                  </style>
+                </head>
+                <body>
+                  <div class="header">
+                    <h1 style="color: #d4af37; margin: 0;">📜 Access Ending Soon 📜</h1>
                   </div>
-                  <p style="color: #999; font-size: 12px; text-align: center;">
-                    © ${new Date().getFullYear()} Serenity Scrolls. All rights reserved.
-                  </p>
-                </div>
+                  <div class="content">
+                    <p>Dear Serenity Seeker,</p>
+                    <p>Your 30-day free access to the <strong>Serenity Scrolls Servant</strong> is coming to an end in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.</p>
+                    <p>Don't lose your spiritual companion — you can subscribe to keep your Scripture reflections, journal prompts, and guided devotions going.</p>
+                    <p style="text-align: center;">
+                      <a href="${siteUrl}/servant-expired" class="button">Subscribe Now — $19.99/mo</a>
+                    </p>
+                    <p>May your journey be filled with peace and wisdom.</p>
+                    <p>With blessings,<br>The Serenity Scrolls Team</p>
+                  </div>
+                  <div class="footer">
+                    <p>Serenity Scrolls - Your Path to Inner Peace</p>
+                  </div>
+                </body>
+                </html>
               `,
             }),
           });

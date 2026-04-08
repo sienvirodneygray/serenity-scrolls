@@ -31,7 +31,7 @@ serve(async (req) => {
     const accessLink = `${origin}/servant-access?email=${encodeURIComponent(email)}`;
 
     const emailResponse = await resend.emails.send({
-      from: "Serenity Scrolls <onboarding@resend.dev>",
+      from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
       to: [email],
       subject: "Your Serenity Scrolls Access Has Been Approved! ✨",
       html: `

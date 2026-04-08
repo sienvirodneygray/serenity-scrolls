@@ -106,6 +106,42 @@
     }
   }
 
+  // Detect country (async, non-blocking)
+  async function detectCountry() {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3000);
+      const res = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+      clearTimeout(timeout);
+      if (res.ok) {
+        const data = await res.json();
+        return data.country_code || data.country || 'Unknown';
+      }
+    } catch (e) {
+      // Silently fail — country is optional
+    }
+    return 'Unknown';
+  }
+
+  // Update session with country after async lookup
+  async function patchSession(sid, country) {
+    if (!country || country === 'Unknown') return;
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/analytics_sessions?session_id=eq.${encodeURIComponent(sid)}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ country: country })
+      });
+    } catch (e) {
+      // Non-critical
+    }
+  }
+
   // Initialize session
   async function initSession() {
     visitorId = getVisitorId();
@@ -137,6 +173,9 @@
 
     await sendToSupabase('analytics_sessions', sessionData);
     trackPageview();
+
+    // Async country detection — patches session after initial insert
+    detectCountry().then(country => patchSession(sessionId, country));
   }
 
   // Track pageview (critical - send immediately)
