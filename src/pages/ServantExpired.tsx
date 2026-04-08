@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/Navbar";
@@ -10,6 +10,8 @@ import logo from "@/assets/logo.png";
 
 const ServantExpired = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isTrialMode = searchParams.get("mode") === "trial";
     const [subscribing, setSubscribing] = useState(false);
     const [email, setEmail] = useState("");
     const [hasSession, setHasSession] = useState<boolean | null>(null);
@@ -89,12 +91,20 @@ const ServantExpired = () => {
                     <Card>
                         <CardHeader className="text-center">
                             <div className="mx-auto mb-4 w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center">
-                                <Lock className="w-8 h-8 text-amber-600" />
+                                {isTrialMode ? (
+                                    <Sparkles className="w-8 h-8 text-amber-600" />
+                                ) : (
+                                    <Lock className="w-8 h-8 text-amber-600" />
+                                )}
                             </div>
-                            <CardTitle>Your Free Trial Has Ended</CardTitle>
+                            <CardTitle>
+                                {isTrialMode ? "Start Your 7-Day Free Trial" : "Your Free Trial Has Ended"}
+                            </CardTitle>
                             <CardDescription>
-                                Your 30-day free access to Serenity Scrolls Servant has expired.
-                                Subscribe to continue your spiritual reflection journey.
+                                {isTrialMode 
+                                    ? "Unlock advanced emotional intelligence, deeper theological insights, and full AI Servant capabilities."
+                                    : "Your 30-day free access to Serenity Scrolls Servant has expired. Subscribe to continue your spiritual reflection journey."
+                                }
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -152,7 +162,7 @@ const ServantExpired = () => {
                                 {subscribing ? (
                                     <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Setting up checkout...</>
                                 ) : (
-                                    <>Subscribe Now <ArrowRight className="h-4 w-4 ml-1" /></>
+                                    <>{isTrialMode ? "Start Free Trial" : "Subscribe Now"} <ArrowRight className="h-4 w-4 ml-1" /></>
                                 )}
                             </Button>
 
@@ -163,7 +173,7 @@ const ServantExpired = () => {
                                     size="sm"
                                     onClick={() => navigate("/unlock")}
                                 >
-                                    Enter a New Order ID
+                                    {isTrialMode ? "Did you buy the Serenity Scrolls?" : "Enter a New Order ID"}
                                 </Button>
                             </div>
                         </CardContent>

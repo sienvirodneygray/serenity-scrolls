@@ -152,9 +152,9 @@ const ServantLanding = () => {
                                 </a>
                             </Button>
                             <Button size="lg" variant="outline" className="h-14 px-8 text-lg" asChild>
-                                <a href="#how-it-works">
-                                    See How It Works
-                                </a>
+                                <Link to="/unlock">
+                                    Already Purchased? Unlock
+                                </Link>
                             </Button>
                         </div>
 
@@ -355,13 +355,19 @@ const ServantLanding = () => {
                                     <p className="text-sm text-muted-foreground mt-1">with any Serenity Scrolls product</p>
                                 </div>
 
-                                <Button size="lg" variant="outline" className="w-full h-12 text-base mb-8 group" asChild>
+                                <Button size="lg" variant="outline" className="w-full h-12 text-base mb-3 group" asChild>
                                     <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer">
                                         <ShoppingCart className="mr-2 h-4 w-4" />
                                         Buy on Amazon
                                         <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                     </a>
                                 </Button>
+                                
+                                <div className="text-center mb-8">
+                                    <Link to="/unlock" className="text-sm text-primary font-medium hover:underline">
+                                        Already purchased? Unlock access
+                                    </Link>
+                                </div>
 
                                 <div className="space-y-3">
                                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">What's Included</p>
@@ -406,7 +412,7 @@ const ServantLanding = () => {
                                 </div>
 
                                 <Button size="lg" className="w-full h-12 text-base mb-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white group" asChild>
-                                    <Link to="/servant-expired">
+                                    <Link to="/servant-expired?mode=trial">
                                         Start Free Trial
                                         <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                     </Link>
@@ -519,17 +525,16 @@ const ServantLanding = () => {
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                             <Button size="lg" className="h-14 px-10 text-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white group" asChild>
-                                <Link to="/servant-expired">
+                                <Link to="/servant-expired?mode=trial">
                                     <Sparkles className="mr-2 h-5 w-5" />
                                     Start 7-Day Free Trial
                                     <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </Button>
                             <Button size="lg" variant="outline" className="h-14 px-10 text-lg group" asChild>
-                                <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer">
-                                    <ShoppingCart className="mr-2 h-5 w-5" />
-                                    Buy on Amazon
-                                </a>
+                                <Link to="/unlock">
+                                    Already Purchased? Unlock
+                                </Link>
                             </Button>
                         </div>
 
