@@ -51,6 +51,7 @@ const ServantExpired = () => {
                     body: JSON.stringify({
                         email: email,
                         userId: userId,
+                        tier: isTrialMode ? "plus" : undefined,
                     }),
                 }
             );
@@ -126,14 +127,18 @@ const ServantExpired = () => {
                             {/* Pricing */}
                             <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 text-center">
                                 <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">
-                                    Continue your journey
+                                    {isTrialMode ? "Start for free today" : "Continue your journey"}
                                 </p>
                                 <div className="flex items-center justify-center gap-2 mb-1">
-                                    <span className="text-sm text-muted-foreground line-through">$39.99</span>
-                                    <span className="text-2xl font-bold text-amber-700 dark:text-amber-300">$19.99</span>
+                                    {!isTrialMode && <span className="text-sm text-muted-foreground line-through">$39.99</span>}
+                                    <span className="text-2xl font-bold text-amber-700 dark:text-amber-300">
+                                        {isTrialMode ? "$29.99" : "$19.99"}
+                                    </span>
                                     <span className="text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-1.5 py-0.5 rounded-full font-medium">/mo</span>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Cancel anytime</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {isTrialMode ? "Nothing billed for 7 days. Cancel anytime." : "Cancel anytime"}
+                                </p>
                             </div>
 
                             {/* Email input for unauthenticated users */}
