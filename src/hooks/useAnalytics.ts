@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from "next/navigation";
 import { supabase } from '@/integrations/supabase/client';
 
 const VISITOR_ID_KEY = 'analytics_visitor_id';
@@ -11,24 +11,24 @@ function generateId(): string {
 }
 
 function getVisitorId(): string {
-  let visitorId = localStorage.getItem(VISITOR_ID_KEY);
+  let visitorId = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)(VISITOR_ID_KEY);
   if (!visitorId) {
     visitorId = `v_${generateId()}`;
-    localStorage.setItem(VISITOR_ID_KEY, visitorId);
+    (typeof window !== 'undefined' ? window.localStorage.setItem.bind(window.localStorage) : () => null)(VISITOR_ID_KEY, visitorId);
   }
   return visitorId;
 }
 
 function getSessionId(): string {
-  const lastActivity = localStorage.getItem('analytics_last_activity');
-  const existingSessionId = sessionStorage.getItem(SESSION_ID_KEY);
+  const lastActivity = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)('analytics_last_activity');
+  const existingSessionId = (typeof window !== 'undefined' ? window.sessionStorage.getItem.bind(window.sessionStorage) : () => null)(SESSION_ID_KEY);
   
   const now = Date.now();
   const isExpired = lastActivity && (now - parseInt(lastActivity)) > SESSION_TIMEOUT;
   
   if (!existingSessionId || isExpired) {
     const newSessionId = `s_${generateId()}`;
-    sessionStorage.setItem(SESSION_ID_KEY, newSessionId);
+    (typeof window !== 'undefined' ? window.sessionStorage.setItem.bind(window.sessionStorage) : () => null)(SESSION_ID_KEY, newSessionId);
     return newSessionId;
   }
   
@@ -75,7 +75,7 @@ function getUTMParams(): Record<string, string | null> {
 }
 
 export function useAnalytics() {
-  const location = useLocation();
+  const pathname = usePathname();
   const sessionIdRef = useRef<string>('');
   const visitorIdRef = useRef<string>('');
   const pageViewIdRef = useRef<string | null>(null);
@@ -111,15 +111,15 @@ export function useAnalytics() {
         screen_width: window.screen.width,
         screen_height: window.screen.height,
         referrer: document.referrer || null,
-        entry_page: location.pathname,
+        entry_page: pathname,
         started_at: new Date().toISOString(),
         is_bounce: true,
         ...utmParams,
       });
     }
     
-    localStorage.setItem('analytics_last_activity', Date.now().toString());
-  }, [location.pathname]);
+    (typeof window !== 'undefined' ? window.localStorage.setItem.bind(window.localStorage) : () => null)('analytics_last_activity', Date.now().toString());
+  }, [pathname]);
 
   const trackPageView = useCallback(async () => {
     if (!sessionIdRef.current) return;
@@ -134,8 +134,8 @@ export function useAnalytics() {
       .from('analytics_pageviews')
       .insert({
         session_id: sessionIdRef.current,
-        page_path: location.pathname,
-        path: location.pathname,
+        page_path: pathname,
+        path: pathname,
         page_title: document.title,
         load_time_ms: loadTime > 0 ? loadTime : null,
         referrer: document.referrer || null,
@@ -151,12 +151,12 @@ export function useAnalytics() {
     if (pageCountRef.current > 1) {
       await supabase
         .from('analytics_sessions')
-        .update({ is_bounce: false })
+        .update({ is_bounce: false } as any)
         .eq('session_id', sessionIdRef.current);
     }
     
-    localStorage.setItem('analytics_last_activity', Date.now().toString());
-  }, [location.pathname]);
+    (typeof window !== 'undefined' ? window.localStorage.setItem.bind(window.localStorage) : () => null)('analytics_last_activity', Date.now().toString());
+  }, [pathname]);
 
   const updatePageView = useCallback(async () => {
     if (!pageViewIdRef.current) return;
@@ -169,7 +169,7 @@ export function useAnalytics() {
         time_on_page_ms: timeOnPage,
         time_on_page_seconds: Math.floor(timeOnPage / 1000),
         scroll_depth_percent: maxScrollDepthRef.current,
-      })
+      } as any)
       .eq('id', pageViewIdRef.current);
   }, []);
 
@@ -181,13 +181,13 @@ export function useAnalytics() {
       .update({
         ended_at: new Date().toISOString(),
         last_activity: new Date().toISOString(),
-        exit_page: location.pathname,
+        exit_page: pathname,
         total_pageviews: pageCountRef.current,
-      })
+      } as any)
       .eq('session_id', sessionIdRef.current);
     
-    localStorage.setItem('analytics_last_activity', Date.now().toString());
-  }, [location.pathname]);
+    (typeof window !== 'undefined' ? window.localStorage.setItem.bind(window.localStorage) : () => null)('analytics_last_activity', Date.now().toString());
+  }, [pathname]);
 
   // Initialize session on mount
   useEffect(() => {
@@ -202,7 +202,7 @@ export function useAnalytics() {
         trackPageView();
       });
     }
-  }, [location.pathname, trackPageView, updatePageView]);
+  }, [pathname, trackPageView, updatePageView]);
 
   // Scroll depth tracking
   useEffect(() => {

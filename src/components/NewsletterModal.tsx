@@ -13,11 +13,11 @@ export const NewsletterModal = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const hasSeenModal = sessionStorage.getItem("newsletter_modal_seen");
+    const hasSeenModal = (typeof window !== 'undefined' ? window.sessionStorage.getItem.bind(window.sessionStorage) : () => null)("newsletter_modal_seen");
     if (!hasSeenModal) {
       const timer = setTimeout(() => {
         setIsOpen(true);
-        sessionStorage.setItem("newsletter_modal_seen", "true");
+        (typeof window !== 'undefined' ? window.sessionStorage.setItem.bind(window.sessionStorage) : () => null)("newsletter_modal_seen", "true");
       }, 30000); // 30 seconds
 
       return () => clearTimeout(timer);

@@ -35,7 +35,7 @@ export const SEOSettings = () => {
     mutationFn: async (updates: any) => {
       const { error } = await supabase
         .from("seo_config")
-        .update(updates)
+        .update(updates as any)
         .eq("id", effectiveConfig.id);
       if (error) throw error;
     },

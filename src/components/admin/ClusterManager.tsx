@@ -49,7 +49,7 @@ export const ClusterManager = () => {
     mutationFn: async (data: any) => {
       const payload = { name: data.name, description: data.description || null, goals: data.goals || null, notes: data.notes || null };
       if (editing) {
-        const { error } = await supabase.from("topic_clusters").update(payload).eq("id", editing.id);
+        const { error } = await supabase.from("topic_clusters").update(payload as any).eq("id", editing.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("topic_clusters").insert([payload]);

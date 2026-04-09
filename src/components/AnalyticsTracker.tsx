@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { usePathname } from "next/navigation";
 import { supabase } from '@/integrations/supabase/client';
 
 const VISITOR_ID_KEY = 'analytics_visitor_id';
@@ -9,10 +9,10 @@ const generateVisitorId = (): string => {
 };
 
 const getVisitorId = (): string => {
-  let visitorId = localStorage.getItem(VISITOR_ID_KEY);
+  let visitorId = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)(VISITOR_ID_KEY);
   if (!visitorId) {
     visitorId = generateVisitorId();
-    localStorage.setItem(VISITOR_ID_KEY, visitorId);
+    (typeof window !== 'undefined' ? window.localStorage.setItem.bind(window.localStorage) : () => null)(VISITOR_ID_KEY, visitorId);
   }
   return visitorId;
 };
@@ -42,7 +42,7 @@ const getUtmParams = () => {
 };
 
 export const AnalyticsTracker = () => {
-  const location = useLocation();
+  const pathname = usePathname();
   const sessionInitialized = useRef(false);
   const visitorId = useRef<string>('');
   const sessionId = useRef<string>('');
@@ -80,7 +80,7 @@ export const AnalyticsTracker = () => {
     // Update ended_at on page unload
     const handleUnload = () => {
       navigator.sendBeacon && (supabase.from('analytics_sessions') as any)
-        .update({ ended_at: new Date().toISOString(), last_activity: new Date().toISOString() })
+        .update({ ended_at: new Date().toISOString(), last_activity: new Date().toISOString() } as any)
         .eq('session_id', sessionId.current);
     };
 
@@ -103,25 +103,25 @@ export const AnalyticsTracker = () => {
           visitor_id: visitorId.current,
           session_id: sessionId.current,
           event_type: 'page_view',
-          page_path: location.pathname,
+          page_path: pathname,
           event_name: 'page_view',
         });
 
         // Update session last_activity and ended_at for duration tracking
         if (sessionId.current) {
           await (supabase.from('analytics_sessions') as any)
-            .update({ last_activity: now, ended_at: now })
+            .update({ last_activity: now, ended_at: now } as any)
             .eq('session_id', sessionId.current);
         }
 
-        console.log('[Analytics] Page view tracked:', location.pathname);
+        console.log('[Analytics] Page view tracked:', pathname);
       } catch (error) {
         console.error('[Analytics] Failed to track page view:', error);
       }
     };
 
     trackPageView();
-  }, [location.pathname]);
+  }, [pathname]);
 
   return null;
 };

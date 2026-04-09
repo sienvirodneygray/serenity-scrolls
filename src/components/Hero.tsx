@@ -16,7 +16,7 @@ export const Hero = () => {
       {/* Hero Image with overlay */}
       <div className="absolute inset-0 opacity-30">
         <img
-          src={heroImage}
+          src={heroImage.src}
           alt="Serenity Scrolls with glowing rainbow light"
           className="w-full h-full object-cover"
         />
@@ -28,7 +28,7 @@ export const Hero = () => {
           {/* Logo */}
           <div className="flex justify-center mb-8">
             <img
-              src={logo}
+              src={logo.src}
               alt="Serenity Scrolls"
               className="h-44 w-auto drop-shadow-lg"
             />

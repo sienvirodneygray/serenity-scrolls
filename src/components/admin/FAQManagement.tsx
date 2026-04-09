@@ -88,7 +88,7 @@ export const FAQManagement = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: FAQFormData }) => {
-      const { error } = await supabase.from("faqs").update(data).eq("id", id);
+      const { error } = await supabase.from("faqs").update(data as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -117,7 +117,7 @@ export const FAQManagement = () => {
 
   const toggleActiveMutation = useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase.from("faqs").update({ is_active }).eq("id", id);
+      const { error } = await supabase.from("faqs").update({ is_active } as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

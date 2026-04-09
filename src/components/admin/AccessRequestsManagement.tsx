@@ -36,7 +36,7 @@ export function AccessRequestsManagement() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      setRequests((data as unknown as AccessRequest[]) || []);
     } catch (error) {
       console.error("Error loading requests:", error);
       toast({
@@ -60,9 +60,9 @@ export function AccessRequestsManagement() {
         .update({
           status: "approved",
           admin_notes: notes[request.id] || null,
-          reviewed_by: session?.user?.id,
+          reviewed_by: session?.user?.id || null,
           reviewed_at: new Date().toISOString(),
-        })
+        } as any)
         .eq("id", request.id);
 
       if (updateError) throw updateError;
@@ -109,9 +109,9 @@ export function AccessRequestsManagement() {
         .update({
           status: "denied",
           admin_notes: notes[request.id] || null,
-          reviewed_by: session?.user?.id,
+          reviewed_by: session?.user?.id || null,
           reviewed_at: new Date().toISOString(),
-        })
+        } as any)
         .eq("id", request.id);
 
       if (error) throw error;

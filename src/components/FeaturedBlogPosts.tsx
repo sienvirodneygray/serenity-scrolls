@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -68,7 +68,7 @@ export const FeaturedBlogPosts = () => {
         ) : (
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {posts?.map((post) => (
-              <Link key={post.id} to={`/blog/${post.slug}`}>
+              <Link key={post.id} href={`/blog/${post.slug}`}>
                 <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow duration-300 group">
                   {post.featured_image ? (
                     <div className="h-40 overflow-hidden">
@@ -110,7 +110,7 @@ export const FeaturedBlogPosts = () => {
 
         <div className="text-center mt-10">
           <Button asChild variant="outline" size="lg">
-            <Link to="/blog">
+            <Link href="/blog">
               View All Posts
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

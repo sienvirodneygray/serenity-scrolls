@@ -190,7 +190,7 @@ export const BlogManagement = () => {
         ...data,
         seo_keywords: data.seo_keywords,
         long_tail_queries: data.long_tail_queries,
-      }).eq("id", id);
+      } as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

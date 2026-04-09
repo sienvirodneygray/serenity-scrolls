@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LogIn, Sparkles } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -6,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 
 export const Navbar = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -25,24 +26,24 @@ export const Navbar = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate("/");
+    router.push("/");
   };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Serenity Scrolls" className="h-10 w-auto" />
+        <Link href="/" className="flex items-center gap-2">
+          <img src={logo.src} alt="Serenity Scrolls" className="h-10 w-auto" />
         </Link>
 
         <div className="flex items-center gap-4">
           <Button variant="ghost" asChild>
-            <Link to="/contact">
+            <Link href="/contact">
               Contact
             </Link>
           </Button>
           <Button variant="ghost" asChild>
-            <Link to="/servant-landing">
+            <Link href="/servant-landing">
               <Sparkles className="mr-2 h-4 w-4" />
               AI Servant
             </Link>
@@ -50,7 +51,7 @@ export const Navbar = () => {
           {user ? (
             <>
               <Button variant="ghost" asChild>
-                <Link to="/servant">
+                <Link href="/servant">
                   Your Servant
                 </Link>
               </Button>
@@ -60,7 +61,7 @@ export const Navbar = () => {
             </>
           ) : (
             <Button variant="outline" asChild>
-              <Link to="/auth">
+              <Link href="/auth">
                 <LogIn className="mr-2 h-4 w-4" />
                 Sign In
               </Link>
