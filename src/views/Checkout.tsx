@@ -16,6 +16,7 @@ interface CartItem {
     id: string;
     name: string;
     price: number;
+    amazon_sku?: string | null;
   };
 }
 
@@ -55,7 +56,8 @@ const Checkout = () => {
           products (
             id,
             name,
-            price
+            price,
+            amazon_sku
           )
         `);
 
@@ -142,6 +144,36 @@ const Checkout = () => {
         .insert(orderItems);
 
       if (itemsError) throw itemsError;
+
+      // ─── Trigger Amazon MCF FBA Fulfillment ───
+      for (const item of cartItems) {
+        if (item.products.amazon_sku) {
+          const mcfPayload = {
+            orderId: order.id,
+            sellerSku: item.products.amazon_sku,
+            quantity: item.quantity,
+            shippingSpeed: "Standard",
+            address: {
+              name: `${formData.firstName} ${formData.lastName}`,
+              line1: formData.address,
+              city: formData.city,
+              stateOrRegion: formData.state,
+              postalCode: formData.zipCode,
+              countryCode: formData.country || "US"
+            }
+          };
+
+          try {
+            await supabase.functions.invoke("create-mcf-order", {
+              body: mcfPayload
+            });
+            console.log(`Dispatched MCF fulfillment for FBA SKU: ${item.products.amazon_sku}`);
+          } catch (mcfError) {
+            console.error(`MCF dispatch failed for ${item.products.amazon_sku}:`, mcfError);
+            // Non-blocking: Order was already saved properly in DB
+          }
+        }
+      }
 
       // Clear cart
       const deleteQuery = supabase.from("cart_items").delete();
