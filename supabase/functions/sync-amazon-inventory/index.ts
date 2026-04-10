@@ -51,14 +51,23 @@ serve(async (req) => {
             });
         }
 
-        // Initialize Supabase Client
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+        const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
         const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+        const authClient = createClient(supabaseUrl, supabaseAnonKey);
+        
+        const token = authHeader.replace("Bearer ", "");
+        const { data: userData, error: userError } = await authClient.auth.getUser(token);
+        if (userError || !userData.user) {
+            return new Response(JSON.stringify({ error: "Unauthorized User: " + userError?.message }), {
+                status: 401, headers: corsHeaders
+            });
+        }
+
+        // Initialize Supabase Admin Client for database operations
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-        // Security role-check bypasses for Edge. It's authenticated via UI click.
-        
         console.log("Fetching LWA token...");
         const accessToken = await getLWAAccessToken();
 
