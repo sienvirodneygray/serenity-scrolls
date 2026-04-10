@@ -117,43 +117,52 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="traffic" className="space-y-6">
-          <TabsList className="flex flex-wrap justify-center mx-auto gap-1">
+          <TabsList className="flex flex-wrap justify-center mx-auto gap-1 mb-8 bg-zinc-100/50 dark:bg-zinc-900/50 p-2 rounded-xl">
+            {/* Core */}
             <TabsTrigger value="traffic" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="access" className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
-              Access
-            </TabsTrigger>
-            <TabsTrigger value="devices" className="flex items-center gap-2">
-              <Monitor className="h-4 w-4" />
-              Devices
-            </TabsTrigger>
-            <TabsTrigger value="behavior" className="flex items-center gap-2">
-              <MousePointer className="h-4 w-4" />
-              Behavior
-            </TabsTrigger>
-            <TabsTrigger value="pages" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Pages
-            </TabsTrigger>
+            
+            {/* E-commerce & Marketing */}
             <TabsTrigger value="amazon" className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
-              Amazon
-            </TabsTrigger>
-            <TabsTrigger value="blog" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Website SEAL
-            </TabsTrigger>
-            <TabsTrigger value="faq" className="flex items-center gap-2">
-              <HelpCircle className="h-4 w-4" />
-              FAQ
+              Amazon FBA
             </TabsTrigger>
             <TabsTrigger value="emails" className="flex items-center gap-2 text-primary font-semibold">
               <Mail className="h-4 w-4" />
               Email Marketing
             </TabsTrigger>
+            
+            {/* CRM & Content */}
+            <TabsTrigger value="access" className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4" />
+              App Access
+            </TabsTrigger>
+            <TabsTrigger value="blog" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Blog / Content
+            </TabsTrigger>
+            <TabsTrigger value="faq" className="flex items-center gap-2">
+              <HelpCircle className="h-4 w-4" />
+              FAQ
+            </TabsTrigger>
+
+            {/* Deep Analytics */}
+            <TabsTrigger value="pages" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Pages Data
+            </TabsTrigger>
+            <TabsTrigger value="behavior" className="flex items-center gap-2">
+              <MousePointer className="h-4 w-4" />
+              Behavior
+            </TabsTrigger>
+            <TabsTrigger value="devices" className="flex items-center gap-2">
+              <Monitor className="h-4 w-4" />
+              Devices
+            </TabsTrigger>
+            
+            {/* System */}
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -162,22 +171,6 @@ export default function AdminDashboard() {
 
           <TabsContent value="traffic" className="space-y-6">
             <TrafficAnalytics />
-          </TabsContent>
-
-          <TabsContent value="access" className="space-y-6">
-            <AccessRequestsManagement />
-          </TabsContent>
-
-          <TabsContent value="devices" className="space-y-6">
-            <DevicesAnalytics timeRange="7d" />
-          </TabsContent>
-
-          <TabsContent value="behavior" className="space-y-6">
-            <UserBehaviorAnalytics timeRange="7d" />
-          </TabsContent>
-
-          <TabsContent value="pages" className="space-y-6">
-            <PagesAnalytics timeRange="7d" />
           </TabsContent>
 
           <TabsContent value="amazon" className="space-y-6">
@@ -194,14 +187,6 @@ export default function AdminDashboard() {
             <AmazonAnalytics />
           </TabsContent>
 
-          <TabsContent value="blog" className="space-y-6">
-            <BlogManagement />
-          </TabsContent>
-
-          <TabsContent value="faq" className="space-y-6">
-            <FAQManagement />
-          </TabsContent>
-
           <TabsContent value="emails" className="space-y-6">
             <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg bg-zinc-50 dark:bg-zinc-900 shadow-sm">
               <Mail className="w-12 h-12 text-primary mb-4" />
@@ -213,6 +198,30 @@ export default function AdminDashboard() {
                 Enter Email Platform
               </Button>
             </div>
+          </TabsContent>
+
+          <TabsContent value="access" className="space-y-6">
+            <AccessRequestsManagement />
+          </TabsContent>
+
+          <TabsContent value="blog" className="space-y-6">
+            <BlogManagement />
+          </TabsContent>
+
+          <TabsContent value="faq" className="space-y-6">
+            <FAQManagement />
+          </TabsContent>
+
+          <TabsContent value="pages" className="space-y-6">
+            <PagesAnalytics timeRange="7d" />
+          </TabsContent>
+
+          <TabsContent value="behavior" className="space-y-6">
+            <UserBehaviorAnalytics timeRange="7d" />
+          </TabsContent>
+
+          <TabsContent value="devices" className="space-y-6">
+            <DevicesAnalytics timeRange="7d" />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
