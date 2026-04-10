@@ -32,7 +32,13 @@ const Cart = () => {
   const fetchCartItems = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const sessionId = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)("session_id");
+      const sessionId = typeof window !== 'undefined' ? window.localStorage.getItem("session_id") : null;
+
+      // Set header for RLS policy
+      if (sessionId) {
+        // @ts-ignore
+        supabase.rest.headers['x-session-id'] = sessionId;
+      }
 
       const query = supabase
         .from("cart_items")

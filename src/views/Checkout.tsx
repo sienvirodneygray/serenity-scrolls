@@ -43,10 +43,19 @@ const Checkout = () => {
     fetchCartItems();
   }, []);
 
+  const getSessionId = () => {
+    const sid = typeof window !== 'undefined' ? window.localStorage.getItem('session_id') : null;
+    if (sid) {
+      // @ts-ignore - set header for RLS policy
+      supabase.rest.headers['x-session-id'] = sid;
+    }
+    return sid;
+  };
+
   const fetchCartItems = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const sessionId = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)("session_id");
+      const sessionId = getSessionId();
 
       const query = supabase
         .from("cart_items")
@@ -97,7 +106,7 @@ const Checkout = () => {
     setSubmitting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const sessionId = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)("session_id");
+      const sessionId = getSessionId();
 
       const total = cartItems.reduce(
         (sum, item) => sum + item.products.price * item.quantity,
