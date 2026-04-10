@@ -74,6 +74,7 @@ export default function AdminDashboard() {
       const { data, error } = await supabase.functions.invoke("sync-amazon-inventory");
       
       if (error) throw error;
+      if (data && !data.success) throw new Error(data.message);
       
       toast({
         title: "Sync Complete!",

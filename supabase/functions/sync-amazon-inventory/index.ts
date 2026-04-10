@@ -122,8 +122,11 @@ serve(async (req) => {
     } catch (error) {
         console.error("FBA Sync Error:", error);
         return new Response(
-            JSON.stringify({ error: error instanceof Error ? error.message : "Sync failed" }),
-            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            JSON.stringify({ 
+                success: false, 
+                message: error instanceof Error ? error.message : "Sync failed due to an unknown Edge Function error." 
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     }
 });
