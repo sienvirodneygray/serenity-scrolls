@@ -5,6 +5,9 @@ import '@/index.css'
 export const metadata: Metadata = {
   title: 'Serenity Scrolls',
   description: 'AI-powered spiritual companion',
+  icons: {
+    icon: '/logo.png',
+  },
 }
 
 import { Suspense } from 'react'
