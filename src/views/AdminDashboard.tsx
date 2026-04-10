@@ -3,8 +3,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle } from "lucide-react";
+import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle, Mail } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
 import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
@@ -120,6 +121,10 @@ export default function AdminDashboard() {
               <HelpCircle className="h-4 w-4" />
               FAQ
             </TabsTrigger>
+            <TabsTrigger value="emails" className="flex items-center gap-2 text-primary font-semibold">
+              <Mail className="h-4 w-4" />
+              Email Marketing
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
@@ -158,6 +163,18 @@ export default function AdminDashboard() {
             <FAQManagement />
           </TabsContent>
 
+          <TabsContent value="emails" className="space-y-6">
+            <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg bg-zinc-50 dark:bg-zinc-900 shadow-sm">
+              <Mail className="w-12 h-12 text-primary mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Serenity Scrolls Marketing Suite</h2>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                Enter the dedicated email platform to synthesize 5-stage AI funnels, manage complex client segmentations, and dispatch one-off broadcasts.
+              </p>
+              <Button size="lg" onClick={() => router.push('/admin/campaigns/dashboard')}>
+                Enter Email Platform
+              </Button>
+            </div>
+          </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">
             <AdminUserManagement />
