@@ -97,48 +97,154 @@ serve(async (req) => {
 
     switch (eventType) {
       // ─── New subscription via Checkout ───
+      // ─── New subscription or product via Checkout ───
       case "checkout.session.completed": {
         const session = event.data.object;
 
-        if (session.mode !== "subscription") break;
+        if (session.mode === "subscription") {
+          const userId = session.metadata?.supabase_user_id;
+          const customerId = session.customer;
+          const customerEmail = session.customer_details?.email || session.customer_email;
 
-        const userId = session.metadata?.supabase_user_id;
-        const customerId = session.customer;
-        const subscriptionId = session.subscription;
-        const customerEmail = session.customer_details?.email || session.customer_email;
-
-        if (userId) {
-          await supabase
-            .from("profiles")
-            .update({
-              subscription_status: "active",
-              stripe_customer_id: customerId,
-              has_access: true,
-              access_expires_at: null, // Subscription = indefinite access
-            })
-            .eq("id", userId);
-
-          console.log(`Subscription activated for user ${userId}`);
-        } else if (customerEmail) {
-          // Fallback: find user by email
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("email", customerEmail.toLowerCase())
-            .maybeSingle();
-
-          if (profile) {
+          if (userId) {
             await supabase
               .from("profiles")
               .update({
                 subscription_status: "active",
                 stripe_customer_id: customerId,
                 has_access: true,
-                access_expires_at: null,
+                access_expires_at: null, // Subscription = indefinite access
               })
-              .eq("id", profile.id);
+              .eq("id", userId);
 
-            console.log(`Subscription activated for user ${profile.id} (via email lookup)`);
+            console.log(`Subscription activated for user ${userId}`);
+          } else if (customerEmail) {
+            // Fallback: find user by email
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("id")
+              .eq("email", customerEmail.toLowerCase())
+              .maybeSingle();
+
+            if (profile) {
+              await supabase
+                .from("profiles")
+                .update({
+                  subscription_status: "active",
+                  stripe_customer_id: customerId,
+                  has_access: true,
+                  access_expires_at: null,
+                })
+                .eq("id", profile.id);
+
+              console.log(`Subscription activated for user ${profile.id} (via email lookup)`);
+            }
+          }
+        } else if (session.mode === "payment") {
+          const metadata = session.metadata || {};
+
+          // Only handle product orders
+          if (metadata.source === "serenity-scrolls-shop") {
+            const items = JSON.parse(metadata.items_json || "[]");
+            const shippingAddress = JSON.parse(metadata.shipping_address || "{}");
+            const customerEmail = metadata.customer_email || session.customer_details?.email || session.customer_email;
+            const userId = metadata.user_id || null;
+            const anonSessionId = metadata.session_id || null;
+
+            // Use Stripe-collected shipping address if available
+            const stripeShipping = session.shipping_details?.address || {};
+            const finalAddress = stripeShipping.line1
+              ? {
+                  firstName: session.shipping_details?.name?.split(" ")[0] || shippingAddress.firstName,
+                  lastName: session.shipping_details?.name?.split(" ").slice(1).join(" ") || shippingAddress.lastName,
+                  address: stripeShipping.line1,
+                  city: stripeShipping.city,
+                  state: stripeShipping.state,
+                  zipCode: stripeShipping.postal_code,
+                  country: stripeShipping.country,
+                }
+              : shippingAddress;
+
+            const totalAmount = (session.amount_total || 0) / 100;
+
+            // Create order
+            const { data: order, error: orderError } = await supabase
+              .from("orders")
+              .insert({
+                user_id: userId || null,
+                session_id: !userId ? anonSessionId : null,
+                customer_email: customerEmail,
+                total_amount: totalAmount,
+                shipping_address: finalAddress,
+                status: "paid",
+                order_number: `SS-${Date.now()}`,
+                stripe_payment_intent_id: session.payment_intent as string,
+              })
+              .select()
+              .single();
+
+            if (orderError) {
+              console.error("Order creation error:", orderError);
+              throw new Error(orderError.message);
+            }
+
+            console.log(`Order created: ${order.order_number} (${order.id})`);
+
+            // Create order items
+            const orderItems = items.map((item: any) => ({
+              order_id: order.id,
+              product_id: item.product_id,
+              quantity: item.quantity,
+              price_at_purchase: item.price,
+            }));
+
+            const { error: itemsError } = await supabase
+              .from("order_items")
+              .insert(orderItems);
+
+            if (itemsError) {
+              console.error("Order items error:", itemsError);
+            }
+
+            // Dispatch Amazon MCF fulfillment for each FBA item
+            for (const item of items) {
+              if (item.amazon_sku) {
+                try {
+                  const mcfResponse = await supabase.functions.invoke("create-mcf-order", {
+                    body: {
+                      orderId: order.id,
+                      sellerSku: item.amazon_sku,
+                      quantity: item.quantity,
+                      shippingSpeed: "Standard",
+                      address: {
+                        name: `${finalAddress.firstName} ${finalAddress.lastName}`,
+                        line1: finalAddress.address,
+                        city: finalAddress.city,
+                        stateOrRegion: finalAddress.state,
+                        postalCode: finalAddress.zipCode,
+                        countryCode: finalAddress.country || "US",
+                      },
+                    },
+                  });
+                  console.log(`MCF dispatched for SKU ${item.amazon_sku}:`, mcfResponse);
+                } catch (mcfErr) {
+                  console.error(`MCF dispatch failed for ${item.amazon_sku}:`, mcfErr);
+                }
+              }
+            }
+
+            // Clear cart
+            if (userId) {
+              await supabase.from("cart_items").delete().eq("user_id", userId);
+            } else if (anonSessionId) {
+              await supabase.from("cart_items").delete().eq("session_id", anonSessionId);
+            }
+
+            // Update order status to processing
+            await supabase
+              .from("orders")
+              .update({ status: "processing" })
+              .eq("id", order.id);
           }
         }
         break;
