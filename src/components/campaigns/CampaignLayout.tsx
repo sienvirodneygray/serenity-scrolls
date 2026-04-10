@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Mail, Users, UserPlus, FileUp, Settings, ShieldAlert } from "lucide-react";
