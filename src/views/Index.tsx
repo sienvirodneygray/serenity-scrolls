@@ -9,6 +9,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { WEBSITE_AMAZON_URL, AMAZON_PRODUCTS } from "@/lib/amazonAttribution";
 import { Sparkles } from "lucide-react";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 import tubeProduct from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal-product.jpg";
 import journal1 from "@/assets/journal-1.jpg";
@@ -19,6 +23,64 @@ import journal6 from "@/assets/journal-6.jpg";
 import journal7 from "@/assets/journal-7.jpg";
 
 const Index = () => {
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const addToCart = async (productId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const sessionId = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)("session_id") || crypto.randomUUID();
+      
+      if (!session) {
+        (typeof window !== 'undefined' ? window.localStorage.setItem.bind(window.localStorage) : () => null)("session_id", sessionId);
+      }
+
+      const { data: existingItem, error: fetchError } = await supabase
+        .from("cart_items")
+        .select("*")
+        .eq("product_id", productId)
+        .eq(session ? "user_id" : "session_id", session?.user?.id || sessionId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (existingItem) {
+        const { error: updateError } = await supabase
+          .from("cart_items")
+          .update({ quantity: existingItem.quantity + 1 } as any)
+          .eq("id", existingItem.id);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from("cart_items")
+          .insert({
+            product_id: productId,
+            user_id: session?.user?.id || null,
+            session_id: session ? null : sessionId,
+            quantity: 1,
+          });
+
+        if (insertError) throw insertError;
+      }
+
+      toast({
+        title: "Added to cart",
+        description: "Product added to your cart successfully",
+      });
+      
+      // Auto redirect to cart for faster MCF conversion flow
+      router.push("/cart");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast({
+        title: "Database Alert",
+        description: "Please make sure this product ID has been seeded into your 'products' table.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -60,7 +122,7 @@ const Index = () => {
                 <ProductCard
                   title="Serenity Scrolls Tube"
                   description="96 color-coded Bible verse scrolls organized by emotion"
-                  image={tubeProduct}
+                  image={tubeProduct.src}
                   badge="Bestseller"
                   amazonUrl={WEBSITE_AMAZON_URL}
                   features={[
@@ -70,6 +132,7 @@ const Index = () => {
                     "Draw a scroll that speaks to your current mood",
                     "Perfect for daily devotions or group sharing",
                   ]}
+                  onAddToCart={() => addToCart('11111111-1111-4111-a111-111111111111')}
                 />
               </div>
             </TabsContent>
@@ -80,7 +143,7 @@ const Index = () => {
                   <ProductCard
                     title="Serenity Scrolls Reflection Journal"
                     description="Your companion for deep spiritual reflection and growth"
-                    image={journalProduct}
+                    image={journalProduct.src}
                     badge="Pre‑order"
                     amazonUrl={process.env.NEXT_PUBLIC_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0GGV8FQCM?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal'}
                     features={[
@@ -90,6 +153,7 @@ const Index = () => {
                       "Space for personal notes and insights",
                       "Includes product access code for AI Servant",
                     ]}
+                    onAddToCart={() => addToCart('22222222-2222-4222-a222-222222222222')}
                   />
 
                   {/* Journal Gallery */}

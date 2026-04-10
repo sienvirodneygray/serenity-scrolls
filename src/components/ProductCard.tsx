@@ -8,11 +8,12 @@ interface ProductCardProps {
   description: string;
   features: string[];
   image: string;
-  amazonUrl: string;
+  amazonUrl?: string;
   badge?: string;
+  onAddToCart?: () => void;
 }
 
-export const ProductCard = ({ title, description, features, image, amazonUrl, badge }: ProductCardProps) => {
+export const ProductCard = ({ title, description, features, image, amazonUrl, badge, onAddToCart }: ProductCardProps) => {
   const handleAmazonClick = () => {
     // Track Amazon click using global tracking function
     if (typeof (window as any).trackAmazonClick === 'function') {
@@ -48,17 +49,29 @@ export const ProductCard = ({ title, description, features, image, amazonUrl, ba
           ))}
         </ul>
       </CardContent>
-      <CardFooter>
-        <Button
-          onClick={handleAmazonClick}
-          asChild
-          className="w-full h-12 text-lg group"
-        >
-          <a href={amazonUrl} target="_blank" rel="noopener noreferrer">
-            Buy on Amazon
-            <ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </a>
-        </Button>
+      <CardFooter className="flex-col gap-2">
+        {onAddToCart && (
+          <Button
+            onClick={onAddToCart}
+            className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            Add to Cart (Ships direct via FBA)
+          </Button>
+        )}
+        
+        {amazonUrl && (
+          <Button
+            variant="outline"
+            onClick={handleAmazonClick}
+            asChild
+            className="w-full h-12 text-base group"
+          >
+            <a href={amazonUrl} target="_blank" rel="noopener noreferrer">
+              Buy on Amazon instead
+              <ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </a>
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
