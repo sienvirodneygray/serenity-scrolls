@@ -52,17 +52,33 @@ const Shop = () => {
   const addToCart = async (productId: string) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const sessionId = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)("session_id") || crypto.randomUUID();
       
+      // For anonymous users, generate/reuse a persistent session ID
+      let anonSessionId: string | null = null;
       if (!session) {
-        (typeof window !== 'undefined' ? window.localStorage.setItem.bind(window.localStorage) : () => null)("session_id", sessionId);
+        anonSessionId = typeof window !== 'undefined' 
+          ? window.localStorage.getItem("session_id") 
+          : null;
+        if (!anonSessionId) {
+          anonSessionId = crypto.randomUUID();
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem("session_id", anonSessionId);
+          }
+        }
+
+        // Set the header that RLS policies check via current_setting('request.headers')
+        // @ts-ignore - accessing internal headers for RLS compatibility
+        supabase.rest.headers['x-session-id'] = anonSessionId;
       }
+
+      const matchColumn = session ? "user_id" : "session_id";
+      const matchValue = session ? session.user.id : anonSessionId!;
 
       const { data: existingItem, error: fetchError } = await supabase
         .from("cart_items")
         .select("*")
         .eq("product_id", productId)
-        .eq(session ? "user_id" : "session_id", session?.user?.id || sessionId)
+        .eq(matchColumn, matchValue)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
@@ -80,7 +96,7 @@ const Shop = () => {
           .insert({
             product_id: productId,
             user_id: session?.user?.id || null,
-            session_id: session ? null : sessionId,
+            session_id: session ? null : anonSessionId,
             quantity: 1,
           });
 
@@ -95,7 +111,7 @@ const Shop = () => {
       console.error("Error adding to cart:", error);
       toast({
         title: "Error",
-        description: "Failed to add product to cart",
+        description: "Failed to add product to cart. Please try again.",
         variant: "destructive",
       });
     }

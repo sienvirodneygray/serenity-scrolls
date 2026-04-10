@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { WEBSITE_AMAZON_URL, AMAZON_PRODUCTS } from "@/lib/amazonAttribution";
 import { Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -25,58 +25,90 @@ import journal7 from "@/assets/journal-7.jpg";
 const Index = () => {
   const { toast } = useToast();
   const router = useRouter();
+  const [productIds, setProductIds] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    // Fetch real product IDs by amazon_sku so we don't hardcode UUIDs
+    const loadProductIds = async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, amazon_sku')
+        .in('amazon_sku', ['PI-8N6M-AB86', '78-SH1V-JG7I']);
+      if (data) {
+        const map: Record<string, string> = {};
+        for (const p of data) {
+          if (p.amazon_sku) map[p.amazon_sku] = p.id;
+        }
+        setProductIds(map);
+      }
+    };
+    loadProductIds();
+  }, []);
 
   const addToCart = async (productId: string) => {
+    if (!productId) {
+      toast({ title: 'Product not found', description: 'This product is not yet available for direct checkout.', variant: 'destructive' });
+      return;
+    }
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const sessionId = (typeof window !== 'undefined' ? window.localStorage.getItem.bind(window.localStorage) : () => null)("session_id") || crypto.randomUUID();
-      
+
+      let anonSessionId: string | null = null;
       if (!session) {
-        (typeof window !== 'undefined' ? window.localStorage.setItem.bind(window.localStorage) : () => null)("session_id", sessionId);
+        anonSessionId = typeof window !== 'undefined'
+          ? window.localStorage.getItem('session_id')
+          : null;
+        if (!anonSessionId) {
+          anonSessionId = crypto.randomUUID();
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('session_id', anonSessionId);
+          }
+        }
+        // @ts-ignore - set header for RLS policy
+        supabase.rest.headers['x-session-id'] = anonSessionId;
       }
 
+      const matchColumn = session ? 'user_id' : 'session_id';
+      const matchValue = session ? session.user.id : anonSessionId!;
+
       const { data: existingItem, error: fetchError } = await supabase
-        .from("cart_items")
-        .select("*")
-        .eq("product_id", productId)
-        .eq(session ? "user_id" : "session_id", session?.user?.id || sessionId)
+        .from('cart_items')
+        .select('*')
+        .eq('product_id', productId)
+        .eq(matchColumn, matchValue)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
 
       if (existingItem) {
         const { error: updateError } = await supabase
-          .from("cart_items")
+          .from('cart_items')
           .update({ quantity: existingItem.quantity + 1 } as any)
-          .eq("id", existingItem.id);
-
+          .eq('id', existingItem.id);
         if (updateError) throw updateError;
       } else {
         const { error: insertError } = await supabase
-          .from("cart_items")
+          .from('cart_items')
           .insert({
             product_id: productId,
             user_id: session?.user?.id || null,
-            session_id: session ? null : sessionId,
+            session_id: session ? null : anonSessionId,
             quantity: 1,
           });
-
         if (insertError) throw insertError;
       }
 
       toast({
-        title: "Added to cart",
-        description: "Product added to your cart successfully",
+        title: 'Added to cart',
+        description: 'Product added to your cart successfully',
       });
-      
-      // Auto redirect to cart for faster MCF conversion flow
-      router.push("/cart");
+      router.push('/cart');
     } catch (error) {
-      console.error("Error adding to cart:", error);
+      console.error('Error adding to cart:', error);
       toast({
-        title: "Database Alert",
-        description: "Please make sure this product ID has been seeded into your 'products' table.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add product to cart. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -132,7 +164,7 @@ const Index = () => {
                     "Draw a scroll that speaks to your current mood",
                     "Perfect for daily devotions or group sharing",
                   ]}
-                  onAddToCart={() => addToCart('11111111-1111-4111-a111-111111111111')}
+                  onAddToCart={() => addToCart(productIds['PI-8N6M-AB86'])}
                 />
               </div>
             </TabsContent>
@@ -153,7 +185,7 @@ const Index = () => {
                       "Space for personal notes and insights",
                       "Includes product access code for AI Servant",
                     ]}
-                    onAddToCart={() => addToCart('22222222-2222-4222-a222-222222222222')}
+                    onAddToCart={() => addToCart(productIds['78-SH1V-JG7I'])}
                   />
 
                   {/* Journal Gallery */}
