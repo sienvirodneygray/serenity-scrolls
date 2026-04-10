@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { ArrowLeft, Calendar, User, BookOpen, Clock, ChevronRight, Sparkles, Share2, ArrowRight } from "lucide-react";
 import { Helmet } from "react-helmet";
 import { WEBSITE_AMAZON_URL } from "@/lib/amazonAttribution";
+import { trackAmazonClick } from "@/lib/trackAmazonClick";
 
 interface BlogPost {
   id: string;
@@ -501,7 +502,7 @@ const BlogPostPage = () => {
                     </Link>
                   </Button>
                   <Button asChild variant="ghost" size="sm" className="text-xs">
-                    <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer">
+                    <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackAmazonClick('Serenity Scrolls', 'blog_post_cta')}>
                       Get Serenity Scrolls
                     </a>
                   </Button>

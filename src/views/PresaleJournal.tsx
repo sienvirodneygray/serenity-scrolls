@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { ShoppingCart, Sparkles, BookOpen, Heart } from "lucide-react";
 import QRCode from '../components/QRCode';
 import journalProduct from "@/assets/journal-product.jpg";
+import { trackAmazonClick } from "@/lib/trackAmazonClick";
 
 const AMAZON_PREORDER_URL = process.env.NEXT_PUBLIC_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0GGV8FQCM?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal';
 
@@ -70,7 +71,7 @@ const PresaleJournal: React.FC = () => {
                 className="w-full sm:w-auto h-14 px-8 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl transition-all hover:scale-105 group" 
                 asChild
               >
-                <a href={AMAZON_PREORDER_URL} target="_blank" rel="noopener noreferrer">
+                <a href={AMAZON_PREORDER_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackAmazonClick('Serenity Scrolls Journal', 'presale_page_cta')}>
                   <ShoppingCart className="mr-2 h-5 w-5" />
                   Pre-order on Amazon
                 </a>

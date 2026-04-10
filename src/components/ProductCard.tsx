@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
+import { trackAmazonClick } from "@/lib/trackAmazonClick";
 
 interface ProductCardProps {
   title: string;
@@ -15,10 +16,7 @@ interface ProductCardProps {
 
 export const ProductCard = ({ title, description, features, image, amazonUrl, badge, onAddToCart }: ProductCardProps) => {
   const handleAmazonClick = () => {
-    // Track Amazon click using global tracking function
-    if (typeof (window as any).trackAmazonClick === 'function') {
-      (window as any).trackAmazonClick(title, 'product_card');
-    }
+    trackAmazonClick(title, 'product_card');
   };
 
   return (

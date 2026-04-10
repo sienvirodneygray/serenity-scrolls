@@ -119,11 +119,22 @@ serve(async (req) => {
             }
         }
 
+        // Collect SKU details for response
+        const skuDetails = inventoryItems.map((item: any) => ({
+            sellerSku: item.sellerSku,
+            asin: item.asin,
+            fnSku: item.fnSku,
+            productName: item.productName,
+            fulfillableQuantity: item.inventoryDetails?.fulfillableQuantity || item.totalQuantity || 0,
+            totalQuantity: item.totalQuantity,
+        }));
+
         return new Response(
             JSON.stringify({
                 success: true,
                 message: `Successfully synchronized ${updatedCount} FBA items into your local database.`,
                 syncedSkusProcessed: inventoryItems.length,
+                amazonSkus: skuDetails,
             }),
             { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );

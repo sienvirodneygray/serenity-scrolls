@@ -2,6 +2,7 @@ import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { WEBSITE_AMAZON_URL } from "@/lib/amazonAttribution";
+import { trackAmazonClick } from "@/lib/trackAmazonClick";
 import logo from "@/assets/logo.png";
 import Link from "next/link";
 import {
@@ -356,7 +357,7 @@ const ServantLanding = () => {
                                 </div>
 
                                 <Button size="lg" variant="outline" className="w-full h-12 text-base mb-3 group" asChild>
-                                    <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer">
+                                    <a href={WEBSITE_AMAZON_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackAmazonClick('Serenity Scrolls', 'servant_landing_pricing')}>
                                         <ShoppingCart className="mr-2 h-4 w-4" />
                                         Buy on Amazon
                                         <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
