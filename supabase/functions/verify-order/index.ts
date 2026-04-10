@@ -123,27 +123,14 @@ serve(async (req) => {
             );
         }
 
-        // Validate Amazon Order ID format
         const cleanOrderId = orderId.trim();
-        if (!AMAZON_ORDER_PATTERN.test(cleanOrderId)) {
-            return new Response(
-                JSON.stringify({
-                    error: "Invalid Order ID format. Amazon Order IDs look like: 123-4567890-1234567",
-                    hint: "You can find your Order ID in your Amazon order confirmation email."
-                }),
-                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
+        const isInternalOrder = cleanOrderId.startsWith("SS-");
 
-        // ---- SP-API Real-Time Verification ----
-        // Attempts real verification if credentials are configured;
-        // gracefully falls back to format-only if not.
-        const spVerification = await verifyOrderViaSPAPI(cleanOrderId);
-        if (!spVerification.verified) {
+        if (!isInternalOrder && !AMAZON_ORDER_PATTERN.test(cleanOrderId)) {
             return new Response(
                 JSON.stringify({
-                    error: spVerification.error || "Could not verify this Amazon Order ID.",
-                    hint: "Please double-check your Order ID. If this issue persists, contact support."
+                    error: "Invalid Order ID format. Order IDs look like: 123-4567890-1234567 (Amazon) or SS-170... (Website)",
+                    hint: "You can find your Order ID in your order confirmation email."
                 }),
                 { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
@@ -152,9 +139,45 @@ serve(async (req) => {
         // Connect to Supabase
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
         const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+        let verificationMethod = "format-only";
+
+        if (isInternalOrder) {
+            // Verify internal order via database
+            const { data: order } = await supabase
+                .from("orders")
+                .select("id, status")
+                .eq("order_number", cleanOrderId)
+                .maybeSingle();
+
+            if (!order || (order.status !== "paid" && order.status !== "processing" && order.status !== "shipped" && order.status !== "delivered")) {
+                return new Response(
+                    JSON.stringify({
+                        error: "Order not found or payment not completed.",
+                        hint: "Please double-check your Order ID. If this issue persists, contact support."
+                    }),
+                    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+            verificationMethod = "website-order";
+        } else {
+            // ---- SP-API Real-Time Verification ----
+            const spVerification = await verifyOrderViaSPAPI(cleanOrderId);
+            if (!spVerification.verified) {
+                return new Response(
+                    JSON.stringify({
+                        error: spVerification.error || "Could not verify this Amazon Order ID.",
+                        hint: "Please double-check your Order ID. If this issue persists, contact support."
+                    }),
+                    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+            if (spVerification.orderStatus) {
+                verificationMethod = "sp-api";
+            }
+        }
 
         // Check if this Order ID has already been redeemed
         const { data: existingRequest } = await supabase
@@ -203,7 +226,7 @@ serve(async (req) => {
                     activated_at: now.toISOString(),
                     access_expires_at: expiresAt.toISOString(),
                     redemption_count: (existingRequest.redemption_count || 0) + 1,
-                    verification_method: spVerification.orderStatus ? "sp-api" : "format-only",
+                    verification_method: verificationMethod,
                 })
                 .eq("id", existingRequest.id);
         } else {
@@ -217,7 +240,7 @@ serve(async (req) => {
                     activated_at: now.toISOString(),
                     access_expires_at: expiresAt.toISOString(),
                     redemption_count: 1,
-                    verification_method: spVerification.orderStatus ? "sp-api" : "format-only",
+                    verification_method: verificationMethod,
                 });
         }
 
@@ -275,7 +298,7 @@ serve(async (req) => {
                 accessExpiresAt: expiresAt.toISOString(),
                 daysRemaining: 30,
                 email: email.toLowerCase(),
-                verificationMethod: spVerification.orderStatus ? "sp-api" : "format-only",
+                verificationMethod: verificationMethod,
                 // Include magic link token for auto-login
                 token: magicLinkData?.properties?.hashed_token || null,
             }),
