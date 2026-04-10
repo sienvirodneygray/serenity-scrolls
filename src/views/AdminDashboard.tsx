@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle, Mail } from "lucide-react";
@@ -116,118 +116,115 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        <Tabs defaultValue="traffic" className="space-y-6">
-          <TabsList className="flex flex-wrap justify-center mx-auto gap-1 mb-8 bg-zinc-100/50 dark:bg-zinc-900/50 p-2 rounded-xl">
-            {/* Core */}
-            <TabsTrigger value="traffic" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            
-            {/* E-commerce & Marketing */}
-            <TabsTrigger value="amazon" className="flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Amazon FBA
-            </TabsTrigger>
-            <TabsTrigger value="emails" className="flex items-center gap-2 text-primary font-semibold">
-              <Mail className="h-4 w-4" />
-              Email Marketing
-            </TabsTrigger>
-            
-            {/* CRM & Content */}
-            <TabsTrigger value="access" className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4" />
-              App Access
-            </TabsTrigger>
-            <TabsTrigger value="blog" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Blog / Content
-            </TabsTrigger>
-            <TabsTrigger value="faq" className="flex items-center gap-2">
-              <HelpCircle className="h-4 w-4" />
-              FAQ
-            </TabsTrigger>
-
-            {/* Deep Analytics */}
-            <TabsTrigger value="pages" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Pages Data
-            </TabsTrigger>
-            <TabsTrigger value="behavior" className="flex items-center gap-2">
-              <MousePointer className="h-4 w-4" />
-              Behavior
-            </TabsTrigger>
-            <TabsTrigger value="devices" className="flex items-center gap-2">
-              <Monitor className="h-4 w-4" />
-              Devices
-            </TabsTrigger>
-            
-            {/* System */}
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="traffic" className="space-y-6">
-            <TrafficAnalytics />
-          </TabsContent>
-
-          <TabsContent value="amazon" className="space-y-6">
-            <div className="flex justify-between items-center bg-card p-6 rounded-lg border border-border shadow-sm">
-              <div>
-                <h3 className="text-lg font-semibold">FBA Inventory Alignment</h3>
-                <p className="text-sm text-muted-foreground">Pull live stock quantities from Amazon to prevent out-of-stock orders.</p>
+        <Accordion type="single" collapsible defaultValue="analytics" className="w-full space-y-6">
+          
+          {/* Analytics Bucket */}
+          <AccordionItem value="analytics" className="border rounded-xl bg-card shadow-sm px-6">
+            <AccordionTrigger className="hover:no-underline py-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-full">
+                  <BarChart3 className="w-6 h-6 text-primary" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold">Core Analytics</h3>
+                  <p className="text-sm text-muted-foreground font-normal">Traffic, pages, devices, and behavior tracking</p>
+                </div>
               </div>
-              <Button onClick={handleSyncInventory} disabled={isSyncing} className="gap-2">
-                <ShoppingCart className="w-4 h-4" />
-                {isSyncing ? "Syncing..." : "Sync FBA Inventory"}
-              </Button>
-            </div>
-            <AmazonAnalytics />
-          </TabsContent>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4 pb-6 space-y-8">
+              <TrafficAnalytics />
+              <div className="grid lg:grid-cols-2 gap-6">
+                <PagesAnalytics timeRange="7d" />
+                <DevicesAnalytics timeRange="7d" />
+              </div>
+              <UserBehaviorAnalytics timeRange="7d" />
+            </AccordionContent>
+          </AccordionItem>
 
-          <TabsContent value="emails" className="space-y-6">
-            <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg bg-zinc-50 dark:bg-zinc-900 shadow-sm">
-              <Mail className="w-12 h-12 text-primary mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Serenity Scrolls Marketing Suite</h2>
-              <p className="text-muted-foreground mb-6 max-w-md">
-                Enter the dedicated email platform to synthesize 5-stage AI funnels, manage complex client segmentations, and dispatch one-off broadcasts.
-              </p>
-              <Button size="lg" onClick={() => router.push('/admin/campaigns/dashboard')}>
-                Enter Email Platform
-              </Button>
-            </div>
-          </TabsContent>
+          {/* E-Commerce Bucket */}
+          <AccordionItem value="ecommerce" className="border rounded-xl bg-card shadow-sm px-6">
+            <AccordionTrigger className="hover:no-underline py-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-amber-500/10 rounded-full">
+                  <ShoppingCart className="w-6 h-6 text-amber-600 dark:text-amber-500" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold">E-Commerce & Inventory</h3>
+                  <p className="text-sm text-muted-foreground font-normal">Amazon FBA sync and sales activity</p>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4 pb-6 space-y-6">
+              <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-900 border p-6 rounded-lg shadow-sm">
+                <div>
+                  <h3 className="text-lg font-semibold">FBA Inventory Alignment</h3>
+                  <p className="text-sm text-muted-foreground">Pull live stock quantities from Amazon to prevent out-of-stock orders.</p>
+                </div>
+                <Button onClick={handleSyncInventory} disabled={isSyncing} className="gap-2">
+                  <ShoppingCart className="w-4 h-4" />
+                  {isSyncing ? "Syncing..." : "Sync FBA Inventory"}
+                </Button>
+              </div>
+              <AmazonAnalytics />
+            </AccordionContent>
+          </AccordionItem>
 
-          <TabsContent value="access" className="space-y-6">
-            <AccessRequestsManagement />
-          </TabsContent>
+          {/* Marketing & Content Bucket */}
+          <AccordionItem value="marketing" className="border rounded-xl bg-card shadow-sm px-6">
+            <AccordionTrigger className="hover:no-underline py-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-indigo-500/10 rounded-full">
+                  <Mail className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold">Marketing & Content</h3>
+                  <p className="text-sm text-muted-foreground font-normal">Email campaigns, blog posts, and FAQs</p>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4 pb-6 space-y-8">
+              <div className="flex flex-col items-center justify-center p-10 text-center border rounded-lg bg-indigo-50/50 dark:bg-indigo-950/20 shadow-sm mb-6">
+                <Mail className="w-12 h-12 text-indigo-500 mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Serenity Scrolls Marketing Suite</h2>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                  Enter the dedicated email platform to synthesize 5-stage AI funnels, manage complex client segmentations, and dispatch one-off broadcasts.
+                </p>
+                <Button size="lg" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => router.push('/admin/campaigns/dashboard')}>
+                  Enter Email Platform
+                </Button>
+              </div>
+              <div className="grid lg:grid-cols-2 gap-6">
+                <BlogManagement />
+                <FAQManagement />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-          <TabsContent value="blog" className="space-y-6">
-            <BlogManagement />
-          </TabsContent>
+          {/* CRM & System Bucket */}
+          <AccordionItem value="crm" className="border rounded-xl bg-card shadow-sm px-6">
+            <AccordionTrigger className="hover:no-underline py-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-zinc-500/10 rounded-full">
+                  <Settings className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold">CRM & System Engine</h3>
+                  <p className="text-sm text-muted-foreground font-normal">App access requests and admin control panel</p>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4 pb-6 space-y-8">
+              <AccessRequestsManagement />
+              <div className="border-t pt-8">
+                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Settings className="w-5 h-5" /> Admin Settings
+                </h3>
+                <AdminUserManagement />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-          <TabsContent value="faq" className="space-y-6">
-            <FAQManagement />
-          </TabsContent>
-
-          <TabsContent value="pages" className="space-y-6">
-            <PagesAnalytics timeRange="7d" />
-          </TabsContent>
-
-          <TabsContent value="behavior" className="space-y-6">
-            <UserBehaviorAnalytics timeRange="7d" />
-          </TabsContent>
-
-          <TabsContent value="devices" className="space-y-6">
-            <DevicesAnalytics timeRange="7d" />
-          </TabsContent>
-
-          <TabsContent value="settings" className="space-y-6">
-            <AdminUserManagement />
-          </TabsContent>
-        </Tabs>
+        </Accordion>
       </div>
     </div>
   );
