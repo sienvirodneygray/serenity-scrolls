@@ -17,59 +17,32 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          request.cookies.set({ name, value, ...options })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          response.cookies.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          request.cookies.set({ name, value: '', ...options })
+          response = NextResponse.next({ request: { headers: request.headers } })
+          response.cookies.set({ name, value: '', ...options })
         },
       },
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Refresh session if expired — this keeps the cookie fresh
+  await supabase.auth.getUser()
 
-  // Protect all /admin routes except /admin/login
-  if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login')) {
-    if (!user) {
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Only protect /admin routes (but not /admin/login itself)
+  if (
+    request.nextUrl.pathname.startsWith('/admin') &&
+    !request.nextUrl.pathname.startsWith('/admin/login')
+  ) {
+    if (!session) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin/login'
-      return NextResponse.redirect(url)
-    }
-
-    // Role check logic via RPC
-    const { data: hasAdminRole } = await supabase.rpc('has_role', { user_id: user.id, role: 'admin' })
-    if (hasAdminRole !== true) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/admin/login'
-      // Could also display an unauthorized page, but kicking to login usually prompts re-auth
       return NextResponse.redirect(url)
     }
   }
@@ -78,7 +51,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  // Only run middleware on /admin routes — no need to intercept every page
+  matcher: ['/admin/:path*'],
 }
+
