@@ -64,7 +64,7 @@ serve(async (req) => {
 
         console.log("Fetching FBA inventory from Amazon...");
         const marketplaceId = "ATVPDKIKX0DER"; // US Marketplace
-        const endpoint = `https://sellingpartnerapi-na.amazon.com/fba/inventory/v1/summaries?details=true&marketplaceIds=${marketplaceId}`;
+        const endpoint = `https://sellingpartnerapi-na.amazon.com/fba/inventory/v1/summaries?details=true&granularityType=Marketplace&granularityId=${marketplaceId}&marketplaceIds=${marketplaceId}`;
 
         const fbaResponse = await fetch(endpoint, {
             method: "GET",
