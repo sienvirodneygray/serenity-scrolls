@@ -19,6 +19,7 @@ import { FAQManagement } from "@/components/admin/FAQManagement";
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -59,6 +60,34 @@ export default function AdminDashboard() {
       router.push("/admin/login");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSyncInventory = async () => {
+    setIsSyncing(true);
+    toast({
+      title: "Syncing Inventory",
+      description: "Fetching live FBA quantities from Amazon SP-API...",
+    });
+
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-amazon-inventory");
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Sync Complete!",
+        description: data?.message || "Successfully aligned local database with FBA warehouse levels.",
+      });
+    } catch (error: any) {
+      console.error("FBA Sync Error:", error);
+      toast({
+        title: "Sync Failed",
+        description: error.message || "Could not synchronize with Amazon FBA.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -152,6 +181,16 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="amazon" className="space-y-6">
+            <div className="flex justify-between items-center bg-card p-6 rounded-lg border border-border shadow-sm">
+              <div>
+                <h3 className="text-lg font-semibold">FBA Inventory Alignment</h3>
+                <p className="text-sm text-muted-foreground">Pull live stock quantities from Amazon to prevent out-of-stock orders.</p>
+              </div>
+              <Button onClick={handleSyncInventory} disabled={isSyncing} className="gap-2">
+                <ShoppingCart className="w-4 h-4" />
+                {isSyncing ? "Syncing..." : "Sync FBA Inventory"}
+              </Button>
+            </div>
             <AmazonAnalytics />
           </TabsContent>
 
