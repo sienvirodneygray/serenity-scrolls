@@ -52,32 +52,15 @@ const Unlock = () => {
                 return;
             }
 
-            // Success — sign in the user
-            if (data.email) {
-                // Try magic link sign-in or create temp session
-                const timestamp = Date.now();
-                const tempEmail = `unlock-${data.email.replace("@", "-at-")}-${timestamp}@serenityscrolls.temp`;
-                const tempPassword = `unlock-${timestamp}`;
-
-                const { error: authError } = await supabase.auth.signUp({
-                    email: tempEmail,
-                    password: tempPassword,
+            // Success — sign in the user seamlessly
+            if (data.email && data.token) {
+                const { error: authError } = await supabase.auth.verifyOtp({
+                    type: "magiclink",
+                    token_hash: data.token,
                 });
 
-                if (!authError) {
-                    // Update profile with access
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (user) {
-                        await supabase
-                            .from("profiles")
-                            .update({
-                                has_access: true,
-                                access_granted_at: new Date().toISOString(),
-                                access_expires_at: data.accessExpiresAt,
-                                subscription_status: "trial",
-                            } as any)
-                            .eq("id", user.id);
-                    }
+                if (authError) {
+                    console.error("Seamless auto-login failed. User will need to login manually:", authError);
                 }
             }
 
