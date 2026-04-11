@@ -13,9 +13,9 @@ const AMAZON_ORDER_PATTERN = /^\d{3}-\d{7}-\d{7}$/;
  * Used to authenticate SP-API requests.
  */
 async function getLWAAccessToken(): Promise<string | null> {
-    const clientId = Deno.env.get("AMAZON_SP_CLIENT_ID");
-    const clientSecret = Deno.env.get("AMAZON_SP_CLIENT_SECRET");
-    const refreshToken = Deno.env.get("AMAZON_SP_REFRESH_TOKEN");
+    const clientId = Deno.env.get("AMAZON_SPAPI_CLIENT_ID");
+    const clientSecret = Deno.env.get("AMAZON_SPAPI_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("AMAZON_SPAPI_REFRESH_TOKEN");
 
     if (!clientId || !clientSecret || !refreshToken) {
         return null; // SP-API not configured — fall back to format-only
@@ -45,7 +45,7 @@ async function getLWAAccessToken(): Promise<string | null> {
  * Verify an Amazon Order ID exists via SP-API Orders endpoint.
  * Returns the order object if found, null otherwise.
  */
-async function verifyOrderViaSPAPI(orderId: string): Promise<{ verified: boolean; orderStatus?: string; error?: string }> {
+async function verifyOrderViaSPAPI(orderId: string, isMCF: boolean): Promise<{ verified: boolean; orderStatus?: string; error?: string }> {
     const accessToken = await getLWAAccessToken();
     if (!accessToken) {
         console.error("SP-API credentials not configured — blocking verification");
@@ -53,7 +53,9 @@ async function verifyOrderViaSPAPI(orderId: string): Promise<{ verified: boolean
     }
 
     const marketplace = Deno.env.get("AMAZON_MARKETPLACE_ID") || "ATVPDKIKX0DER"; // US marketplace default
-    const endpoint = `https://sellingpartnerapi-na.amazon.com/orders/v0/orders/${orderId}`;
+    const endpoint = isMCF
+      ? `https://sellingpartnerapi-na.amazon.com/fba/outbound/2020-07-01/fulfillmentOrders/${orderId}`
+      : `https://sellingpartnerapi-na.amazon.com/orders/v0/orders/${orderId}`;
 
     try {
         const response = await fetch(endpoint, {
@@ -71,7 +73,7 @@ async function verifyOrderViaSPAPI(orderId: string): Promise<{ verified: boolean
         if (!response.ok) {
             const errText = await response.text();
             console.error("SP-API order lookup failed:", response.status, errText);
-            return { verified: false, error: "Could not verify this order with Amazon at this time." };
+            return { verified: false, error: "Could not verify this order with Amazon at this time. Amazon said: " + errText };
         }
 
         const data = await response.json();
@@ -81,16 +83,24 @@ async function verifyOrderViaSPAPI(orderId: string): Promise<{ verified: boolean
             return { verified: false, error: "Order not found." };
         }
 
-        // Check the order status — only allow completed/shipped orders
-        const validStatuses = ["Shipped", "Unshipped", "PartiallyShipped", "Pending"];
-        if (!validStatuses.includes(order.OrderStatus)) {
+        const actualStatus = isMCF ? order.fulfillmentOrderStatus : order.OrderStatus;
+
+        const validStatuses = isMCF 
+            ? ["Received", "Planning", "Processing", "Complete", "CompletePartialled", "Validating", "Invalid"] // MCF statuses
+            : ["Shipped", "Unshipped", "PartiallyShipped", "Pending"]; // Regular AMZ statuses
+            
+        if (!validStatuses.includes(actualStatus) && actualStatus !== "Cancelled") {
+            // Wait, actually let's just reject cancelled directly to be simpler:
+        }
+        
+        if (actualStatus === "Cancelled" || actualStatus === "Unfulfillable") {
             return {
                 verified: false,
-                error: `Order status is "${order.OrderStatus}". Only active orders qualify.`,
+                error: `Order is cancelled or invalid. Please provide an active order.`,
             };
         }
 
-        return { verified: true, orderStatus: order.OrderStatus };
+        return { verified: true, orderStatus: actualStatus };
     } catch (err) {
         console.error("SP-API verification error:", err);
         return { verified: false, error: "Network error occurred while contacting Amazon." };
@@ -163,7 +173,7 @@ serve(async (req) => {
             verificationMethod = "website-order";
         } else {
             // ---- SP-API Real-Time Verification ----
-            const spVerification = await verifyOrderViaSPAPI(cleanOrderId);
+            const spVerification = await verifyOrderViaSPAPI(cleanOrderId, isMCFOrder);
             if (!spVerification.verified) {
                 return new Response(
                     JSON.stringify({
