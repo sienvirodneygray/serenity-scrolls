@@ -113,8 +113,76 @@ serve(async (req) => {
     }
 
     try {
-        const { orderId, email } = await req.json();
+        const { orderId, email, mode } = await req.json();
 
+        // ─── "Check Email" mode: verify this is a returning customer ───
+        if (mode === "check-email") {
+            if (!email) {
+                return new Response(
+                    JSON.stringify({ error: "Email is required." }),
+                    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+
+            const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+            const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+            const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+            const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+            // Look up the user by email in auth.users
+            const { data: users } = await supabase.auth.admin.listUsers();
+            const matchedUser = users?.users?.find(
+                (u: any) => u.email?.toLowerCase() === email.trim().toLowerCase()
+            );
+
+            if (!matchedUser) {
+                return new Response(
+                    JSON.stringify({
+                        verified: false,
+                        error: "No account found with this email. Please use the 'New User' tab to verify your purchase first.",
+                    }),
+                    { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+
+            // Check if this user actually has access
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("has_access, subscription_status, access_expires_at")
+                .eq("id", matchedUser.id)
+                .single();
+
+            if (!profile?.has_access) {
+                return new Response(
+                    JSON.stringify({
+                        verified: false,
+                        error: "This account doesn't have active access. Please verify your purchase using the 'New User' tab.",
+                    }),
+                    { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+
+            // Check if access is expired
+            if (profile.access_expires_at && profile.subscription_status !== "active") {
+                const expiresAt = new Date(profile.access_expires_at);
+                if (expiresAt < new Date()) {
+                    return new Response(
+                        JSON.stringify({
+                            verified: false,
+                            error: "Your access has expired. Please renew your subscription or make a new purchase.",
+                        }),
+                        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                    );
+                }
+            }
+
+            return new Response(
+                JSON.stringify({ verified: true, email: email.trim().toLowerCase() }),
+                { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
+        // ─── Standard order verification flow ───
         if (!orderId || !email) {
             return new Response(
                 JSON.stringify({ error: "Order ID and email are required." }),

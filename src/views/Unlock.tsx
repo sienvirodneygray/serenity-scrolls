@@ -120,7 +120,31 @@ const Unlock = () => {
         try {
             const trimmedEmail = email.trim().toLowerCase();
 
-            // Check if this email has an account with access
+            // Step 1: Verify this email belongs to a real customer with active access
+            const checkRes = await fetch(
+                `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/verify-order`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        email: trimmedEmail,
+                        mode: "check-email",
+                    }),
+                }
+            );
+
+            const checkData = await checkRes.json();
+
+            if (!checkRes.ok || !checkData.verified) {
+                setStatus("error");
+                setErrorMessage(checkData.error || "Could not verify this email. Please use the 'New User' tab.");
+                return;
+            }
+
+            // Step 2: Email is confirmed — now send the magic link
             const { error } = await supabase.auth.signInWithOtp({
                 email: trimmedEmail,
                 options: {
@@ -130,7 +154,7 @@ const Unlock = () => {
 
             if (error) {
                 setStatus("error");
-                setErrorMessage("Could not send login link. Please check your email and try again.");
+                setErrorMessage("Could not send login link. Please try again.");
                 return;
             }
 
