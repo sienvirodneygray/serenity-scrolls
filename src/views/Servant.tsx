@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Loader2, Sparkles, BookOpen, ArrowRight, Lock, Clock } from "lucide-react";
 
 type Message = {
@@ -25,6 +26,7 @@ const Servant = () => {
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>("none");
   const [upsellDismissed, setUpsellDismissed] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const canAccessV2 = subscriptionStatus === "active";
@@ -50,12 +52,13 @@ const Servant = () => {
       toast.error("Could not start checkout."); 
     } finally {
       setLoading(false);
+      setShowUpgradeModal(false);
     }
   };
 
   const handleVersionSwitch = (v: "1.0" | "2.0") => {
     if (v === "2.0" && !canAccessV2) {
-      upgradeToV2();
+      setShowUpgradeModal(true);
       return;
     }
     
@@ -491,6 +494,51 @@ const Servant = () => {
           <strong>Disclaimer:</strong> The Serenity Scrolls Servant is an AI-powered companion designed for spiritual reflection and Scripture-based guidance. It is not a substitute for professional counseling, medical advice, or pastoral care.
         </p>
       </div>
+      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-500" />
+              Upgrade to Servant+
+            </DialogTitle>
+            <DialogDescription>
+              To access Servant 2.0 with deeper EQ insights, emotional intelligence, and servant-leadership guidance, you'll need an active subscription.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-2">
+            <div className="rounded-lg bg-muted p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-foreground">Monthly Plan</span>
+                <span className="font-bold text-amber-600 dark:text-amber-400">$29.99/mo</span>
+              </div>
+              <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                <li>7-day Free Trial</li>
+                <li>Unlimited V2 API usage</li>
+                <li>Deeper theological framework</li>
+                <li>Priority response times</li>
+              </ul>
+            </div>
+          </div>
+          <DialogFooter className="flex flex-row gap-2 justify-end sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowUpgradeModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+              onClick={upgradeToV2}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Start 7-Day Free Trial
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

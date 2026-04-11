@@ -48,8 +48,8 @@ async function getLWAAccessToken(): Promise<string | null> {
 async function verifyOrderViaSPAPI(orderId: string): Promise<{ verified: boolean; orderStatus?: string; error?: string }> {
     const accessToken = await getLWAAccessToken();
     if (!accessToken) {
-        console.log("SP-API credentials not configured — using format-only verification");
-        return { verified: true }; // Graceful fallback
+        console.error("SP-API credentials not configured — blocking verification");
+        return { verified: false, error: "System Error: Amazon verification is currently unavailable. Please contact support." };
     }
 
     const marketplace = Deno.env.get("AMAZON_MARKETPLACE_ID") || "ATVPDKIKX0DER"; // US marketplace default
@@ -65,14 +65,13 @@ async function verifyOrderViaSPAPI(orderId: string): Promise<{ verified: boolean
         });
 
         if (response.status === 404) {
-            return { verified: false, error: "Order not found in Amazon system." };
+            return { verified: false, error: "Order not found in Amazon system. Please double-check your Order ID." };
         }
 
         if (!response.ok) {
             const errText = await response.text();
             console.error("SP-API order lookup failed:", response.status, errText);
-            // On API error, fall back to format-only to not block legitimate customers
-            return { verified: true };
+            return { verified: false, error: "Could not verify this order with Amazon at this time." };
         }
 
         const data = await response.json();
@@ -94,8 +93,7 @@ async function verifyOrderViaSPAPI(orderId: string): Promise<{ verified: boolean
         return { verified: true, orderStatus: order.OrderStatus };
     } catch (err) {
         console.error("SP-API verification error:", err);
-        // On network error, fall back to format-only
-        return { verified: true };
+        return { verified: false, error: "Network error occurred while contacting Amazon." };
     }
 }
 
