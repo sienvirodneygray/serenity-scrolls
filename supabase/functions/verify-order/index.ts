@@ -125,11 +125,12 @@ serve(async (req) => {
 
         const cleanOrderId = orderId.trim();
         const isInternalOrder = cleanOrderId.startsWith("SS-");
+        const isMCFOrder = cleanOrderId.startsWith("CONSUMER-");
 
-        if (!isInternalOrder && !AMAZON_ORDER_PATTERN.test(cleanOrderId)) {
+        if (!isInternalOrder && !isMCFOrder && !AMAZON_ORDER_PATTERN.test(cleanOrderId)) {
             return new Response(
                 JSON.stringify({
-                    error: "Invalid Order ID format. Order IDs look like: 123-4567890-1234567 (Amazon) or SS-170... (Website)",
+                    error: "Invalid Order ID format. Order IDs look like: 123-4567890-1234567 (Amazon standard), CONSUMER-... (MCF), or SS-... (Website)",
                     hint: "You can find your Order ID in your order confirmation email."
                 }),
                 { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
