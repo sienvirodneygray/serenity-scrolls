@@ -82,6 +82,10 @@ const Servant = () => {
   };
 
   const checkAccess = async () => {
+    // Check if we just returned from a successful Stripe checkout
+    const urlParams = new URLSearchParams(window.location.search);
+    const isSubscriptionReturn = urlParams.get("subscription") === "success";
+
     const { data: { session } } = await supabase.auth.getSession();
 
     if (!session) {
@@ -91,12 +95,34 @@ const Servant = () => {
 
     setUser(session.user);
 
-    // Check access + expiry
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("has_access, access_expires_at, subscription_status")
-      .eq("id", session.user.id)
-      .single();
+    // Helper to fetch profile
+    const fetchProfile = async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("has_access, access_expires_at, subscription_status")
+        .eq("id", session.user.id)
+        .single();
+      return data;
+    };
+
+    let profile = await fetchProfile();
+
+    // If returning from Stripe, the webhook may not have fired yet.
+    // Poll for up to 10 seconds waiting for access to be granted.
+    if (isSubscriptionReturn && (!profile?.has_access || profile?.subscription_status !== "active")) {
+      toast.info("Activating your subscription...");
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 1000));
+        profile = await fetchProfile();
+        if (profile?.subscription_status === "active" && profile?.has_access) {
+          break;
+        }
+      }
+
+      // Clean up URL params after polling
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, "", cleanUrl);
+    }
 
     if (!profile?.has_access) {
       toast.error("Please verify your purchase first");
