@@ -29,7 +29,36 @@ const Servant = () => {
 
   const canAccessV2 = subscriptionStatus === "active";
 
+  const upgradeToV2 = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-subscription`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ email: user?.email || "", userId: user?.id || "", tier: "plus" }),
+        }
+      );
+      const d = await res.json();
+      if (d.url) window.location.href = d.url;
+      else toast.error(d.error || "Could not start checkout");
+    } catch { 
+      toast.error("Could not start checkout."); 
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleVersionSwitch = (v: "1.0" | "2.0") => {
+    if (v === "2.0" && !canAccessV2) {
+      upgradeToV2();
+      return;
+    }
+    
     if (v !== version) {
       setVersion(v);
       setMessages([]);
@@ -376,24 +405,7 @@ const Servant = () => {
                   <Button
                     size="sm"
                     className="bg-amber-600 hover:bg-amber-700 text-white"
-                    onClick={async () => {
-                      try {
-                        const res = await fetch(
-                          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-subscription`,
-                          {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json",
-                              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
-                            },
-                            body: JSON.stringify({ email: user?.email || "", userId: user?.id || "", tier: "plus" }),
-                          }
-                        );
-                        const d = await res.json();
-                        if (d.url) window.location.href = d.url;
-                        else toast.error(d.error || "Could not start checkout");
-                      } catch { toast.error("Could not start checkout."); }
-                    }}
+                    onClick={upgradeToV2}
                   >
                     Upgrade Now <ArrowRight className="h-3.5 w-3.5 ml-1" />
                   </Button>
