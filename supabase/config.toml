@@ -26,3 +26,7 @@ verify_jwt = false
 
 [functions.auto-blog]
 verify_jwt = false
+
+[functions.send-magic-link]
+verify_jwt = false
+

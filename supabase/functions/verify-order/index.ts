@@ -213,6 +213,17 @@ serve(async (req) => {
             );
         }
 
+        // Explicitly block standard test/dummy Order IDs from being used in production
+        if (cleanOrderId === "123-4567890-1234567" || cleanOrderId === "CONSUMER-2026411-01424") {
+            return new Response(
+                JSON.stringify({
+                    error: "Test order IDs cannot be used to unlock access.",
+                    hint: "Please use your real Amazon Order ID found in your confirmation email."
+                }),
+                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
         // Connect to Supabase
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

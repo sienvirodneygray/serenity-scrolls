@@ -24,6 +24,40 @@ const Unlock = () => {
     const router = useRouter();
     const { toast } = useToast();
 
+    // Handle custom magic token from branded email login
+    useEffect(() => {
+        const handleMagicToken = async () => {
+            if (typeof window === 'undefined') return;
+
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get("magic_token");
+            if (token) {
+                setCheckingSession(true);
+                try {
+                    const { error } = await supabase.auth.verifyOtp({
+                        type: "magiclink",
+                        token_hash: token,
+                    });
+
+                    if (!error) {
+                        router.push("/servant");
+                    } else {
+                        router.replace("/unlock");
+                        toast({
+                            title: "Link Expired",
+                            description: "Your login link has expired or is invalid. Please request a new one.",
+                            variant: "destructive",
+                        });
+                    }
+                } catch (e) {
+                    router.replace("/unlock");
+                }
+                setCheckingSession(false);
+            }
+        };
+        handleMagicToken();
+    }, [router, toast]);
+
     // Auto-redirect if user already has an active session with access
     useEffect(() => {
         const checkExistingSession = async () => {
@@ -144,15 +178,23 @@ const Unlock = () => {
                 return;
             }
 
-            // Step 2: Email is confirmed — now send the magic link
-            const { error } = await supabase.auth.signInWithOtp({
-                email: trimmedEmail,
-                options: {
-                    emailRedirectTo: `${window.location.origin}/servant`,
-                },
-            });
+            // Step 2: Email is confirmed — now send the custom magic link
+            const sendRes = await fetch(
+                `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-magic-link`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        email: trimmedEmail,
+                        origin: window.location.origin,
+                    }),
+                }
+            );
 
-            if (error) {
+            if (!sendRes.ok) {
                 setStatus("error");
                 setErrorMessage("Could not send login link. Please try again.");
                 return;
