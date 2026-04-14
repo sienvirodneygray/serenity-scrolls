@@ -208,14 +208,14 @@ const Checkout = () => {
             <h1 className="text-3xl font-bold">Order Confirmed! 🎉</h1>
             <p className="text-muted-foreground text-lg leading-relaxed">
               Thank you for your purchase! Your order is being processed and will
-              be fulfilled by Amazon. You'll receive a shipping confirmation
+              be fulfilled shortly. You'll receive a shipping confirmation
               email soon.
             </p>
             <div className="bg-muted/50 rounded-xl p-5 border border-border/50 text-left space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Package className="h-5 w-5 text-primary shrink-0" />
                 <span>
-                  Fulfilled by <strong>Amazon FBA</strong>
+                  Fulfilled by <strong>Serenity Scrolls</strong>
                 </span>
               </div>
               <div className="flex items-center gap-3 text-sm">
@@ -269,16 +269,16 @@ const Checkout = () => {
           <h1 className="text-3xl md:text-4xl font-bold">Checkout</h1>
         </div>
 
-        {/* Amazon FBA Trust Banner */}
-        <div className="mb-8 bg-gradient-to-r from-[#232F3E] to-[#37475A] rounded-xl p-4 md:p-5 flex flex-wrap items-center gap-4 text-white shadow-lg">
+        {/* Shipping Banner */}
+        <div className="mb-8 bg-gradient-to-r from-primary to-primary/80 rounded-xl p-4 md:p-5 flex flex-wrap items-center gap-4 text-white shadow-lg">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
               <Package className="h-5 w-5" />
             </div>
             <div>
-              <p className="font-semibold text-sm">Fulfilled by Amazon</p>
+              <p className="font-semibold text-sm">Fast & Reliable Shipping</p>
               <p className="text-xs text-white/70">
-                Fast, reliable shipping via Amazon FBA
+                Direct from our fulfillment centers
               </p>
             </div>
           </div>
@@ -309,7 +309,7 @@ const Checkout = () => {
                     Shipping Address
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
-                    This address will be used for Amazon FBA delivery
+                    This address will be used for delivery
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -410,7 +410,7 @@ const Checkout = () => {
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        Delivered in 3-5 business days via Amazon FBA
+                        Delivered in 3-5 business days
                       </p>
                     </div>
                     <CheckCircle className="h-5 w-5 text-primary shrink-0" />
@@ -502,8 +502,8 @@ const Checkout = () => {
                   {[
                     {
                       icon: Package,
-                      title: "Fulfilled by Amazon",
-                      desc: "Shipped from Amazon's fulfillment centers",
+                      title: "Fast Shipping",
+                      desc: "Quick delivery from our fulfillment centers",
                     },
                     {
                       icon: Shield,

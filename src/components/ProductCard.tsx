@@ -48,28 +48,14 @@ export const ProductCard = ({ title, description, features, image, amazonUrl, ba
         </ul>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-        {onAddToCart && (
           <Button
             onClick={onAddToCart}
             className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            Add to Cart (Ships direct via FBA)
+            Add to Cart
           </Button>
-        )}
         
-        {amazonUrl && (
-          <Button
-            variant="outline"
-            onClick={handleAmazonClick}
-            asChild
-            className="w-full h-12 text-base group"
-          >
-            <a href={amazonUrl} target="_blank" rel="noopener noreferrer">
-              Buy on Amazon instead
-              <ExternalLink className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </a>
-          </Button>
-        )}
+
       </CardFooter>
     </Card>
   );
