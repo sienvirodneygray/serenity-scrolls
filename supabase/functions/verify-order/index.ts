@@ -79,24 +79,30 @@ async function verifyOrderViaSPAPI(orderId: string, isMCF: boolean): Promise<{ v
         const data = await response.json();
         const order = data.payload;
 
-        if (!order) {
+        if (!order || Object.keys(order).length === 0) {
             return { verified: false, error: "Order not found." };
         }
 
         const actualStatus = isMCF ? order.fulfillmentOrderStatus : order.OrderStatus;
 
+        if (!actualStatus) {
+            return { verified: false, error: "Order not found." };
+        }
+
         const validStatuses = isMCF 
             ? ["Received", "Planning", "Processing", "Complete", "CompletePartialled", "Validating", "Invalid"] // MCF statuses
             : ["Shipped", "Unshipped", "PartiallyShipped", "Pending"]; // Regular AMZ statuses
             
-        if (!validStatuses.includes(actualStatus) && actualStatus !== "Cancelled") {
-            // Wait, actually let's just reject cancelled directly to be simpler:
-        }
-        
-        if (actualStatus === "Cancelled" || actualStatus === "Unfulfillable") {
+        if (!validStatuses.includes(actualStatus)) {
+            if (actualStatus === "Cancelled" || actualStatus === "Unfulfillable") {
+                return {
+                    verified: false,
+                    error: `Order is cancelled or invalid. Please provide an active order.`,
+                };
+            }
             return {
                 verified: false,
-                error: `Order is cancelled or invalid. Please provide an active order.`,
+                error: `Order status is not recognized for approval (${actualStatus}). Please double-check your Order ID.`,
             };
         }
 
@@ -214,7 +220,8 @@ serve(async (req) => {
         }
 
         // Explicitly block standard test/dummy Order IDs from being used in production
-        if (cleanOrderId === "123-4567890-1234567" || cleanOrderId === "CONSUMER-2026411-01424") {
+        // Amazon treats ANY order starting with '123-' as a sandbox ID and returns dummy 200 OK payloads!
+        if (cleanOrderId.startsWith("123-") || cleanOrderId.startsWith("CONSUMER-[TEST]")) {
             return new Response(
                 JSON.stringify({
                     error: "Test order IDs cannot be used to unlock access.",

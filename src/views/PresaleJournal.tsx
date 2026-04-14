@@ -1,15 +1,96 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ShoppingCart, Sparkles, BookOpen, Heart } from "lucide-react";
-import QRCode from '../components/QRCode';
 import journalProduct from "@/assets/journal-product.jpg";
-import { trackAmazonClick } from "@/lib/trackAmazonClick";
-
-const AMAZON_PREORDER_URL = process.env.NEXT_PUBLIC_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0GGV8FQCM?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const PresaleJournal: React.FC = () => {
+  const { toast } = useToast();
+  const router = useRouter();
+  const [journalId, setJournalId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadProductId = async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, amazon_sku')
+        .eq('amazon_sku', '78-SH1V-JG7I')
+        .maybeSingle();
+      if (data) {
+        setJournalId(data.id);
+      }
+    };
+    loadProductId();
+  }, []);
+
+  const addToCart = async () => {
+    if (!journalId) {
+      toast({ title: 'Product not found', description: 'This product is not yet available for direct checkout.', variant: 'destructive' });
+      return;
+    }
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      let anonSessionId: string | null = null;
+      if (!session) {
+        anonSessionId = typeof window !== 'undefined' ? window.localStorage.getItem('session_id') : null;
+        if (!anonSessionId) {
+          anonSessionId = crypto.randomUUID();
+          if (typeof window !== 'undefined') window.localStorage.setItem('session_id', anonSessionId);
+        }
+        // @ts-ignore
+        supabase.rest.headers['x-session-id'] = anonSessionId;
+      }
+
+      const matchColumn = session ? 'user_id' : 'session_id';
+      const matchValue = session ? session.user.id : anonSessionId!;
+
+      const { data: existingItem, error: fetchError } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('product_id', journalId)
+        .eq(matchColumn, matchValue)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (existingItem) {
+        const { error: updateError } = await supabase
+          .from('cart_items')
+          .update({ quantity: existingItem.quantity + 1 } as any)
+          .eq('id', existingItem.id);
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from('cart_items')
+          .insert({
+            product_id: journalId,
+            user_id: session?.user?.id || null,
+            session_id: session ? null : anonSessionId,
+            quantity: 1,
+          });
+        if (insertError) throw insertError;
+      }
+
+      toast({
+        title: 'Added to cart',
+        description: 'Product added to your cart successfully',
+      });
+      router.push('/cart');
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add product to cart. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
@@ -37,9 +118,9 @@ const PresaleJournal: React.FC = () => {
           {/* Right Column: Content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-full text-sm font-medium">
+              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500/10 to-purple-600/10 text-purple-700 dark:text-purple-300 px-4 py-2 rounded-full text-sm font-medium">
                 <Sparkles className="h-4 w-4" />
-                Coming Soon to Amazon
+                Now Available for Pre-order
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
                 Serenity Scrolls <br />
@@ -68,25 +149,12 @@ const PresaleJournal: React.FC = () => {
             <div className="pt-6 space-y-8 border-t border-border/50">
               <Button 
                 size="lg" 
+                onClick={addToCart}
                 className="w-full sm:w-auto h-14 px-8 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-xl transition-all hover:scale-105 group" 
-                asChild
               >
-                <a href={AMAZON_PREORDER_URL} target="_blank" rel="noopener noreferrer" onClick={() => trackAmazonClick('Serenity Scrolls Journal', 'presale_page_cta')}>
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  Pre-order on Amazon
-                </a>
+                <ShoppingCart className="mr-2 h-5 w-5" />
+                Pre Order
               </Button>
-
-              {/* Desktop QR Code Block */}
-              <div className="hidden sm:flex items-center gap-6 bg-muted/40 p-4 rounded-2xl border border-border/50 max-w-sm">
-                <div className="bg-white p-2 rounded-xl shadow-sm shrink-0">
-                  <QRCode url={AMAZON_PREORDER_URL} size={80} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground mb-1">Browsing on Desktop?</p>
-                  <p className="text-xs text-muted-foreground leading-snug">Scan the code to quickly check out on your mobile device.</p>
-                </div>
-              </div>
             </div>
           </div>
 
