@@ -17,12 +17,19 @@ type Message = {
 
 const Servant = () => {
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messagesV1, setMessagesV1] = useState<Message[]>([]);
+  const [messagesV2, setMessagesV2] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [threadId, setThreadId] = useState<string | null>(null);
+  const [threadIdV1, setThreadIdV1] = useState<string | null>(null);
+  const [threadIdV2, setThreadIdV2] = useState<string | null>(null);
   const [version, setVersion] = useState<"1.0" | "2.0">("1.0");
+
+  const messages = version === "1.0" ? messagesV1 : messagesV2;
+  const setMessages = version === "1.0" ? setMessagesV1 : setMessagesV2;
+  const threadId = version === "1.0" ? threadIdV1 : threadIdV2;
+  const setThreadId = version === "1.0" ? setThreadIdV1 : setThreadIdV2;
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>("none");
   const [upsellDismissed, setUpsellDismissed] = useState(false);
@@ -64,8 +71,6 @@ const Servant = () => {
     
     if (v !== version) {
       setVersion(v);
-      setMessages([]);
-      setThreadId(null);
     }
   };
 
