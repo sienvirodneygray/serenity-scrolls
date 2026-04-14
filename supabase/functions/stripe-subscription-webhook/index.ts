@@ -156,6 +156,7 @@ serve(async (req) => {
                 await resend.emails.send({
                   from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
                   to: [customerEmail],
+      bcc: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
                   subject: `Welcome to ${planName}! Your subscription is active ✨`,
                   html: `
                     <!DOCTYPE html>

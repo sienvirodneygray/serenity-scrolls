@@ -81,6 +81,7 @@ serve(async (req) => {
             body: JSON.stringify({
               from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
               to: [user.email],
+      bcc: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
               subject: `Your Serenity Scrolls Access Ends in ${daysLeft} Day${daysLeft !== 1 ? "s" : ""} 📜`,
               html: `
                 <!DOCTYPE html>

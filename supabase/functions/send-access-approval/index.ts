@@ -33,6 +33,7 @@ serve(async (req) => {
     const emailResponse = await resend.emails.send({
       from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
       to: [email],
+      bcc: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
       subject: "Your Serenity Scrolls Access Has Been Approved! ✨",
       html: `
         <!DOCTYPE html>
