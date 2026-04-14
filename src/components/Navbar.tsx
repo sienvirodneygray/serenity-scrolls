@@ -62,7 +62,7 @@ export const Navbar = () => {
             </>
           ) : (
             <Button variant="outline" asChild>
-              <Link href="/auth">
+              <Link href="/unlock">
                 <LogIn className="mr-2 h-4 w-4" />
                 Sign In
               </Link>
