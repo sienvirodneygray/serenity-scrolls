@@ -324,6 +324,21 @@ serve(async (req) => {
               .from("orders")
               .update({ status: "processing" })
               .eq("id", order.id);
+
+            // Send order confirmation email to customer + admins
+            try {
+              await supabase.functions.invoke("send-order-notification", {
+                body: {
+                  orderId: order.id,
+                  type: "confirmation",
+                },
+              });
+              console.log(`Order confirmation email dispatched for ${order.order_number}`);
+            } catch (emailErr) {
+              console.error("Failed to send order confirmation email:", emailErr);
+              // Don't throw — email failure shouldn't block the webhook
+            }
+
           }
         }
         break;

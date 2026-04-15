@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,16 @@ const Unlock = () => {
     const [mode, setMode] = useState<PageMode>("new");
     const [checkingSession, setCheckingSession] = useState(true);
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
+
+    // Pre-fill from checkout success redirect
+    useEffect(() => {
+        const prefillOrder = searchParams?.get("prefill_order");
+        const prefillEmail = searchParams?.get("prefill_email");
+        if (prefillOrder) setOrderId(prefillOrder);
+        if (prefillEmail) setEmail(prefillEmail);
+    }, [searchParams]);
 
     // Handle custom magic token from branded email login
     useEffect(() => {
@@ -234,7 +243,7 @@ const Unlock = () => {
                             ? "Sign in with your email to continue where you left off"
                             : mode === "magic-sent"
                                 ? "Check your inbox for the login link"
-                                : "Enter your Amazon Order ID to start your free 30-day access"}
+                                : "Enter your Order ID to start your free 30-day access"}
                     </p>
                 </div>
 
@@ -338,7 +347,7 @@ const Unlock = () => {
                                 <CardHeader>
                                     <CardTitle className="text-lg">Verify Your Purchase</CardTitle>
                                     <CardDescription>
-                                        Enter your Amazon Order ID and email to unlock access
+                                        Enter your Order ID and email to unlock access
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
@@ -356,11 +365,11 @@ const Unlock = () => {
                                             />
                                         </div>
                                         <div>
-                                            <Label htmlFor="orderId">Amazon Order ID</Label>
+                                            <Label htmlFor="orderId">Order ID</Label>
                                             <Input
                                                 id="orderId"
                                                 type="text"
-                                                placeholder="123-4567890-1234567"
+                                                placeholder="SS-20260416-1234 or 123-4567890-1234567"
                                                 value={orderId}
                                                 onChange={(e) => setOrderId(e.target.value)}
                                                 required
@@ -369,7 +378,7 @@ const Unlock = () => {
                                             />
                                             <p className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
                                                 <HelpCircle className="h-3 w-3 mt-0.5 shrink-0" />
-                                                Found in your Amazon order confirmation email or under Your Orders
+                                                Found in your order confirmation email (SS-... for website orders, 123-... for Amazon)
                                             </p>
                                         </div>
 
@@ -469,7 +478,7 @@ const Unlock = () => {
                     </p>
                     <p className="text-xs text-muted-foreground">
                         By unlocking access, you agree to our terms of service.
-                        Each Amazon Order ID can only be redeemed once.
+                        Each Order ID can only be redeemed once.
                     </p>
                 </div>
             </div>

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Package, Truck, CheckCircle, Clock, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
@@ -19,14 +19,35 @@ interface CartItem {
   };
 }
 
+interface Order {
+  id: string;
+  order_number: string;
+  total_amount: number;
+  status: string;
+  customer_email: string;
+  created_at: string;
+}
+
+const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
+  pending: { label: "Pending", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", icon: Clock },
+  paid: { label: "Paid", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", icon: CheckCircle },
+  processing: { label: "Processing", color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400", icon: Package },
+  shipped: { label: "Shipped", color: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400", icon: Truck },
+  delivered: { label: "Delivered", color: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: CheckCircle },
+  cancelled: { label: "Cancelled", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: Clock },
+};
+
 const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
     fetchCartItems();
+    fetchOrders();
   }, []);
 
   const fetchCartItems = async () => {
@@ -76,6 +97,29 @@ const Cart = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setOrdersLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("orders")
+        .select("id, order_number, total_amount, status, customer_email, created_at")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setOrders(data || []);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setOrdersLoading(false);
     }
   };
 
@@ -145,7 +189,10 @@ const Cart = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <main className="container mx-auto px-4 pt-24">
-          <div className="text-center">Loading cart...</div>
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Loading cart...
+          </div>
         </main>
       </div>
     );
@@ -259,6 +306,72 @@ const Cart = () => {
                   </Button>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        )}
+
+        {/* ── Order History Section ── */}
+        {!ordersLoading && orders.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Package className="h-6 w-6 text-primary" />
+              Your Orders
+            </h2>
+            <div className="space-y-4">
+              {orders.map((order) => {
+                const config = statusConfig[order.status] || statusConfig.pending;
+                const StatusIcon = config.icon;
+                const orderDate = new Date(order.created_at).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                });
+
+                return (
+                  <Card key={order.id} className="border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                    <CardContent className="p-5">
+                      <div className="flex flex-wrap items-center gap-4">
+                        {/* Status Icon */}
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                          <StatusIcon className="h-5 w-5 text-primary" />
+                        </div>
+
+                        {/* Order Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <span className="font-bold font-mono text-sm">{order.order_number}</span>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${config.color}`}>
+                              {config.label}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {orderDate} &bull; ${Number(order.total_amount).toFixed(2)}
+                          </p>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {(order.status === "paid" || order.status === "processing" || order.status === "shipped" || order.status === "delivered") && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs h-8"
+                              onClick={() =>
+                                router.push(
+                                  `/unlock?prefill_order=${encodeURIComponent(order.order_number)}&prefill_email=${encodeURIComponent(order.customer_email)}`
+                                )
+                              }
+                            >
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              Claim Servant Trial
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}

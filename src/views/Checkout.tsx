@@ -167,30 +167,93 @@ const Checkout = () => {
         }
       );
 
-      if (error) throw error;
+      if (error) {
+        // Try to extract a meaningful message from FunctionsHttpError
+        let msg = "Unable to start checkout. Please try again.";
+        try {
+          if (error.context && typeof error.context.json === "function") {
+            const body = await error.context.json();
+            if (body?.error) msg = body.error;
+          } else if (error.message) {
+            msg = error.message;
+          }
+        } catch (_) { /* use default msg */ }
+        throw new Error(msg);
+      }
 
       if (data?.url) {
         window.location.href = data.url;
       } else {
         throw new Error("No checkout URL returned");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Checkout error:", error);
       toast({
         title: "Checkout Error",
         description:
-          "Unable to start checkout. Please try again.",
+          error?.message || "Unable to start checkout. Please try again.",
         variant: "destructive",
       });
     } finally {
       setSubmitting(false);
     }
+
   };
 
   const total = cartItems.reduce(
     (sum, item) => sum + item.products.price * item.quantity,
     0
   );
+
+  // ── Fetch order details on success ──
+  const [orderDetails, setOrderDetails] = useState<{
+    order_number: string;
+    customer_email: string;
+    total_amount: number;
+    status: string;
+  } | null>(null);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!isSuccess) return;
+    const sessionIdParam = searchParams?.get("session_id");
+    if (!sessionIdParam) return;
+
+    const fetchOrder = async () => {
+      setOrderLoading(true);
+      try {
+        // Look up order by stripe payment intent from the session
+        // The webhook creates the order with the stripe_payment_intent_id
+        const { data, error } = await supabase
+          .from("orders")
+          .select("order_number, customer_email, total_amount, status")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (data) {
+          setOrderDetails(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch order:", err);
+      } finally {
+        setOrderLoading(false);
+      }
+    };
+
+    // Give the webhook a moment to create the order
+    setTimeout(fetchOrder, 2000);
+  }, [isSuccess]);
+
+  const copyOrderId = () => {
+    if (orderDetails?.order_number) {
+      navigator.clipboard.writeText(orderDetails.order_number);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      toast({ title: "Copied!", description: "Order ID copied to clipboard" });
+    }
+  };
 
   // ── Success state ──
   if (isSuccess) {
@@ -207,10 +270,64 @@ const Checkout = () => {
             </div>
             <h1 className="text-3xl font-bold">Order Confirmed! 🎉</h1>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Thank you for your purchase! Your order is being processed and will
-              be fulfilled shortly. You'll receive a shipping confirmation
-              email soon.
+              Thank you for your purchase! Your order is being processed and
+              you'll receive a confirmation email shortly.
             </p>
+
+            {/* Order Number Display */}
+            {orderDetails ? (
+              <div className="bg-muted/50 rounded-xl p-5 border border-border/50 space-y-3">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Your Order ID</p>
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-2xl font-bold font-mono tracking-wide text-primary">
+                    {orderDetails.order_number}
+                  </span>
+                  <button
+                    onClick={copyOrderId}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors border rounded-md px-2 py-1"
+                  >
+                    {copied ? "Copied ✓" : "Copy"}
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sent to <strong>{orderDetails.customer_email}</strong>
+                </p>
+              </div>
+            ) : orderLoading ? (
+              <div className="bg-muted/50 rounded-xl p-5 border border-border/50 flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Loading order details...</span>
+              </div>
+            ) : null}
+
+            {/* Servant Trial CTA */}
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/30 dark:to-amber-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-800 space-y-3">
+              <div className="flex items-center justify-center gap-2">
+                <Sparkles className="h-5 w-5 text-amber-600" />
+                <h2 className="text-lg font-bold text-amber-900 dark:text-amber-300">
+                  Claim Your Free 30-Day AI Servant!
+                </h2>
+              </div>
+              <p className="text-sm text-amber-800 dark:text-amber-400 leading-relaxed">
+                Every purchase includes a <strong>free 30-day trial</strong> of your personal AI Servant.
+                Use your Order ID{orderDetails ? (
+                  <span className="font-mono font-bold"> ({orderDetails.order_number})</span>
+                ) : null} to activate it now!
+              </p>
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white shadow-md"
+                onClick={() =>
+                  router.push(
+                    `/unlock${orderDetails ? `?prefill_order=${encodeURIComponent(orderDetails.order_number)}&prefill_email=${encodeURIComponent(orderDetails.customer_email)}` : ""}`
+                  )
+                }
+              >
+                <Sparkles className="mr-2 h-5 w-5" />
+                Activate My Servant Trial
+              </Button>
+            </div>
+
             <div className="bg-muted/50 rounded-xl p-5 border border-border/50 text-left space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Package className="h-5 w-5 text-primary shrink-0" />
@@ -229,7 +346,7 @@ const Checkout = () => {
                 </span>
               </div>
             </div>
-            <Button size="lg" onClick={() => router.push("/")} className="mt-4">
+            <Button size="lg" variant="outline" onClick={() => router.push("/")} className="mt-4">
               Return to Homepage
             </Button>
           </div>
@@ -237,6 +354,7 @@ const Checkout = () => {
       </div>
     );
   }
+
 
   // ── Loading ──
   if (loading) {

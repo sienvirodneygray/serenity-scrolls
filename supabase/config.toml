@@ -30,5 +30,29 @@ verify_jwt = false
 [functions.send-magic-link]
 verify_jwt = false
 
+[functions.create-product-checkout]
+verify_jwt = false
 
+[functions.stripe-subscription-webhook]
+verify_jwt = false
 
+[functions.verify-order]
+verify_jwt = false
+
+[functions.create-mcf-order]
+verify_jwt = false
+
+[functions.create-subscription]
+verify_jwt = false
+
+[functions.send-expiry-notice]
+verify_jwt = false
+
+[functions.send-trial-reminder]
+verify_jwt = false
+
+[functions.sync-amazon-inventory]
+verify_jwt = false
+
+[functions.send-order-notification]
+verify_jwt = false
