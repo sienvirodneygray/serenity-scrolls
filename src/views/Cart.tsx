@@ -103,16 +103,31 @@ const Cart = () => {
   const fetchOrders = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const sessionId = typeof window !== 'undefined' ? window.localStorage.getItem("session_id") : null;
+
+      if (!session && !sessionId) {
         setOrdersLoading(false);
         return;
       }
 
-      const { data, error } = await supabase
+      // Set header for RLS policy
+      if (!session && sessionId) {
+        // @ts-ignore
+        supabase.rest.headers['x-session-id'] = sessionId;
+      }
+
+      const query = supabase
         .from("orders")
         .select("id, order_number, total_amount, status, customer_email, created_at")
-        .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
+
+      if (session) {
+        query.eq("user_id", session.user.id);
+      } else if (sessionId) {
+        query.eq("session_id", sessionId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setOrders(data || []);
