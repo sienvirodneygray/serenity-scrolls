@@ -55,7 +55,6 @@ serve(async (req) => {
     const emailResponse = await resend.emails.send({
       from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
       to: [email],
-      bcc: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
       subject: "Your Login Link ✨",
       html: `
         <!DOCTYPE html>
@@ -92,6 +91,19 @@ serve(async (req) => {
     });
 
     console.log("[send-magic-link] Email sent successfully:", emailResponse);
+
+    // Send admin update email
+    await resend.emails.send({
+      from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
+      to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
+      subject: "[MAGIC LINK] User requested login link",
+      html: `
+        <div style="font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">
+          <h2>Update: User requested login link</h2>
+          <p><strong>Email:</strong> ${email}</p>
+        </div>
+      `,
+    });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

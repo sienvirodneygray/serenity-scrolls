@@ -422,7 +422,7 @@ const Servant = () => {
             )}
 
             {/* Upsell Banner */}
-            {version === "1.0" && !upsellDismissed && messages.filter(m => m.role === "user").length >= 3 && (
+            {version === "1.0" && !canAccessV2 && !upsellDismissed && messages.filter(m => m.role === "user").length >= 3 && (
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mx-auto max-w-md text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-2">
                   <Sparkles className="h-4 w-4 text-amber-600" />

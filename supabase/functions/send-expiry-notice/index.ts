@@ -77,7 +77,6 @@ serve(async (req) => {
             body: JSON.stringify({
               from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
               to: [user.email],
-      bcc: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
               subject: "Your Serenity Scrolls Access Has Ended 📜",
               html: `
                 <!DOCTYPE html>
@@ -121,6 +120,26 @@ serve(async (req) => {
 
           if (emailRes.ok) {
             sentCount++;
+            
+            // Send admin update
+            await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${resendKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
+                to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
+                subject: "[TRIAL EXPIRED] Access ended for user",
+                html: `
+                  <div style="font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">
+                    <h2>Update: Trial Expired</h2>
+                    <p><strong>Email:</strong> ${user.email}</p>
+                  </div>
+                `,
+              }),
+            });
           } else {
             const errData = await emailRes.json();
             errors.push(`${user.email}: ${errData.message || "Send failed"}`);

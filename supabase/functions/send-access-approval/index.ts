@@ -33,7 +33,6 @@ serve(async (req) => {
     const emailResponse = await resend.emails.send({
       from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
       to: [email],
-      bcc: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
       subject: "Your Serenity Scrolls Access Has Been Approved! ✨",
       html: `
         <!DOCTYPE html>
@@ -72,6 +71,20 @@ serve(async (req) => {
     });
 
     console.log("[send-access-approval] Email sent successfully:", emailResponse);
+
+    // Send admin update email
+    await resend.emails.send({
+      from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
+      to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
+      subject: "[ACCESS] User access approved",
+      html: `
+        <div style="font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">
+          <h2>Update: User access approved</h2>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Order ID:</strong> ${orderId || "N/A"}</p>
+        </div>
+      `,
+    });
 
     // Also add the email to approved_emails in access_codes or create a simpler lookup
     const supabase = createClient(

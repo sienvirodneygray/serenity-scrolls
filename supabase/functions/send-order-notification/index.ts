@@ -76,6 +76,24 @@ function buildConfirmationEmail(
     : `<p>Dear ${customerName},</p>
        <p>Thank you for your order! We're preparing your items with care and will ship them shortly.</p>`;
 
+  if (isAdminCopy) {
+    const adminHtml = `
+      <div style="font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">
+        <h2>Update: Customer Ordered</h2>
+        <p><strong>Order Number:</strong> ${order.order_number}</p>
+        <p><strong>Customer Name:</strong> ${customerName}</p>
+        <p><strong>Customer Email:</strong> ${order.customer_email}</p>
+        <p><strong>Total Amount:</strong> $${Number(order.total_amount).toFixed(2)}</p>
+        <p><strong>Shipping To:</strong> ${addressLine}</p>
+        <h3>Items</h3>
+        <ul>
+          ${items.map((item) => `<li>${item.products.name} &times; ${item.quantity} (Price: $${item.price_at_purchase})</li>`).join("")}
+        </ul>
+      </div>
+    `;
+    return { subject, html: adminHtml };
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -143,13 +161,9 @@ function buildConfirmationEmail(
           <a href="${siteUrl}" class="button">Visit Serenity Scrolls</a>
         </p>
 
-        ${
-          isAdminCopy
-            ? ""
-            : `<p>We'll send you another email once your order ships with tracking information.</p>
-               <p>May your journey be filled with peace and wisdom.</p>
-               <p>With blessings,<br>The Serenity Scrolls Team</p>`
-        }
+        <p>We'll send you another email once your order ships with tracking information.</p>
+        <p>May your journey be filled with peace and wisdom.</p>
+        <p>With blessings,<br>The Serenity Scrolls Team</p>
       </div>
       <div class="footer">
         <p>Serenity Scrolls — Your Path to Inner Peace</p>
@@ -202,6 +216,20 @@ function buildShippingEmail(
     : `<p>Dear ${customerName},</p>
        <p>Great news! Your order is on its way. Here are the details:</p>`;
 
+  if (isAdminCopy) {
+    const adminHtml = `
+      <div style="font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">
+        <h2>Update: Order Shipped</h2>
+        <p><strong>Order Number:</strong> ${order.order_number}</p>
+        <p><strong>Customer Name:</strong> ${customerName}</p>
+        <p><strong>Customer Email:</strong> ${order.customer_email}</p>
+        <p><strong>Tracking Number:</strong> ${trackingNumber || 'N/A'}</p>
+        <p><strong>Carrier:</strong> ${carrier || 'N/A'}</p>
+      </div>
+    `;
+    return { subject, html: adminHtml };
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -240,12 +268,8 @@ function buildShippingEmail(
           </dl>
         </div>
 
-        ${
-          isAdminCopy
-            ? ""
-            : `<p>We'll notify you once your package has been delivered.</p>
-               <p>With blessings,<br>The Serenity Scrolls Team</p>`
-        }
+        <p>We'll notify you once your package has been delivered.</p>
+        <p>With blessings,<br>The Serenity Scrolls Team</p>
       </div>
       <div class="footer">
         <p>Serenity Scrolls — Your Path to Inner Peace</p>
@@ -279,6 +303,18 @@ function buildDeliveryEmail(
     : `<p>Dear ${customerName},</p>
        <p>Your order has been delivered! We hope you love your purchase.</p>`;
 
+  if (isAdminCopy) {
+    const adminHtml = `
+      <div style="font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">
+        <h2>Update: Order Delivered</h2>
+        <p><strong>Order Number:</strong> ${order.order_number}</p>
+        <p><strong>Customer Name:</strong> ${customerName}</p>
+        <p><strong>Customer Email:</strong> ${order.customer_email}</p>
+      </div>
+    `;
+    return { subject, html: adminHtml };
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -309,18 +345,14 @@ function buildDeliveryEmail(
           <ul style="margin: 0; padding-left: 20px;">${itemList}</ul>
         </div>
 
-        ${
-          isAdminCopy
-            ? ""
-            : `<div class="cta-box">
-                 <p style="margin: 0 0 8px; font-size: 16px; font-weight: bold; color: #1a1a1a;">✨ Your 30-Day AI Servant Trial is Included!</p>
-                 <p style="margin: 0 0 12px; font-size: 14px; color: #666;">Unlock your personal AI Servant to explore Scripture like never before.</p>
-                 <a href="${siteUrl}/unlock" class="button">Activate Your Servant</a>
-               </div>
-               <p>If you have any questions about your order, simply reply to this email.</p>
-               <p>May your journey be filled with peace and wisdom.</p>
-               <p>With blessings,<br>The Serenity Scrolls Team</p>`
-        }
+        <div class="cta-box">
+          <p style="margin: 0 0 8px; font-size: 16px; font-weight: bold; color: #1a1a1a;">✨ Your 30-Day AI Servant Trial is Included!</p>
+          <p style="margin: 0 0 12px; font-size: 14px; color: #666;">Unlock your personal AI Servant to explore Scripture like never before.</p>
+          <a href="${siteUrl}/unlock" class="button">Activate Your Servant</a>
+        </div>
+        <p>If you have any questions about your order, simply reply to this email.</p>
+        <p>May your journey be filled with peace and wisdom.</p>
+        <p>With blessings,<br>The Serenity Scrolls Team</p>
       </div>
       <div class="footer">
         <p>Serenity Scrolls — Your Path to Inner Peace</p>

@@ -156,7 +156,6 @@ serve(async (req) => {
                 await resend.emails.send({
                   from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
                   to: [customerEmail],
-      bcc: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
                   subject: `Welcome to ${planName}! Your subscription is active ✨`,
                   html: `
                     <!DOCTYPE html>
@@ -211,6 +210,20 @@ serve(async (req) => {
                   `,
                 });
                 console.log(`Subscription confirmation email sent to ${customerEmail}`);
+
+                // Send simple admin update
+                await resend.emails.send({
+                  from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
+                  to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
+                  subject: `[SUBSCRIPTION] User upgraded to ${planName}`,
+                  html: `
+                    <div style="font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">
+                      <h2>Update: Customer Upgraded</h2>
+                      <p><strong>Email:</strong> ${customerEmail}</p>
+                      <p><strong>Plan:</strong> ${planName}</p>
+                    </div>
+                  `,
+                });
               } else {
                 console.warn("RESEND_API_KEY not set — skipping confirmation email");
               }
