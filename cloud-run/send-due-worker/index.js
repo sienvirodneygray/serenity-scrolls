@@ -54,7 +54,7 @@ app.post('/process-due', async (req, res) => {
 
         try {
           const { data: emailResponse, error: mailError } = await resend.emails.send({
-            from: process.env.EMAIL_FROM_FALLBACK || 'marketing@serenityscrolls.com',
+            from: process.env.EMAIL_FROM_FALLBACK || 'noreply@serenityscrolls.faith',
             to: customer.email,
             subject: schedule.email_templates.subject,
             html: schedule.email_templates.content_html,
@@ -75,9 +75,29 @@ app.post('/process-due', async (req, res) => {
                sent_at: new Date().toISOString()
              });
              totalSent++;
+          } else {
+             // Record the send failure
+             await supabase.from('email_sends').insert({
+               campaign_id: schedule.campaign_id,
+               template_id: schedule.email_template_id,
+               customer_id: customer.id,
+               schedule_id: schedule.id,
+               status: 'failed',
+               provider_id: mailError.message,
+               sent_at: new Date().toISOString()
+             });
           }
         } catch (err) {
           console.error(`Failed sending to ${customer.email}:`, err);
+          await supabase.from('email_sends').insert({
+             campaign_id: schedule.campaign_id,
+             template_id: schedule.email_template_id,
+             customer_id: customer.id,
+             schedule_id: schedule.id,
+             status: 'failed',
+             provider_id: err.message,
+             sent_at: new Date().toISOString()
+          });
         }
       }
 

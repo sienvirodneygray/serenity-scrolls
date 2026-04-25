@@ -47,15 +47,12 @@ export default function NewCampaignPage() {
 
   const aiMutation = useMutation({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
-      // Proxying through Next.js API or reaching out to Cloud Run directly. 
-      // For this implementation we call the Cloud Run service directly (assuming CORS is configured).
-      const res = await fetch("http://localhost:8081/generate-funnel", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+      const { data, error } = await supabase.functions.invoke("generate-funnel", {
+        body: values,
       });
-      if (!res.ok) throw new Error("AI Generation Failed");
-      return (await res.json()) as EmailGenerationResponse;
+      if (error) throw new Error(error.message || "AI Generation Failed");
+      if (data?.error) throw new Error(data.error);
+      return data as EmailGenerationResponse;
     },
     onSuccess: (data) => {
       setGeneratedEmails(data.emails);

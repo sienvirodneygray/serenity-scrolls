@@ -1,73 +1,78 @@
-# Welcome to your Lovable project
+# Serenity Scrolls Servant - Email Campaign & Admin System
 
-## Project info
+This project is the admin dashboard and background campaign runner for Serenity Scrolls Servant.
 
-**URL**: https://lovable.dev/projects/0c6b69c1-02f1-4a6c-b2f3-ab901abcb016
+## Tech Stack
+- **Frontend**: Next.js 16 (App Router), React, Tailwind CSS, shadcn/ui
+- **Backend / Auth**: Supabase Edge Functions, PostgreSQL, GoTrue
+- **Worker**: Google Cloud Run & Cloud Scheduler
+- **Email Delivery**: Resend
 
-## How can I edit this code?
+## Environment Variables
+Create a `.env.local` file with the following placeholders filled out. DO NOT COMMIT `.env.local` to the repository.
 
-There are several ways of editing your application.
+```env
+NEXT_PUBLIC_SUPABASE_PROJECT_ID="your_supabase_project_id"
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="your_supabase_anon_key"
+NEXT_PUBLIC_SUPABASE_URL="https://your_supabase_project_id.supabase.co"
+NEXT_PUBLIC_AMAZON_PREORDER_URL="https://www.amazon.com/dp/B0GGV8FQCM"
+RESEND_API_KEY="re_..."
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/0c6b69c1-02f1-4a6c-b2f3-ab901abcb016) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Amazon SP-API Credentials
+AMAZON_SPAPI_CLIENT_ID="..."
+AMAZON_SPAPI_CLIENT_SECRET="..."
+AMAZON_SPAPI_REFRESH_TOKEN="..."
+AMAZON_SELLER_ID="..."
 ```
 
-**Edit a file directly in GitHub**
+## Production Deployment Runbook
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 1. Supabase Edge Functions
+Deploy all Supabase functions to your project:
+```bash
+supabase functions deploy generate-funnel
+supabase functions deploy send-access-approval
+supabase functions deploy send-expiry-notice
+supabase functions deploy send-trial-reminder
+supabase functions deploy send-order-notification
+```
 
-**Use GitHub Codespaces**
+Set Supabase secrets (do not store `OPENAI_API_KEY` or `SUPABASE_SERVICE_ROLE_KEY` in local env files):
+```bash
+supabase secrets set RESEND_API_KEY="re_..."
+supabase secrets set SITE_URL="https://serenityscrolls.faith"
+supabase secrets set OPENAI_API_KEY="sk-..."
+supabase secrets set OPENAI_ASSISTANT_ID="asst_..."
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 2. Google Cloud Run Worker (Campaign Sender)
+The worker securely checks due schedules every 5 minutes and sends emails via Resend.
 
-## What technologies are used for this project?
+Deploy to Cloud Run (ensuring it is not publicly accessible):
+```bash
+gcloud run deploy serenity-send-due-worker \
+  --source ./cloud-run/send-due-worker \
+  --region us-central1 \
+  --no-allow-unauthenticated \
+  --set-env-vars="RESEND_API_KEY=re_...,SUPABASE_URL=https://your-project.supabase.co,SUPABASE_SERVICE_ROLE_KEY=ey..."
+```
 
-This project is built with:
+Set up Cloud Scheduler to securely trigger the endpoint every 5 minutes:
+```bash
+gcloud scheduler jobs create http serenity-send-due-worker-every-5-min \
+  --schedule="*/5 * * * *" \
+  --uri="https://YOUR_CLOUD_RUN_URL/process-due" \
+  --http-method=POST \
+  --location=us-central1 \
+  --oidc-service-account-email="YOUR_PROJECT_NUMBER-compute@developer.gserviceaccount.com"
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 3. Firebase App Hosting (Frontend)
+The Next.js frontend is configured for Firebase App Hosting. It automatically reads `apphosting.yaml` and deploys on git push. Ensure your GitHub repo is connected in the Firebase Console.
 
-## How can I deploy this project?
+## Troubleshooting
 
-Simply open [Lovable](https://lovable.dev/projects/0c6b69c1-02f1-4a6c-b2f3-ab901abcb016) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- **Schedules aren't sending**: Check the Google Cloud Run Logs for `serenity-send-due-worker`. Ensure the service account has `roles/run.invoker` permission.
+- **Worker fails on startup**: Make sure you included all three environment variables (`RESEND_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) during deployment.
+- **Admin access denied**: The middleware checks the `user_roles` table. Ensure your user ID has an `admin` record in the `user_roles` table in Supabase.
+- **Emails land in spam**: Ensure your Resend domain is verified with SPF, DKIM, and DMARC for `noreply@serenityscrolls.faith`.

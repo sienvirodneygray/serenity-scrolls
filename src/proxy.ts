@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -43,6 +43,21 @@ export async function middleware(request: NextRequest) {
     if (!session) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin/login'
+      return NextResponse.redirect(url)
+    }
+
+    // RBAC: Verify admin role
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id)
+      .eq('role', 'admin')
+      .single()
+
+    if (!roleData) {
+      // Not an admin, redirect to home or login
+      const url = request.nextUrl.clone()
+      url.pathname = '/'
       return NextResponse.redirect(url)
     }
   }

@@ -2,13 +2,17 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["ytaporbcmtlidafbssyc.supabase.co"], // allowing Supabase images
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ytaporbcmtlidafbssyc.supabase.co',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 };
 
