@@ -33,7 +33,7 @@ serve(async (req) => {
       );
     }
 
-    const { email, userId, priceId, tier, successUrl, cancelUrl } = await req.json();
+    const { email, userId, priceId, tier, plan, coupon, successUrl, cancelUrl } = await req.json();
 
     if (!email) {
       return new Response(
@@ -42,17 +42,21 @@ serve(async (req) => {
       );
     }
 
-    // Resolve price ID based on tier or explicit priceId
+    // Resolve price ID based on plan, tier, or explicit priceId
     let stripePriceId = priceId;
     let trialDays = 0;
     let productLabel = "servant-subscription";
 
     if (!stripePriceId) {
-      if (tier === "plus") {
+      if (plan === "annual") {
+        stripePriceId = Deno.env.get("STRIPE_SERVANT_ANNUAL_PRICE_ID");
+        productLabel = "servant-annual-subscription";
+      } else if (tier === "plus") {
         stripePriceId = Deno.env.get("STRIPE_SERVANT_PLUS_PRICE_ID");
-        trialDays = 7; // 7-day free trial for Servant+
+        trialDays = 7;
         productLabel = "servant-plus-subscription";
       } else {
+        // plan="monthly" or default
         stripePriceId = Deno.env.get("STRIPE_SERVANT_PRICE_ID");
         productLabel = "servant-subscription";
       }
@@ -111,8 +115,21 @@ serve(async (req) => {
       "subscription_data[metadata][supabase_user_id]": userId || "",
       "subscription_data[metadata][product]": productLabel,
       "subscription_data[metadata][tier]": tier || "basic",
-      "allow_promotion_codes": "true",
     });
+
+    // Stripe does not allow both discounts[] and allow_promotion_codes on the same session.
+    // Use discounts when a specific coupon is provided, otherwise allow user-entered promo codes.
+    // Note: Stripe requires the coupon *ID* (e.g. ydxXjWij), not the display name.
+    if (coupon) {
+      // Resolve named coupon tokens to their Stripe coupon IDs via env secrets
+      const couponIdMap: Record<string, string | undefined> = {
+        "SERENITY10": Deno.env.get("STRIPE_COUPON_SERENITY10"),
+      };
+      const resolvedId = couponIdMap[coupon] ?? coupon;
+      sessionParams.set("discounts[0][coupon]", resolvedId);
+    } else {
+      sessionParams.set("allow_promotion_codes", "true");
+    }
 
     // Add trial period for Servant+
     if (trialDays > 0) {

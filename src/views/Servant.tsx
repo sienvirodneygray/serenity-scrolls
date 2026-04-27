@@ -8,7 +8,9 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Loader2, Sparkles, BookOpen, ArrowRight, Lock, Clock } from "lucide-react";
+import { Send, Loader2, Sparkles, BookOpen, ArrowRight, Lock } from "lucide-react";
+import { TrialOfferBanner } from "@/components/TrialOfferBanner";
+import { useTrialStatus } from "@/hooks/useTrialStatus";
 
 type Message = {
   role: "user" | "assistant";
@@ -30,13 +32,11 @@ const Servant = () => {
   const setMessages = version === "1.0" ? setMessagesV1 : setMessagesV2;
   const threadId = version === "1.0" ? threadIdV1 : threadIdV2;
   const setThreadId = version === "1.0" ? setThreadIdV1 : setThreadIdV2;
-  const [daysRemaining, setDaysRemaining] = useState<number | null>(null);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<string>("none");
-  const [upsellDismissed, setUpsellDismissed] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const trialStatus = useTrialStatus();
 
-  const canAccessV2 = subscriptionStatus === "active";
+  const canAccessV2 = trialStatus.subscriptionStatus === "active";
 
   const upgradeToV2 = async () => {
     try {
@@ -140,15 +140,12 @@ const Servant = () => {
       const expiresAt = new Date(profile.access_expires_at);
       const now = new Date();
       const remaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      setDaysRemaining(remaining);
 
       if (remaining <= 0 && profile.subscription_status !== "active") {
         router.push("/servant-expired");
         return;
       }
     }
-
-    setSubscriptionStatus(profile.subscription_status || "none");
 
     // If user has active subscription, allow v2.0
     if (profile.subscription_status === "active") {
@@ -343,15 +340,23 @@ const Servant = () => {
             </button>
           </div>
 
-          {/* Days Remaining Badge */}
-          {daysRemaining !== null && subscriptionStatus !== "active" && (
+          {/* Trial Offer Banner — shown when ≤7 days remain */}
+          {!trialStatus.loading && trialStatus.isInOfferWindow && (
+            <div className="mt-4 w-full max-w-lg mx-auto">
+              <TrialOfferBanner
+                daysRemaining={trialStatus.daysRemaining!}
+                userEmail={trialStatus.userEmail}
+                userId={trialStatus.userId}
+                variant={trialStatus.isInUrgencyWindow ? "urgency" : "offer"}
+              />
+            </div>
+          )}
+          {/* Fallback simple badge for >7 days remaining */}
+          {!trialStatus.loading && !trialStatus.isInOfferWindow && trialStatus.daysRemaining !== null && !trialStatus.isActive && (
             <div className="mt-3">
-              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${daysRemaining > 10 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                : daysRemaining > 3 ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                }`}>
-                <Clock className="h-3 w-3" />
-                {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <span className="text-xs">⏱</span>
+                {trialStatus.daysRemaining} day{trialStatus.daysRemaining !== 1 ? "s" : ""} remaining in trial
               </div>
             </div>
           )}
@@ -421,8 +426,8 @@ const Servant = () => {
               </div>
             )}
 
-            {/* Upsell Banner */}
-            {version === "1.0" && !canAccessV2 && !upsellDismissed && messages.filter(m => m.role === "user").length >= 3 && (
+            {/* Upsell Banner — shown after 3 user messages for non-subscribers outside the offer window */}
+            {version === "1.0" && !canAccessV2 && !trialStatus.isInOfferWindow && messages.filter(m => m.role === "user").length >= 3 && (
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 mx-auto max-w-md text-center">
                 <div className="flex items-center justify-center gap-1.5 mb-2">
                   <Sparkles className="h-4 w-4 text-amber-600" />
