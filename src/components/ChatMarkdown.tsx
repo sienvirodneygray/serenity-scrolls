@@ -194,14 +194,16 @@ function formatInline(text: string): React.ReactNode {
         } else if (match[3]) {
             // *italic*
             parts.push(<em key={match.index} className="italic text-foreground/85">{match[4]}</em>);
-        } else if (match[5] && match[7]) {
-            // "scripture" — reference
+        } else if (match[5]) {
+            // "scripture" (reference is optional)
             parts.push(
                 <span key={match.index} className="italic text-primary/85 font-medium">"{match[6]}"</span>
             );
-            parts.push(
-                <span key={`ref-${match.index}`} className="text-[11px] text-muted-foreground ml-1 font-medium">— {match[7]}</span>
-            );
+            if (match[7]) {
+                parts.push(
+                    <span key={`ref-${match.index}`} className="text-[11px] text-muted-foreground ml-1 font-medium">— {match[7]}</span>
+                );
+            }
         } else if (match[8]) {
             // `code`
             parts.push(

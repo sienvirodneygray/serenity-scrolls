@@ -404,12 +404,14 @@ const Servant = () => {
                 </div>
 
                 {/* Suggestion Prompts */}
-                <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
+                <div className="flex flex-col gap-2 w-full max-w-sm">
                   {[
-                    { emoji: "💙", label: "I'm feeling sad" },
-                    { emoji: "😰", label: "I feel anxious" },
-                    { emoji: "🙏", label: "I'm grateful today" },
-                    { emoji: "💜", label: "I drew a purple scroll" },
+                    { emoji: "💭", label: "I'm carrying a heavy burden today and need peace" },
+                    { emoji: "🌱", label: "I feel stuck and need guidance for my next step" },
+                    { emoji: "✨", label: "I'm seeking strength to overcome a challenge" },
+                    { emoji: "🙏", label: "I want to reflect on God's faithfulness" },
+                    { emoji: "💜", label: "I drew a purple scroll and want to explore its meaning" },
+                    { emoji: "🌅", label: "I'm feeling anxious about the future" },
                   ].map((prompt) => (
                     <button
                       key={prompt.label}
