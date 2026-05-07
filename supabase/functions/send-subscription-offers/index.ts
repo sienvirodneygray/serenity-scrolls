@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { buildBaseEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,47 +27,11 @@ const corsHeaders = {
  * Can be triggered manually or via pg_cron (daily).
  */
 
-// ─── Shared email styles ──────────────────────────────────────────────────────
-const EMAIL_STYLES = `
-  body { font-family: 'Georgia', serif; line-height: 1.7; color: #2d2d2d; max-width: 600px; margin: 0 auto; padding: 0; background: #fafaf8; }
-  .wrapper { background: #fff; border: 1px solid #e8e0d0; border-radius: 12px; overflow: hidden; margin: 20px; }
-  .header { background: linear-gradient(135deg, #1a0f00 0%, #3d2200 100%); text-align: center; padding: 40px 30px 30px; }
-  .header h1 { color: #d4af37; margin: 0; font-size: 26px; letter-spacing: 1px; }
-  .header p { color: #c8b89a; margin: 8px 0 0; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
-  .content { padding: 36px 40px; }
-  .content p { margin: 0 0 16px; font-size: 16px; }
-  .offer-box { background: linear-gradient(135deg, #fff8e7 0%, #fef3c7 100%); border: 2px solid #d4af37; border-radius: 12px; padding: 28px 30px; margin: 28px 0; text-align: center; }
-  .offer-box h2 { color: #92400e; margin: 0 0 8px; font-size: 20px; }
-  .offer-box .price-old { color: #9ca3af; text-decoration: line-through; font-size: 15px; }
-  .offer-box .price-new { color: #1a0f00; font-size: 28px; font-weight: bold; margin: 6px 0; }
-  .offer-box .price-sub { color: #78716c; font-size: 14px; }
-  .divider { border: none; border-top: 1px solid #e8e0d0; margin: 8px 0 24px; }
-  .btn { display: inline-block; background: linear-gradient(135deg, #d4af37 0%, #f4d03f 100%); color: #1a0f00 !important; padding: 16px 36px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; margin: 8px 6px; letter-spacing: 0.5px; }
-  .btn-outline { display: inline-block; background: transparent; color: #d4af37 !important; padding: 14px 32px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 15px; margin: 8px 6px; letter-spacing: 0.5px; border: 2px solid #d4af37; }
-  .urgency { background: #fef2f2; border-left: 4px solid #ef4444; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 20px 0; }
-  .urgency p { color: #991b1b; margin: 0; font-size: 15px; font-weight: bold; }
-  .scripture { font-style: italic; color: #78716c; font-size: 15px; text-align: center; padding: 16px 20px; border-top: 1px solid #e8e0d0; border-bottom: 1px solid #e8e0d0; margin: 20px 0; }
-  .footer { background: #f5f0e8; text-align: center; padding: 24px; color: #78716c; font-size: 13px; border-top: 1px solid #e8e0d0; }
-  .footer a { color: #d4af37; text-decoration: none; }
-`;
-
 // ─── Email 1: 7-Day Exclusive Offer ──────────────────────────────────────────
 function buildEmail1(siteUrl: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>An Exclusive Gift — Before Your Access Ends</title>
-  <style>${EMAIL_STYLES}</style>
-</head>
-<body>
-  <div class="wrapper">
-    <div class="header">
-      <h1>📜 A Gift Just for You</h1>
-      <p>Your Exclusive Offer — 7 Days Remaining</p>
-    </div>
-    <div class="content">
+  return buildBaseEmail(
+    "An Exclusive Gift — Before Your Access Ends",
+    `
       <p>Dear Serenity Seeker,</p>
       <p>Your 30-day free journey with the <strong>Serenity Scrolls Servant</strong> is drawing to a close — and we'd love for you to stay.</p>
       <p>As a thank-you for walking with us, we're offering you something special — exclusively for the next 7 days:</p>
@@ -99,38 +64,21 @@ function buildEmail1(siteUrl: string): string {
       </div>
 
       <div class="scripture">
-        "Be still, and know that I am God." — Psalm 46:10
+        "Be still, and know that I am God."<br>
+        <span style="font-size:13px; color:#a0aec0; font-style:normal; margin-top:8px; display:inline-block; font-family: 'Helvetica Neue', Arial, sans-serif;">— Psalm 46:10</span>
       </div>
 
       <p>Your Servant has been here every step — offering Scripture reflections, journal prompts, and guided devotions. We'd be honoured to continue walking alongside you.</p>
       <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
-    </div>
-    <div class="footer">
-      <p>Serenity Scrolls · <a href="${siteUrl}">serenityscrolls.faith</a></p>
-      <p><a href="${siteUrl}/unsubscribe">Unsubscribe</a> · You're receiving this because your trial is ending soon.</p>
-    </div>
-  </div>
-</body>
-</html>`;
+    `
+  );
 }
 
 // ─── Email 2: 3-Day Reminder (No Discount) ───────────────────────────────────
 function buildEmail2(daysLeft: number, siteUrl: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Only ${daysLeft} Days Left with Your Servant</title>
-  <style>${EMAIL_STYLES}</style>
-</head>
-<body>
-  <div class="wrapper">
-    <div class="header">
-      <h1>📜 Only ${daysLeft} Days Left</h1>
-      <p>Your Free Trial Is Almost Over</p>
-    </div>
-    <div class="content">
+  return buildBaseEmail(
+    `Only ${daysLeft} Days Left with Your Servant`,
+    `
       <p>Dear Serenity Seeker,</p>
       <p>Time is almost up — your free access to the <strong>Serenity Scrolls Servant</strong> ends in just <strong>${daysLeft} day${daysLeft !== 1 ? "s" : ""}</strong>.</p>
       <p>Don't lose your daily companion for Scripture reflection, prayer journaling, and guided devotions. Subscribing keeps everything seamlessly active — no setup required.</p>
@@ -149,38 +97,21 @@ function buildEmail2(daysLeft: number, siteUrl: string): string {
       </div>
 
       <div class="scripture">
-        "Trust in the Lord with all your heart and lean not on your own understanding." — Proverbs 3:5
+        "Trust in the Lord with all your heart and lean not on your own understanding."<br>
+        <span style="font-size:13px; color:#a0aec0; font-style:normal; margin-top:8px; display:inline-block; font-family: 'Helvetica Neue', Arial, sans-serif;">— Proverbs 3:5</span>
       </div>
 
       <p>If you have any questions or need help, simply reply to this email and we'll be right there.</p>
       <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
-    </div>
-    <div class="footer">
-      <p>Serenity Scrolls · <a href="${siteUrl}">serenityscrolls.faith</a></p>
-      <p><a href="${siteUrl}/unsubscribe">Unsubscribe</a> · You're receiving this because your trial is ending soon.</p>
-    </div>
-  </div>
-</body>
-</html>`;
+    `
+  );
 }
 
 // ─── Email 3: Expiry / Access Ended ──────────────────────────────────────────
 function buildEmail3(siteUrl: string): string {
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Serenity Scrolls Access Has Ended</title>
-  <style>${EMAIL_STYLES}</style>
-</head>
-<body>
-  <div class="wrapper">
-    <div class="header">
-      <h1>📜 Your Access Has Ended</h1>
-      <p>But Your Journey Doesn't Have To</p>
-    </div>
-    <div class="content">
+  return buildBaseEmail(
+    "Your Serenity Scrolls Access Has Ended",
+    `
       <p>Dear Serenity Seeker,</p>
       <p>Your 30-day free access to the <strong>Serenity Scrolls Servant</strong> has come to an end. We hope it has been a source of peace, reflection, and spiritual growth.</p>
       <p>Whenever you're ready to continue, your Servant will be waiting:</p>
@@ -203,19 +134,14 @@ function buildEmail3(siteUrl: string): string {
       </p>
 
       <div class="scripture">
-        "The Lord is my shepherd; I shall not want." — Psalm 23:1
+        "The Lord is my shepherd; I shall not want."<br>
+        <span style="font-size:13px; color:#a0aec0; font-style:normal; margin-top:8px; display:inline-block; font-family: 'Helvetica Neue', Arial, sans-serif;">— Psalm 23:1</span>
       </div>
 
       <p>We pray your path continues to be filled with His peace and wisdom. We'd be honoured to walk alongside you again.</p>
       <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
-    </div>
-    <div class="footer">
-      <p>Serenity Scrolls · <a href="${siteUrl}">serenityscrolls.faith</a></p>
-      <p><a href="${siteUrl}/unsubscribe">Unsubscribe</a></p>
-    </div>
-  </div>
-</body>
-</html>`;
+    `
+  );
 }
 
 // ─── Main handler ─────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { buildBaseEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -157,57 +158,33 @@ serve(async (req) => {
                   from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
                   to: [customerEmail],
                   subject: `Welcome to ${planName}! Your subscription is active ✨`,
-                  html: `
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                      <meta charset="utf-8">
-                      <style>
-                        body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #faf8f3; }
-                        .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #d4af37; }
-                        .content { padding: 30px 0; }
-                        .plan-badge { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-                        .button { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
-                        .details { background: #fff; border: 1px solid #e8e0cc; border-radius: 8px; padding: 20px; margin: 20px 0; }
-                        .details dt { font-weight: bold; color: #8b7355; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
-                        .details dd { margin: 4px 0 16px 0; font-size: 15px; }
-                        .trial-note { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2e7d32; margin: 16px 0; }
-                        .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 13px; }
-                      </style>
-                    </head>
-                    <body>
-                      <div class="header">
-                        <h1 style="color: #d4af37; margin: 0;">✨ Subscription Confirmed ✨</h1>
-                        <div style="margin-top: 12px;"><span class="plan-badge">${planName}</span></div>
+                  html: buildBaseEmail(
+                    `Welcome to ${planName}! ✨`,
+                    `
+                      <p>Dear Serenity Seeker,</p>
+                      <p>Thank you for subscribing to <strong>${planName}</strong>! Your access is now active.</p>
+                      ${trialNote ? `<div class="trial-note" style="background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #2e7d32; margin: 16px 0;">🎁 ${trialNote}</div>` : ""}
+                      
+                      <div class="details" style="background: #fff; border: 1px solid #e8e0cc; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                        <dl style="margin: 0;">
+                          <dt style="font-weight: bold; color: #8b7355; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Plan</dt>
+                          <dd style="margin: 4px 0 16px 0; font-size: 15px;">${planName}</dd>
+                          <dt style="font-weight: bold; color: #8b7355; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Email</dt>
+                          <dd style="margin: 4px 0 16px 0; font-size: 15px;">${customerEmail}</dd>
+                          <dt style="font-weight: bold; color: #8b7355; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Status</dt>
+                          <dd style="margin: 4px 0 0 0; font-size: 15px;">✅ Active</dd>
+                        </dl>
                       </div>
-                      <div class="content">
-                        <p>Dear Serenity Seeker,</p>
-                        <p>Thank you for subscribing to <strong>${planName}</strong>! Your access is now active.</p>
-                        ${trialNote ? `<div class="trial-note">🎁 ${trialNote}</div>` : ""}
-                        <div class="details">
-                          <dl>
-                            <dt>Plan</dt>
-                            <dd>${planName}</dd>
-                            <dt>Email</dt>
-                            <dd>${customerEmail}</dd>
-                            <dt>Status</dt>
-                            <dd>✅ Active</dd>
-                          </dl>
-                        </div>
-                        <p style="text-align: center;">
-                          <a href="${siteUrl}/servant" class="button">Open Servant</a>
-                        </p>
-                        <p>If you have any questions about your subscription, simply reply to this email.</p>
-                        <p>May your journey be filled with peace and wisdom.</p>
-                        <p>With blessings,<br>The Serenity Scrolls Team</p>
-                      </div>
-                      <div class="footer">
-                        <p>Serenity Scrolls — Your Path to Inner Peace</p>
-                        <p style="font-size: 11px; color: #999;">You can manage your subscription at any time from your account settings.</p>
-                      </div>
-                    </body>
-                    </html>
-                  `,
+
+                      <p style="text-align: center;">
+                        <a href="${siteUrl}/servant" class="btn">Open Servant</a>
+                      </p>
+                      
+                      <p>If you have any questions about your subscription, simply reply to this email.</p>
+                      <p>May your journey be filled with peace and wisdom.</p>
+                      <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
+                    `
+                  ),
                 });
                 console.log(`Subscription confirmation email sent to ${customerEmail}`);
 

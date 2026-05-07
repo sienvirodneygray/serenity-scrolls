@@ -9,16 +9,23 @@ const corsHeaders = {
 const AMAZON_ORDER_PATTERN = /^\d{3}-\d{7}-\d{7}$/;
 
 /**
- * Exchange LWA (Login With Amazon) refresh token for an access token.
- * Used to authenticate SP-API requests.
+ * Exchange LWA (Login With Amazon) refresh token for a short-lived access token.
+ * This is the ONLY auth required for self-authorized SP-API apps.
+ * No AWS Signature v4 / IAM role assumption is needed.
+ *
+ * Required Supabase secrets:
+ *   AMAZON_SP_CLIENT_ID       — LWA Client ID (amzn1.application-oa2-client.xxx)
+ *   AMAZON_SP_CLIENT_SECRET   — LWA Client Secret
+ *   AMAZON_SP_REFRESH_TOKEN   — LWA Refresh Token (from self-authorization)
  */
 async function getLWAAccessToken(): Promise<string | null> {
-    const clientId = Deno.env.get("AMAZON_SPAPI_CLIENT_ID");
-    const clientSecret = Deno.env.get("AMAZON_SPAPI_CLIENT_SECRET");
-    const refreshToken = Deno.env.get("AMAZON_SPAPI_REFRESH_TOKEN");
+    const clientId = Deno.env.get("AMAZON_SP_CLIENT_ID");
+    const clientSecret = Deno.env.get("AMAZON_SP_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("AMAZON_SP_REFRESH_TOKEN");
 
     if (!clientId || !clientSecret || !refreshToken) {
-        return null; // SP-API not configured — fall back to format-only
+        console.error("SP-API credentials not set. Ensure AMAZON_SP_CLIENT_ID, AMAZON_SP_CLIENT_SECRET, and AMAZON_SP_REFRESH_TOKEN are configured in Supabase secrets.");
+        return null;
     }
 
     const response = await fetch("https://api.amazon.com/auth/o2/token", {
@@ -33,7 +40,7 @@ async function getLWAAccessToken(): Promise<string | null> {
     });
 
     if (!response.ok) {
-        console.error("LWA token exchange failed:", await response.text());
+        console.error("LWA token exchange failed:", response.status, await response.text());
         return null;
     }
 
@@ -48,8 +55,7 @@ async function getLWAAccessToken(): Promise<string | null> {
 async function verifyOrderViaSPAPI(orderId: string, isMCF: boolean): Promise<{ verified: boolean; orderStatus?: string; error?: string }> {
     const accessToken = await getLWAAccessToken();
     if (!accessToken) {
-        console.error("SP-API credentials not configured — blocking verification");
-        return { verified: false, error: "System Error: Amazon verification is currently unavailable. Please contact support." };
+        return { verified: false, error: "Amazon verification is currently unavailable. Please contact support." };
     }
 
     const marketplace = Deno.env.get("AMAZON_MARKETPLACE_ID") || "ATVPDKIKX0DER"; // US marketplace default

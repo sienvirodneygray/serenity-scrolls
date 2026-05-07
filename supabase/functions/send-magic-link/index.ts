@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildBaseEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,38 +57,24 @@ serve(async (req) => {
       from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
       to: [email],
       subject: "Your Login Link ✨",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #d4af37; }
-            .content { padding: 30px 0; }
-            .button { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
-            .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1 style="color: #d4af37; margin: 0;">✨ Welcome Back ✨</h1>
+      html: buildBaseEmail(
+        "Your Login Link ✨ — Serenity Scrolls",
+        `
+          <p>Dear Serenity Seeker,</p>
+          <p>Click the button below to instantly sign back into your Servant.</p>
+          <p style="text-align: center;">
+            <a href="${accessLink}" class="btn">Log In to My Servant</a>
+          </p>
+          <p>If you didn't request this link, you can safely ignore this email.</p>
+          
+          <div class="scripture">
+            "Your word is a lamp for my feet, a light on my path."<br>
+            <span style="font-size:13px; color:#a0aec0; font-style:normal; margin-top:8px; display:inline-block; font-family: 'Helvetica Neue', Arial, sans-serif;">— Psalm 119:105</span>
           </div>
-          <div class="content">
-            <p>Dear Serenity Seeker,</p>
-            <p>Click the button below to instantly sign back into your Servant.</p>
-            <p style="text-align: center;">
-              <a href="${accessLink}" class="button">Log In to My Servant</a>
-            </p>
-            <p>If you didn't request this link, you can safely ignore this email.</p>
-            <p>With blessings,<br>The Serenity Scrolls Team</p>
-          </div>
-          <div class="footer">
-            <p>Serenity Scrolls - Your Path to Inner Peace</p>
-          </div>
-        </body>
-        </html>
-      `,
+
+          <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
+        `
+      ),
     });
 
     console.log("[send-magic-link] Email sent successfully:", emailResponse);

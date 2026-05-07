@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { buildBaseEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -94,84 +95,57 @@ function buildConfirmationEmail(
     return { subject, html: adminHtml };
   }
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #faf8f3; }
-        .header { text-align: center; padding: 24px 0; border-bottom: 2px solid #d4af37; }
-        .header h1 { color: #d4af37; margin: 0; font-size: 24px; }
-        .badge { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; margin-top: 10px; }
-        .content { padding: 24px 0; }
-        .order-box { background: #fff; border: 1px solid #e8e0cc; border-radius: 8px; padding: 20px; margin: 16px 0; }
-        .order-box dt { font-weight: bold; color: #8b7355; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .order-box dd { margin: 4px 0 14px 0; font-size: 14px; }
-        table { width: 100%; border-collapse: collapse; }
-        .total-row { font-size: 18px; font-weight: bold; color: #1a1a1a; }
-        .shipping-free { color: #2e7d32; font-size: 13px; }
-        .button { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 16px 0; }
-        .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>✨ Order Confirmed ✨</h1>
-        <div><span class="badge">${order.order_number}</span></div>
+  const html = buildBaseEmail(
+    "Order Confirmed! ✨",
+    `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span class="badge">Order ${order.order_number}</span>
       </div>
-      <div class="content">
-        ${greeting}
+      ${greeting}
 
-        <div class="order-box">
-          <h3 style="margin: 0 0 12px 0; color: #1a1a1a;">Items Ordered</h3>
-          <table>
-            ${itemRows}
-            <tr>
-              <td style="padding: 12px;">
-                <span class="shipping-free">✓ Standard Shipping</span>
-              </td>
-              <td style="padding: 12px; text-align: right;">
-                <span class="shipping-free">FREE</span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 12px; border-top: 2px solid #d4af37;">
-                <span class="total-row">Total</span>
-              </td>
-              <td style="padding: 12px; border-top: 2px solid #d4af37; text-align: right;">
-                <span class="total-row">$${Number(order.total_amount).toFixed(2)}</span>
-              </td>
-            </tr>
-          </table>
-        </div>
-
-        <div class="order-box">
-          <dl>
-            <dt>Shipping To</dt>
-            <dd>${customerName}<br>${addressLine}</dd>
-            <dt>Email</dt>
-            <dd>${order.customer_email}</dd>
-            <dt>Estimated Delivery</dt>
-            <dd>3–5 business days</dd>
-          </dl>
-        </div>
-
-        <p style="text-align: center;">
-          <a href="${siteUrl}" class="button">Visit Serenity Scrolls</a>
-        </p>
-
-        <p>We'll send you another email once your order ships with tracking information.</p>
-        <p>May your journey be filled with peace and wisdom.</p>
-        <p>With blessings,<br>The Serenity Scrolls Team</p>
+      <div class="order-box">
+        <h3 style="margin: 0 0 12px 0; color: #1a1a1a;">Items Ordered</h3>
+        <table>
+          ${itemRows}
+          <tr>
+            <td style="padding: 12px;">
+              <span class="shipping-free">✓ Standard Shipping</span>
+            </td>
+            <td style="padding: 12px; text-align: right;">
+              <span class="shipping-free">FREE</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px; border-top: 2px solid #e8e0cc;">
+              <span class="total-row">Total</span>
+            </td>
+            <td style="padding: 12px; border-top: 2px solid #e8e0cc; text-align: right;">
+              <span class="total-row">$${Number(order.total_amount).toFixed(2)}</span>
+            </td>
+          </tr>
+        </table>
       </div>
-      <div class="footer">
-        <p>Serenity Scrolls — Your Path to Inner Peace</p>
-        <p style="font-size: 11px; color: #999;">Questions? Reply to this email or contact us at teamsienvi@gmail.com</p>
+
+      <div class="order-box">
+        <dl>
+          <dt>Shipping To</dt>
+          <dd>${customerName}<br>${addressLine}</dd>
+          <dt>Email</dt>
+          <dd>${order.customer_email}</dd>
+          <dt>Estimated Delivery</dt>
+          <dd>3–5 business days</dd>
+        </dl>
       </div>
-    </body>
-    </html>
-  `;
+
+      <p style="text-align: center;">
+        <a href="${siteUrl}" class="btn">Visit Serenity Scrolls</a>
+      </p>
+
+      <p>We'll send you another email once your order ships with tracking information.</p>
+      <p>May your journey be filled with peace and wisdom.</p>
+      <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
+    `
+  );
 
   return { subject, html };
 }
@@ -230,53 +204,34 @@ function buildShippingEmail(
     return { subject, html: adminHtml };
   }
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #faf8f3; }
-        .header { text-align: center; padding: 24px 0; border-bottom: 2px solid #d4af37; }
-        .header h1 { color: #d4af37; margin: 0; font-size: 24px; }
-        .badge { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; margin-top: 10px; }
-        .content { padding: 24px 0; }
-        .order-box { background: #fff; border: 1px solid #e8e0cc; border-radius: 8px; padding: 20px; margin: 16px 0; }
-        .button { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 16px 0; }
-        .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>📦 Your Order Has Shipped!</h1>
-        <div><span class="badge">${order.order_number}</span></div>
+  const html = buildBaseEmail(
+    "Your Order Has Shipped! 📦",
+    `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span class="badge">Order ${order.order_number}</span>
       </div>
-      <div class="content">
-        ${greeting}
+      
+      ${greeting}
 
-        ${trackingBlock}
+      ${trackingBlock}
 
-        <div class="order-box">
-          <h3 style="margin: 0 0 8px;">Items Shipped</h3>
-          <ul style="margin: 0; padding-left: 20px;">${itemList}</ul>
-        </div>
-
-        <div class="order-box">
-          <dl style="margin: 0;">
-            <dt style="font-weight: bold; color: #8b7355; font-size: 11px; text-transform: uppercase;">Shipping To</dt>
-            <dd style="margin: 4px 0 0;">${customerName}<br>${addressLine}</dd>
-          </dl>
-        </div>
-
-        <p>We'll notify you once your package has been delivered.</p>
-        <p>With blessings,<br>The Serenity Scrolls Team</p>
+      <div class="order-box">
+        <h3 style="margin: 0 0 8px;">Items Shipped</h3>
+        <ul style="margin: 0; padding-left: 20px;">${itemList}</ul>
       </div>
-      <div class="footer">
-        <p>Serenity Scrolls — Your Path to Inner Peace</p>
+
+      <div class="order-box">
+        <dl style="margin: 0;">
+          <dt style="font-weight: bold; color: #8b7355; font-size: 11px; text-transform: uppercase;">Shipping To</dt>
+          <dd style="margin: 4px 0 0;">${customerName}<br>${addressLine}</dd>
+        </dl>
       </div>
-    </body>
-    </html>
-  `;
+
+      <p>We'll notify you once your package has been delivered.</p>
+      <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
+    `
+  );
+
 
   return { subject, html };
 }
@@ -315,51 +270,31 @@ function buildDeliveryEmail(
     return { subject, html: adminHtml };
   }
 
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background: #faf8f3; }
-        .header { text-align: center; padding: 24px 0; border-bottom: 2px solid #d4af37; }
-        .header h1 { color: #d4af37; margin: 0; font-size: 24px; }
-        .badge { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 6px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; margin-top: 10px; }
-        .content { padding: 24px 0; }
-        .order-box { background: #fff; border: 1px solid #e8e0cc; border-radius: 8px; padding: 20px; margin: 16px 0; }
-        .cta-box { background: linear-gradient(135deg, #f8f4e8, #fff8e7); border: 2px solid #d4af37; border-radius: 12px; padding: 24px; margin: 20px 0; text-align: center; }
-        .button { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 16px 0; }
-        .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 12px; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <h1>🎉 Order Delivered!</h1>
-        <div><span class="badge">${order.order_number}</span></div>
+  const html = buildBaseEmail(
+    "Order Delivered! 🎉",
+    `
+      <div style="text-align: center; margin-bottom: 20px;">
+        <span class="badge">Order ${order.order_number}</span>
       </div>
-      <div class="content">
-        ${greeting}
+      
+      ${greeting}
 
-        <div class="order-box">
-          <h3 style="margin: 0 0 8px;">Items Delivered</h3>
-          <ul style="margin: 0; padding-left: 20px;">${itemList}</ul>
-        </div>
+      <div class="order-box">
+        <h3 style="margin: 0 0 8px;">Items Delivered</h3>
+        <ul style="margin: 0; padding-left: 20px;">${itemList}</ul>
+      </div>
 
-        <div class="cta-box">
-          <p style="margin: 0 0 8px; font-size: 16px; font-weight: bold; color: #1a1a1a;">✨ Your 30-Day AI Servant Trial is Included!</p>
-          <p style="margin: 0 0 12px; font-size: 14px; color: #666;">Unlock your personal AI Servant to explore Scripture like never before.</p>
-          <a href="${siteUrl}/unlock" class="button">Activate Your Servant</a>
-        </div>
-        <p>If you have any questions about your order, simply reply to this email.</p>
-        <p>May your journey be filled with peace and wisdom.</p>
-        <p>With blessings,<br>The Serenity Scrolls Team</p>
+      <div class="cta-box">
+        <p style="margin: 0 0 8px; font-size: 16px; font-weight: bold; color: #1a1a1a;">✨ Your 30-Day AI Servant Trial is Included!</p>
+        <p style="margin: 0 0 12px; font-size: 14px; color: #666;">Unlock your personal AI Servant to explore Scripture like never before.</p>
+        <a href="${siteUrl}/unlock" class="btn">Activate Your Servant</a>
       </div>
-      <div class="footer">
-        <p>Serenity Scrolls — Your Path to Inner Peace</p>
-      </div>
-    </body>
-    </html>
-  `;
+      <p>If you have any questions about your order, simply reply to this email.</p>
+      <p>May your journey be filled with peace and wisdom.</p>
+      <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
+    `
+  );
+
 
   return { subject, html };
 }

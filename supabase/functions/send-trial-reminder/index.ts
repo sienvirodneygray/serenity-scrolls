@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { buildBaseEmail } from "../_shared/email-templates.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -82,39 +83,25 @@ serve(async (req) => {
               from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
               to: [user.email],
               subject: `Your Serenity Scrolls Access Ends in ${daysLeft} Day${daysLeft !== 1 ? "s" : ""} 📜`,
-              html: `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                  <meta charset="utf-8">
-                  <style>
-                    body { font-family: 'Georgia', serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #d4af37; }
-                    .content { padding: 30px 0; }
-                    .button { display: inline-block; background: linear-gradient(135deg, #d4af37, #f4d03f); color: #1a1a1a; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
-                    .footer { text-align: center; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px; }
-                  </style>
-                </head>
-                <body>
-                  <div class="header">
-                    <h1 style="color: #d4af37; margin: 0;">📜 Access Ending Soon 📜</h1>
+              html: buildBaseEmail(
+                `Your Serenity Scrolls Access Ends in ${daysLeft} Day${daysLeft !== 1 ? "s" : ""} 📜`,
+                `
+                  <p>Dear Serenity Seeker,</p>
+                  <p>Your 30-day free access to the <strong>Serenity Scrolls Servant</strong> is coming to an end in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.</p>
+                  <p>Don't lose your spiritual companion — you can subscribe to keep your Scripture reflections, journal prompts, and guided devotions going.</p>
+                  <p style="text-align: center;">
+                    <a href="${siteUrl}/servant-expired" class="btn">Subscribe Now — $19.99/mo</a>
+                  </p>
+
+                  <div class="scripture">
+                    "Teach us to number our days, that we may gain a heart of wisdom."<br>
+                    <span style="font-size:13px; color:#a0aec0; font-style:normal; margin-top:8px; display:inline-block; font-family: 'Helvetica Neue', Arial, sans-serif;">— Psalm 90:12</span>
                   </div>
-                  <div class="content">
-                    <p>Dear Serenity Seeker,</p>
-                    <p>Your 30-day free access to the <strong>Serenity Scrolls Servant</strong> is coming to an end in ${daysLeft} day${daysLeft !== 1 ? "s" : ""}.</p>
-                    <p>Don't lose your spiritual companion — you can subscribe to keep your Scripture reflections, journal prompts, and guided devotions going.</p>
-                    <p style="text-align: center;">
-                      <a href="${siteUrl}/servant-expired" class="button">Subscribe Now — $19.99/mo</a>
-                    </p>
-                    <p>May your journey be filled with peace and wisdom.</p>
-                    <p>With blessings,<br>The Serenity Scrolls Team</p>
-                  </div>
-                  <div class="footer">
-                    <p>Serenity Scrolls - Your Path to Inner Peace</p>
-                  </div>
-                </body>
-                </html>
-              `,
+
+                  <p>May your journey be filled with peace and wisdom.</p>
+                  <p>With blessings,<br><strong>The Serenity Scrolls Team</strong></p>
+                `
+              ),
             }),
           });
 
