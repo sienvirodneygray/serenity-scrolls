@@ -329,6 +329,32 @@ serve(async (req) => {
               // Don't throw — email failure shouldn't block the webhook
             }
 
+          } else if (metadata.source === "serenity-lms") {
+            const courseId = metadata.course_id;
+            const userId = metadata.user_id;
+            const customerEmail = metadata.customer_email || session.customer_details?.email || session.customer_email;
+            const amountPaidCents = metadata.amount_paid_cents || session.amount_total;
+            const track = metadata.track || "parent";
+
+            try {
+              const enrollmentRes = await supabase.functions.invoke("create-course-enrollment", {
+                body: {
+                  courseId,
+                  userId,
+                  stripeSessionId: session.id,
+                  stripePaymentIntentId: session.payment_intent as string,
+                  amountPaidCents: Number(amountPaidCents),
+                  track,
+                },
+              });
+              if (enrollmentRes.error) {
+                 console.error("Failed to enroll user:", enrollmentRes.error);
+              } else {
+                 console.log(`User ${userId || customerEmail} enrolled in course ${courseId}`);
+              }
+            } catch (err) {
+              console.error("Failed to invoke create-course-enrollment:", err);
+            }
           }
         }
         break;

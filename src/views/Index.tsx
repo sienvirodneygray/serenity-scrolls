@@ -261,6 +261,57 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Courage Covenant CTA */}
+      <section className="py-20 bg-muted/30 border-y border-border">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1 space-y-6 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border border-primary/20 bg-primary/10 text-primary">
+                New: Faith-Based Bullying Guidance
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold text-foreground leading-tight">
+                Courage Covenant™
+              </h2>
+              <p className="text-lg text-muted-foreground leading-relaxed">
+                A Scripture-based bullying guidance course for Christian parents and leaders. Get the 7-step framework to respond with clarity, courage, and safe next steps—not just "pray about it."
+              </p>
+              <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <Link
+                  href="/learn/courage-covenant"
+                  className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+                >
+                  Explore the Course
+                </Link>
+                <Link
+                  href="/learn/courage-covenant/what-actually-happened/conflict-vs-bullying"
+                  className="inline-flex items-center justify-center gap-2 border border-primary text-primary font-semibold py-3 px-8 rounded-full hover:bg-primary/10 transition-all"
+                >
+                  Watch Free Preview
+                </Link>
+              </div>
+            </div>
+            <div className="flex-1 w-full max-w-md mx-auto relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/30 to-purple-500/30 rounded-3xl blur opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+              <div className="relative aspect-[4/3] bg-card border border-border rounded-2xl shadow-card overflow-hidden flex flex-col">
+                <div className="bg-muted/50 px-4 py-3 border-b border-border flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                  <span className="ml-2 text-xs text-muted-foreground font-medium">Module 1 / Lesson 1</span>
+                </div>
+                <div className="flex-1 p-6 flex flex-col justify-center items-center text-center bg-gradient-to-br from-background to-muted/30">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-3xl">🛡️</span>
+                  </div>
+                  <h3 className="font-bold text-xl mb-3 text-foreground">Conflict vs. Bullying</h3>
+                  <p className="text-sm text-muted-foreground">Learn the 4 critical categories to identify exactly what your child is experiencing.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Testimonials />
 
       <FeaturedBlogPosts />

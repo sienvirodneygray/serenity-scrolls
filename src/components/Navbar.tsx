@@ -73,6 +73,11 @@ export const Navbar = () => {
             </Link>
           </Button>
           <Button variant="ghost" asChild>
+            <Link href="/learn/courage-covenant">
+              📖 Courses
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
             <Link href="/servant-landing">
               <Sparkles className="mr-2 h-4 w-4" />
               AI Servant

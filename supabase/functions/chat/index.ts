@@ -13,7 +13,58 @@ serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const { messages: incomingMessages, message, version } = body ?? {};
+    const { messages: incomingMessages, message, version, lesson_context } = body ?? {};
+
+    // Auth check for Leader Mode
+    let isLeader = false;
+    const authHeader = req.headers.get("Authorization");
+    if (authHeader) {
+      const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData?.user) {
+        const { data: enrollments } = await supabase
+          .from("course_enrollments")
+          .select("track")
+          .eq("user_id", userData.user.id);
+        if (enrollments && enrollments.some(e => e.track === "leader")) {
+          isLeader = true;
+        }
+      }
+    }
+
+    // === COURAGE COVENANT MODE ===
+    const COURAGE_COVENANT_PROMPT = lesson_context ? `
+--- COURAGE COVENANT™ MODE ---
+The user is currently taking the Courage Covenant™ course.
+Current lesson context: "${lesson_context}"
+
+In this mode you MUST:
+1. Acknowledge the lesson topic warmly before offering anything else.
+2. Ask one reflection question relevant to the lesson (emotion naming, scripture anchoring, or escalation level).
+3. If the lesson is about a RED-level situation (physical harm, abuse, self-harm, threats): STOP guidance immediately. Say: "This sounds like it may require immediate support. Please contact appropriate authorities or a trusted adult right away. I am a reflection tool and cannot handle crisis situations."
+4. Never position yourself as therapy, counseling, legal advice, or crisis support.
+5. Always end with: "Would you like to go deeper on this in your journal?"
+` : "";
+
+    const LEADER_MODE_PROMPT = isLeader ? `
+--- LEADER MODE ACTIVE ---
+The user is a Youth Pastor, Teacher, or Faith Leader. You must act as a strategic pastoral advisor.
+1. Provide actionable guidance tailored for organizational response, not just individual parenting.
+2. If asked, draft professional fill-in-the-blank parent communication emails.
+3. If asked for incident documentation, provide a checklist but REMIND THEM not to enter sensitive PII of minors here.
+4. If a RED-level crisis is described, instruct them to immediately follow their organization's mandatory reporting protocols.
+` : "";
+
+    const GUARDRAILS_PROMPT = `
+CRISIS KEYWORDS that trigger immediate escalation (stop coaching, refer, end):
+self-harm, suicide, abuse, assault, unsafe, scared to go home, scared to go to school, being hurt, someone is hurting me, I want to hurt myself, I want to hurt someone
+`;
+
 
     // === KNOWLEDGE DATA ===
     const SCROLLS_DB = `SERENITY SCROLLS DATABASE — 96 Scrolls by Mood/Color
@@ -388,10 +439,13 @@ Step: "Write one worry, breathe, release it in prayer."
 Prayer: "God, calm my heart and guide my next step."`;
 
 
-    // Wire knowledge data: V1 gets SCROLLS_DB only, V2 gets both
-    const systemPrompt = version === "1.0"
+    // Wire knowledge data: V1 gets SCROLLS_DB only, V2 gets both; always append CC mode if active
+    const systemPrompt = (version === "1.0"
       ? systemPromptV1 + "\n\n--- SCROLL DATABASE ---\n" + SCROLLS_DB
-      : systemPromptV2 + "\n\n--- SCROLL DATABASE ---\n" + SCROLLS_DB + "\n\n--- LEADERSHIP FRAMEWORK ---\n" + LEADERSHIP_FRAMEWORK;
+      : systemPromptV2 + "\n\n--- SCROLL DATABASE ---\n" + SCROLLS_DB + "\n\n--- LEADERSHIP FRAMEWORK ---\n" + LEADERSHIP_FRAMEWORK)
+      + (COURAGE_COVENANT_PROMPT ? "\n\n" + COURAGE_COVENANT_PROMPT : "")
+      + (LEADER_MODE_PROMPT ? "\n\n" + LEADER_MODE_PROMPT : "")
+      + "\n\n--- CRISIS GUARDRAILS ---\n" + GUARDRAILS_PROMPT;
 
     // Convert OpenAI-style messages to Gemini contents format
     // Gemini uses: { role: "user" | "model", parts: [{ text }] }
