@@ -426,7 +426,7 @@ export const BlogPostForm = ({
                   {formData.meta_title || formData.title || "Post Title"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  serenityscrollsservant.lovable.app/blog/{formData.slug || "post-slug"}
+                  serenityscrolls.faith/blog/{formData.slug || "post-slug"}
                 </p>
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {formData.meta_description || formData.excerpt || "Post description will appear here..."}

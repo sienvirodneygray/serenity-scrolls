@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowDown } from "lucide-react";
+import Link from "next/link";
 import heroImage from "@/assets/hero-image.jpg";
 import logo from "@/assets/logo.png";
 
@@ -39,7 +40,8 @@ export const Hero = () => {
             Find Peace in{" "}
             <span className="bg-gradient-to-r from-[hsl(var(--grateful))] via-[hsl(var(--primary))] to-[hsl(var(--anxious))] bg-clip-text text-transparent">
               Every Emotion
-            </span>
+            </span>{" "}
+            Through Scripture
           </h1>
 
           {/* Subheadline */}
@@ -73,9 +75,18 @@ export const Hero = () => {
 
           {/* CTA */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+            <Button size="lg" className="h-14 px-8 text-lg" asChild>
+              <Link href="/shop">Shop Serenity Scrolls</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="h-14 px-8 text-lg" asChild>
+              <Link href="/bible-verse-scrolls-for-anxiety-and-peace">
+                Bible Verse Scrolls for Anxiety and Peace
+              </Link>
+            </Button>
             <Button
               size="lg"
               onClick={scrollToProducts}
+              variant="ghost"
               className="h-14 px-8 text-lg"
             >
               Explore Products
@@ -83,9 +94,8 @@ export const Hero = () => {
             </Button>
           </div>
 
-          {/* Social proof */}
           <p className="text-sm text-muted-foreground pt-8">
-            Trusted by thousands seeking emotional peace through Scripture
+            Created to help real emotions meet the steady comfort of God's Word.
           </p>
         </div>
       </div>

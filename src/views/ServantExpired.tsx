@@ -100,6 +100,7 @@ const ServantExpired = () => {
             <div className="flex justify-center mb-4">
               <img src={logo.src} alt="Serenity Scrolls" className="h-16 w-auto" />
             </div>
+            <h1 className="text-3xl font-bold">Your AI Servant Access Has Expired</h1>
           </div>
 
           <Card>

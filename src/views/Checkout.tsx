@@ -362,6 +362,7 @@ const Checkout = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <main className="container mx-auto px-4 pt-24">
+          <h1 className="text-3xl md:text-4xl font-bold mb-8">Checkout</h1>
           <div className="flex items-center justify-center gap-3 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
             Loading checkout...

@@ -133,9 +133,9 @@ const ServantLanding = () => {
                         </div>
 
                         <h1 className="text-5xl md:text-7xl font-bold leading-tight">
-                            Meet Your{" "}
+                            AI Scripture Companion for{" "}
                             <span className="bg-gradient-to-r from-[hsl(var(--grateful))] via-[hsl(var(--primary))] to-[hsl(var(--anxious))] bg-clip-text text-transparent">
-                                AI Servant
+                                Faith-Based Encouragement
                             </span>
                         </h1>
 

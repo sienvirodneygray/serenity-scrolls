@@ -81,13 +81,13 @@ const BlogPostPage = () => {
       publisher: {
         "@type": "Organization",
         name: "Serenity Scrolls",
-        logo: { "@type": "ImageObject", url: "https://serenityscrollsservant.lovable.app/logo.png" },
+        logo: { "@type": "ImageObject", url: "https://serenityscrolls.faith/logo.png" },
       },
       datePublished: post.published_at || post.created_at,
       dateModified: post.updated_at,
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": `https://serenityscrollsservant.lovable.app/blog/${post.slug}`,
+        "@id": `https://serenityscrolls.faith/blog/${post.slug}`,
       },
       keywords: post.seo_keywords?.join(", "),
     };
@@ -336,7 +336,7 @@ const BlogPostPage = () => {
         <meta property="og:description" content={post.meta_description || post.excerpt} />
         {post.featured_image && <meta property="og:image" content={post.featured_image} />}
         <meta property="og:type" content="article" />
-        <link rel="canonical" href={`https://serenityscrollsservant.lovable.app/blog/${post.slug}`} />
+        <link rel="canonical" href={`https://serenityscrolls.faith/blog/${post.slug}`} />
         <script type="application/ld+json">{JSON.stringify(generateStructuredData())}</script>
         {post.faq_schema && <script type="application/ld+json">{JSON.stringify(post.faq_schema)}</script>}
       </Helmet>

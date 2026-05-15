@@ -85,7 +85,7 @@ const Auth = () => {
             <div className="flex justify-center mb-4">
               <img src={logo.src} alt="Serenity Scrolls" className="h-20 w-auto" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Access AI Servant</h1>
+            <h1 className="text-3xl font-bold mb-2">Access Your AI Servant</h1>
             <p className="text-muted-foreground">
               Enter your product code to unlock your spiritual companion
             </p>

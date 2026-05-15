@@ -94,20 +94,6 @@ export const Testimonials = () => {
           <CarouselPrevious />
           <CarouselNext />
         </Carousel>
-
-        {/* Aggregate Rating Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
-            "name": "Serenity Scrolls",
-            "aggregateRating": {
-              "@type": "AggregateRating",
-              "ratingValue": "5",
-              "reviewCount": "7"
-            }
-          })}
-        </script>
       </div>
     </section>
   );

@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
-import { BookOpen, Calendar, User } from "lucide-react";
+import { BookOpen, Calendar, Gift, Heart, PenLine, Sparkles, User } from "lucide-react";
 
 interface BlogPost {
   id: string;
@@ -36,6 +38,51 @@ const Blog = () => {
     },
   });
 
+  const categoryCards = [
+    {
+      title: "Bible Verses by Emotion",
+      description:
+        "Find Scripture for anxiety, gratitude, grief, sadness, frustration, joy, and troubled seasons.",
+      href: "/bible-verse-scrolls-for-anxiety-and-peace",
+      icon: Heart,
+    },
+    {
+      title: "Prayer & Reflection",
+      description:
+        "Use gentle prayer prompts to slow down, listen, surrender, and bring your honest emotions to God.",
+      href: "/blog",
+      icon: Sparkles,
+    },
+    {
+      title: "Christian Journaling",
+      description:
+        "Explore guided reflection ideas that turn a Bible verse into gratitude, confession, hope, and growth.",
+      href: "/presale-journal",
+      icon: PenLine,
+    },
+    {
+      title: "Christian Gifts",
+      description:
+        "Discover thoughtful Scripture gifts for encouragement, sympathy, birthdays, holidays, and Bible study groups.",
+      href: "/shop",
+      icon: Gift,
+    },
+    {
+      title: "AI + Scripture Guidance",
+      description:
+        "Learn how the AI Servant supports Scripture-based reflection without replacing prayer, church, or pastoral care.",
+      href: "/servant-landing",
+      icon: Sparkles,
+    },
+    {
+      title: "Daily Encouragement",
+      description:
+        "Build a simple rhythm of Bible reading, prayer, journaling, and small faithful steps for ordinary days.",
+      href: "/shop",
+      icon: BookOpen,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -44,13 +91,57 @@ const Blog = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Faith & Reflection
+            Bible Verses, Prayer Prompts & Christian Encouragement
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover Scripture-based insights to guide your emotional journey. 
-            Let God's Word illuminate your path through every season of life.
+            The Serenity Scrolls Blog helps you find Scripture-centered encouragement for real emotional moments. Whether you are looking for Bible verses for anxiety, gratitude reflections, prayer prompts for grief, Christian journaling ideas, or peaceful devotional habits, this space is designed to point your heart back to God's Word with clarity and care.
           </p>
         </div>
+
+        <section className="mb-16 max-w-5xl mx-auto">
+          <div className="grid gap-6 md:grid-cols-[1.15fr_0.85fr] items-start mb-10">
+            <div className="space-y-4 text-foreground/80 leading-relaxed">
+              <p>
+                Some visitors come here feeling anxious and need a verse to steady their breathing. Others are preparing a small group lesson, searching for Christian gifts for encouragement, or trying to begin a prayer journal for the first time. However you arrived, the aim is simple: help you connect emotions with Scripture in a way that feels peaceful, honest, and faithful.
+              </p>
+              <p>
+                You will find articles on Bible verses by emotion, daily Scripture reflection, prayer and journaling rhythms, meaningful Christian gifting, and how tools like the <Link href="/servant-landing" className="text-primary font-medium hover:underline">AI Scripture companion</Link> can support reflection while keeping Scripture, prayer, and wise human care in their proper place. For a practical starting point, explore our <Link href="/bible-verse-scrolls-for-anxiety-and-peace" className="text-primary font-medium hover:underline">Bible verse scrolls for anxiety and peace</Link>, browse the <Link href="/shop" className="text-primary font-medium hover:underline">shop for Christian Scripture gifts</Link>, or learn how the <Link href="/presale-journal" className="text-primary font-medium hover:underline">Christian Reflection Journal</Link> helps you go deeper with each verse.
+              </p>
+            </div>
+            <div className="rounded-xl border border-primary/15 bg-primary/5 p-6">
+              <h2 className="text-xl font-semibold mb-3">Start Here</h2>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link href="/shop" className="font-medium text-foreground hover:text-primary transition-colors">
+                    Shop Christian Scripture gifts for daily encouragement
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/presale-journal" className="font-medium text-foreground hover:text-primary transition-colors">
+                    Pre-order the Christian Reflection Journal
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/servant-landing" className="font-medium text-foreground hover:text-primary transition-colors">
+                    Explore the AI Scripture companion
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {categoryCards.map((category) => (
+              <Link key={category.title} href={category.href} className="group">
+                <div className="h-full rounded-xl border border-border bg-card p-5 shadow-sm transition-all group-hover:-translate-y-0.5 group-hover:shadow-md group-hover:border-primary/30">
+                  <category.icon className="h-6 w-6 text-primary mb-3" />
+                  <h2 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">{category.title}</h2>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{category.description}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         {/* Blog Grid */}
         {isLoading ? (

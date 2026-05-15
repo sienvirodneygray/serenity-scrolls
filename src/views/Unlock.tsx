@@ -221,7 +221,8 @@ const Unlock = () => {
     // Show loading while checking session
     if (checkingSession) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900 flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900 flex flex-col items-center justify-center gap-4">
+                <h1 className="text-2xl font-bold">Unlock Your Serenity Scrolls Access</h1>
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
@@ -235,9 +236,7 @@ const Unlock = () => {
                     <div className="flex justify-center mb-4">
                         <img src={logo.src} alt="Serenity Scrolls" className="h-16 w-auto" />
                     </div>
-                    <h1 className="text-2xl font-bold mb-1">
-                        {mode === "returning" || mode === "magic-sent" ? "Welcome Back" : "Unlock Your AI Servant"}
-                    </h1>
+                    <h1 className="text-2xl font-bold mb-1">Unlock Your Serenity Scrolls Access</h1>
                     <p className="text-sm text-muted-foreground">
                         {mode === "returning"
                             ? "Sign in with your email to continue where you left off"
