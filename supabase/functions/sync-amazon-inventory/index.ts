@@ -53,15 +53,20 @@ serve(async (req) => {
 
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
         const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
         const authClient = createClient(supabaseUrl, supabaseAnonKey);
         
         const token = authHeader.replace("Bearer ", "");
-        const { data: userData, error: userError } = await authClient.auth.getUser(token);
-        if (userError || !userData.user) {
-            return new Response(JSON.stringify({ error: "Unauthorized User: " + userError?.message }), {
-                status: 401, headers: corsHeaders
-            });
+        
+        // Allow if the token is the service role key or anon key (for cron jobs) OR a valid user session
+        if (token !== supabaseServiceKey && token !== supabaseAnonKey) {
+            const { data: userData, error: userError } = await authClient.auth.getUser(token);
+            if (userError || !userData.user) {
+                return new Response(JSON.stringify({ error: "Unauthorized User: " + userError?.message }), {
+                    status: 401, headers: corsHeaders
+                });
+            }
         }
 
         // Initialize Supabase Admin Client for database operations
