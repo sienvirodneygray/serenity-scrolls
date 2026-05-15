@@ -155,6 +155,7 @@ const Index = () => {
                   title="Serenity Scrolls Tube"
                   description="96 color-coded Bible verse scrolls organized by emotion"
                   image={tubeProduct.src}
+                  price={24.99}
                   badge="Bestseller"
                   amazonUrl={WEBSITE_AMAZON_URL}
                   features={[
@@ -176,6 +177,7 @@ const Index = () => {
                     title="Serenity Scrolls Reflection Journal"
                     description="Your companion for deep spiritual reflection and growth"
                     image={journalProduct.src}
+                    price={39.99}
                     badge="Pre‑order"
                     amazonUrl={process.env.NEXT_PUBLIC_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0GGV8FQCM?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal'}
                     features={[

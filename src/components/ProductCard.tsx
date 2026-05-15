@@ -9,12 +9,13 @@ interface ProductCardProps {
   description: string;
   features: string[];
   image: string;
+  price?: number;
   amazonUrl?: string;
   badge?: string;
   onAddToCart?: () => void;
 }
 
-export const ProductCard = ({ title, description, features, image, amazonUrl, badge, onAddToCart }: ProductCardProps) => {
+export const ProductCard = ({ title, description, features, image, price, amazonUrl, badge, onAddToCart }: ProductCardProps) => {
   const handleAmazonClick = () => {
     trackAmazonClick(title, 'product_card');
   };
@@ -48,14 +49,18 @@ export const ProductCard = ({ title, description, features, image, amazonUrl, ba
         </ul>
       </CardContent>
       <CardFooter className="flex-col gap-2">
-          <Button
-            onClick={onAddToCart}
-            className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            Add to Cart
-          </Button>
-        
-
+        {price !== undefined && (
+          <div className="w-full flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-foreground">${price.toFixed(2)}</span>
+            <span className="text-sm text-muted-foreground">USD</span>
+          </div>
+        )}
+        <Button
+          onClick={onAddToCart}
+          className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          Add to Cart
+        </Button>
       </CardFooter>
     </Card>
   );

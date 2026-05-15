@@ -9,9 +9,9 @@ const corsHeaders = {
  * Exchange LWA refresh token for an access token.
  */
 async function getLWAAccessToken(): Promise<string> {
-    const clientId = Deno.env.get("AMAZON_SPAPI_CLIENT_ID");
-    const clientSecret = Deno.env.get("AMAZON_SPAPI_CLIENT_SECRET");
-    const refreshToken = Deno.env.get("AMAZON_SPAPI_REFRESH_TOKEN");
+    const clientId = Deno.env.get("AMAZON_SP_CLIENT_ID") || Deno.env.get("AMAZON_SPAPI_CLIENT_ID");
+    const clientSecret = Deno.env.get("AMAZON_SP_CLIENT_SECRET") || Deno.env.get("AMAZON_SPAPI_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("AMAZON_SP_REFRESH_TOKEN") || Deno.env.get("AMAZON_SPAPI_REFRESH_TOKEN");
 
     if (!clientId || !clientSecret || !refreshToken) {
         throw new Error("Amazon SP-API credentials not configured in Supabase secrets.");
