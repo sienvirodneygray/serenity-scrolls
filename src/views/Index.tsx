@@ -5,8 +5,10 @@ import { FAQ } from "@/components/FAQ";
 import { FeaturedBlogPosts } from "@/components/FeaturedBlogPosts";
 import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
+import { StructuredData } from "@/components/StructuredData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
+import { breadcrumbJsonLd } from "@/lib/seo";
 import { WEBSITE_AMAZON_URL, AMAZON_PRODUCTS } from "@/lib/amazonAttribution";
 import { Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -115,6 +117,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <StructuredData
+        data={breadcrumbJsonLd([{ name: "Home", path: "/" }])}
+      />
       <Navbar />
       <Hero />
 
@@ -338,6 +343,106 @@ const Index = () => {
                 Our color-coded system makes it effortless to find the right word at the right time.
                 No more endless searching. Just reach for your emotion, and let Scripture guide you home.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SEO Landing Page Preview */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            {/* Label */}
+            <div className="text-center mb-10">
+              <p className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary mb-4">
+                Bible verse scrolls for anxiety and peace
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Bible Verse Scrolls for Anxiety, Peace, Gratitude &amp; Daily Encouragement
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                96 color-coded Scripture verses organized by emotion — reach for God's Word exactly when your heart needs it most.
+              </p>
+            </div>
+
+            {/* Emotion badges strip */}
+            <div className="flex flex-wrap justify-center gap-3 mb-10">
+              {[
+                { name: "Anxious", color: "bg-purple-100 text-purple-800 border-purple-200" },
+                { name: "Sad", color: "bg-blue-100 text-blue-800 border-blue-200" },
+                { name: "Troubled", color: "bg-pink-100 text-pink-800 border-pink-200" },
+                { name: "Frustrated", color: "bg-orange-100 text-orange-800 border-orange-200" },
+                { name: "Grateful", color: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+                { name: "Happy", color: "bg-amber-100 text-amber-800 border-amber-200" },
+              ].map((emotion) => (
+                <span
+                  key={emotion.name}
+                  className={`rounded-full border px-5 py-2 text-sm font-semibold ${emotion.color}`}
+                >
+                  {emotion.name}
+                </span>
+              ))}
+            </div>
+
+            {/* How-it-works mini steps */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+              {[
+                { step: "1", label: "Choose how you feel", desc: "Pick the color that matches your current emotion." },
+                { step: "2", label: "Draw a Scripture scroll", desc: "Open one scroll and read the verse slowly." },
+                { step: "3", label: "Pray and reflect", desc: "Ask God what He wants to show you through that verse." },
+                { step: "4", label: "Write it down", desc: "Capture your reflection in a journal or notebook." },
+              ].map((item) => (
+                <div key={item.step} className="rounded-xl border border-border bg-card p-5 shadow-sm text-center">
+                  <span className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-sm">
+                    {item.step}
+                  </span>
+                  <h3 className="font-semibold mb-1 text-sm">{item.label}</h3>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <div className="text-center">
+              <Link
+                href="/bible-verse-scrolls-for-anxiety-and-peace"
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold py-3 px-8 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
+              >
+                Read the Full Guide
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-muted/30 border-y border-border">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <div>
+              <h2 className="text-3xl font-bold mb-3">Continue Your Scripture-Centered Practice</h2>
+              <p className="text-muted-foreground text-lg">
+                Explore the core Serenity Scrolls resources for daily devotion, emotional encouragement, prayer journaling, and faith-based support.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 text-sm font-medium">
+              <Link href="/shop" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
+                Shop Christian Scripture gifts
+              </Link>
+              <Link href="/presale-journal" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
+                Christian Reflection Journal
+              </Link>
+              <Link href="/servant-landing" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
+                AI Scripture companion
+              </Link>
+              <Link href="/bible-verse-scrolls-for-anxiety-and-peace" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
+                Bible verse scrolls for anxiety and peace
+              </Link>
+              <Link href="/blog" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
+                Bible verses and prayer prompts
+              </Link>
             </div>
           </div>
         </div>
