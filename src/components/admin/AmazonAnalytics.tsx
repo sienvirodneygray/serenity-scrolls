@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, TrendingUp, MousePointerClick, DollarSign } from "lucide-react";
+import { ShoppingCart, TrendingUp, MousePointerClick, CheckCircle } from "lucide-react";
 import { AmazonClicksChart } from "./AmazonClicksChart";
 import { TopConvertingPages } from "./TopConvertingPages";
 
@@ -117,13 +117,12 @@ export function AmazonAnalytics() {
             <CardTitle className="text-sm font-medium">Integration Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
-              <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div className="flex items-start gap-3 p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium">Amazon Associates API Not Connected</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Connect your Amazon Associates account to track conversions, earnings, and product performance.
-                  Currently tracking outbound clicks only.
+                <p className="text-sm font-medium text-green-800 dark:text-green-400">Click Tracking Active</p>
+                <p className="text-xs text-green-700/80 dark:text-green-400/80 mt-1">
+                  Outbound Amazon product clicks are currently being successfully tracked locally via the Serenity Scrolls platform.
                 </p>
               </div>
             </div>
