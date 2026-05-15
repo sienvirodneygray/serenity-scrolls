@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle, Mail } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
+import { FbaInventoryTable } from "@/components/admin/FbaInventoryTable";
 import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
 import { DevicesAnalytics } from "@/components/admin/DevicesAnalytics";
 import { UserBehaviorAnalytics } from "@/components/admin/UserBehaviorAnalytics";
@@ -180,6 +181,7 @@ export default function AdminDashboard() {
                     {isSyncing ? "Syncing..." : "Sync FBA Inventory"}
                   </Button>
                 </div>
+                <FbaInventoryTable />
                 <AmazonAnalytics />
               </div>
             )}
