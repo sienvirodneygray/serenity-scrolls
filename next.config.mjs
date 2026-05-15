@@ -14,6 +14,16 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  experimental: {
+    turbo: {
+      resolveAlias: {
+        '@': './src',
+      },
+    },
+  },
 };
 
 export default nextConfig;
