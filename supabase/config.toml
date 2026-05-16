@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.send-order-notification]
 verify_jwt = false
+
+[functions.sync-amazon-orders]
+verify_jwt = false

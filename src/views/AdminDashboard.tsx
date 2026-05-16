@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle, Mail } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
+import { AmazonOrdersAnalytics } from "@/components/admin/AmazonOrdersAnalytics";
 import { FbaInventoryTable } from "@/components/admin/FbaInventoryTable";
 import { AdminUserManagement } from "@/components/admin/AdminUserManagement";
 import { DevicesAnalytics } from "@/components/admin/DevicesAnalytics";
@@ -183,6 +184,7 @@ export default function AdminDashboard() {
                   </Button>
                 </div>
                 <FbaInventoryTable />
+                <AmazonOrdersAnalytics />
                 <AmazonAnalytics />
               </div>
             )}
