@@ -13,18 +13,19 @@ const AMAZON_ORDER_PATTERN = /^\d{3}-\d{7}-\d{7}$/;
  * This is the ONLY auth required for self-authorized SP-API apps.
  * No AWS Signature v4 / IAM role assumption is needed.
  *
- * Required Supabase secrets:
- *   AMAZON_SP_CLIENT_ID       — LWA Client ID (amzn1.application-oa2-client.xxx)
- *   AMAZON_SP_CLIENT_SECRET   — LWA Client Secret
- *   AMAZON_SP_REFRESH_TOKEN   — LWA Refresh Token (from self-authorization)
+ * Required Supabase secrets (either prefix works):
+ *   AMAZON_SPAPI_CLIENT_ID    — LWA Client ID (preferred)
+ *   AMAZON_SP_CLIENT_ID       — LWA Client ID (legacy fallback)
+ *   AMAZON_SPAPI_CLIENT_SECRET / AMAZON_SP_CLIENT_SECRET
+ *   AMAZON_SPAPI_REFRESH_TOKEN / AMAZON_SP_REFRESH_TOKEN
  */
 async function getLWAAccessToken(): Promise<string | null> {
-    const clientId = Deno.env.get("AMAZON_SP_CLIENT_ID");
-    const clientSecret = Deno.env.get("AMAZON_SP_CLIENT_SECRET");
-    const refreshToken = Deno.env.get("AMAZON_SP_REFRESH_TOKEN");
+    const clientId = Deno.env.get("AMAZON_SPAPI_CLIENT_ID") || Deno.env.get("AMAZON_SP_CLIENT_ID");
+    const clientSecret = Deno.env.get("AMAZON_SPAPI_CLIENT_SECRET") || Deno.env.get("AMAZON_SP_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("AMAZON_SPAPI_REFRESH_TOKEN") || Deno.env.get("AMAZON_SP_REFRESH_TOKEN");
 
     if (!clientId || !clientSecret || !refreshToken) {
-        console.error("SP-API credentials not set. Ensure AMAZON_SP_CLIENT_ID, AMAZON_SP_CLIENT_SECRET, and AMAZON_SP_REFRESH_TOKEN are configured in Supabase secrets.");
+        console.error("SP-API credentials not set. Ensure AMAZON_SPAPI_CLIENT_ID, AMAZON_SPAPI_CLIENT_SECRET, and AMAZON_SPAPI_REFRESH_TOKEN are configured in Supabase secrets.");
         return null;
     }
 

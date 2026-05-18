@@ -1,6 +1,7 @@
-const clientId = process.env.AMAZON_SP_CLIENT_ID || "";
-const clientSecret = process.env.AMAZON_SP_CLIENT_SECRET || "";
-const refreshToken = process.env.AMAZON_SP_REFRESH_TOKEN || "";
+const clientId = process.env.AMAZON_SPAPI_CLIENT_ID || process.env.AMAZON_SP_CLIENT_ID || "";
+const clientSecret = process.env.AMAZON_SPAPI_CLIENT_SECRET || process.env.AMAZON_SP_CLIENT_SECRET || "";
+const refreshToken = process.env.AMAZON_SPAPI_REFRESH_TOKEN || process.env.AMAZON_SP_REFRESH_TOKEN || "";
+
 
 async function testConnection() {
     console.log("1. Requesting Access Token...");
@@ -26,7 +27,7 @@ async function testConnection() {
 
     // Now test verify-order logic
     const testOrderId = "113-5555555-5555555"; // Fake order ID
-    const endpoint = `https://sellingpartnerapi-eu.amazon.com/orders/v0/orders/${testOrderId}`;
+    const endpoint = `https://sellingpartnerapi-na.amazon.com/orders/v0/orders/${testOrderId}`;
     console.log(`\n2. Querying Amazon SP-API for Fake Order: ${testOrderId}...`);
     
     try {
