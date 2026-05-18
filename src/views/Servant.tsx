@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Loader2, Sparkles, BookOpen, ArrowRight, Lock } from "lucide-react";
+import { Send, Loader2, Sparkles, BookOpen, ArrowRight, Lock, MessageSquare, PanelLeftOpen, PanelLeftClose, Plus } from "lucide-react";
 import { TrialOfferBanner } from "@/components/TrialOfferBanner";
 import { useTrialStatus } from "@/hooks/useTrialStatus";
 
@@ -16,6 +16,44 @@ type Message = {
   role: "user" | "assistant";
   content: string;
 };
+
+type Session = {
+  messages: Message[];
+  startedAt: Date;
+  label: string;
+};
+
+function groupIntoSessions(rows: { role: string; content: string; created_at: string }[]): Session[] {
+  if (!rows.length) return [];
+  const GAP_MS = 2 * 60 * 60 * 1000; // 2 hours = new session
+  const sessions: Session[] = [];
+  let current: Message[] = [];
+  let sessionStart = new Date(rows[0].created_at);
+  let lastTime = sessionStart;
+
+  for (const row of rows) {
+    const t = new Date(row.created_at);
+    if (t.getTime() - lastTime.getTime() > GAP_MS) {
+      sessions.push({ messages: current, startedAt: sessionStart, label: formatSessionLabel(sessionStart) });
+      current = [];
+      sessionStart = t;
+    }
+    current.push({ role: row.role as "user" | "assistant", content: row.content });
+    lastTime = t;
+  }
+  if (current.length) sessions.push({ messages: current, startedAt: sessionStart, label: formatSessionLabel(sessionStart) });
+  return sessions;
+}
+
+function formatSessionLabel(date: Date): string {
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return date.toLocaleDateString("en-US", { weekday: "long" });
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 const Servant = () => {
   const router = useRouter();
@@ -27,6 +65,10 @@ const Servant = () => {
   const [threadIdV1, setThreadIdV1] = useState<string | null>(null);
   const [threadIdV2, setThreadIdV2] = useState<string | null>(null);
   const [version, setVersion] = useState<"1.0" | "2.0">("1.0");
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [activeSessionIdx, setActiveSessionIdx] = useState<number>(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [upsellDismissed, setUpsellDismissed] = useState(false);
 
   const messages = version === "1.0" ? messagesV1 : messagesV2;
   const setMessages = version === "1.0" ? setMessagesV1 : setMessagesV2;
@@ -152,19 +194,34 @@ const Servant = () => {
       setVersion("2.0");
     }
 
-    // Load previous messages
+    // Load and group messages into sessions
     const { data: chatMessages } = await supabase
       .from("chat_messages")
       .select("*")
       .eq("user_id", session.user.id)
       .order("created_at", { ascending: true });
 
-    if (chatMessages) {
-      setMessages(chatMessages.map(msg => ({
-        role: msg.role as "user" | "assistant",
-        content: msg.content
-      })));
+    if (chatMessages && chatMessages.length > 0) {
+      const grouped = groupIntoSessions(chatMessages);
+      setSessions(grouped);
+      const lastIdx = grouped.length - 1;
+      setActiveSessionIdx(lastIdx);
+      setMessages(grouped[lastIdx].messages);
     }
+  };
+
+  const startNewSession = () => {
+    setMessages([]);
+    setThreadId(null);
+    // Will be added to sessions once first message is sent
+    setActiveSessionIdx(sessions.length);
+    setSidebarOpen(false);
+  };
+
+  const loadSession = (idx: number) => {
+    setMessages(sessions[idx].messages);
+    setActiveSessionIdx(idx);
+    setSidebarOpen(false);
   };
 
   const sendMessage = async (e: React.FormEvent) => {
@@ -290,10 +347,63 @@ const Servant = () => {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-b from-amber-50/30 via-background to-background dark:from-gray-950 dark:via-background flex flex-col">
       <Navbar />
 
-      <div className="flex-1 container mx-auto px-4 py-20 max-w-3xl flex flex-col">
+      <div className="flex flex-1 pt-16">
+        {/* Sidebar overlay on mobile */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-20 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
+        )}
+
+        {/* Conversation History Sidebar */}
+        <aside className={`fixed md:sticky top-0 md:top-16 left-0 h-full md:h-[calc(100vh-4rem)] z-30 md:z-auto w-64 bg-card border-r border-border flex flex-col transition-transform duration-200 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}>
+          <div className="p-3 border-b border-border flex items-center justify-between">
+            <span className="text-sm font-semibold text-foreground">Conversations</span>
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs gap-1" onClick={startNewSession}>
+              <Plus className="h-3.5 w-3.5" /> New
+            </Button>
+          </div>
+          <div className="flex-1 overflow-y-auto py-2">
+            {sessions.length === 0 && (
+              <p className="text-xs text-muted-foreground px-3 py-4 text-center">No previous conversations.</p>
+            )}
+            {[...sessions].reverse().map((s, reversedIdx) => {
+              const idx = sessions.length - 1 - reversedIdx;
+              const isActive = idx === activeSessionIdx;
+              const preview = s.messages.find(m => m.role === "user")?.content || "New conversation";
+              return (
+                <button
+                  key={idx}
+                  onClick={() => loadSession(idx)}
+                  className={`w-full text-left px-3 py-2.5 hover:bg-muted/60 transition-colors group ${
+                    isActive ? "bg-primary/8 border-l-2 border-primary" : ""
+                  }`}
+                >
+                  <p className="text-[11px] font-medium text-muted-foreground mb-0.5">
+                    {idx === sessions.length - 1 ? "Current" : s.label}
+                  </p>
+                  <p className="text-xs text-foreground truncate">{preview.slice(0, 50)}</p>
+                  <p className="text-[10px] text-muted-foreground/60 mt-0.5">{s.messages.length} messages</p>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* Main chat area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 container mx-auto px-4 py-6 max-w-3xl flex flex-col">
+            {/* Sidebar toggle button */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden absolute top-20 left-4 z-10 p-2 rounded-lg bg-card border border-border shadow-sm"
+            >
+              {sidebarOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+            </button>
         {/* Header */}
         <div className="text-center mb-6">
           <h1 className="text-3xl md:text-4xl font-bold mb-1">
@@ -526,13 +636,16 @@ const Servant = () => {
               </Button>
             </div>
           </form>
-        </Card>
+          </Card>
 
-        <p className="text-[11px] text-muted-foreground text-center mt-4 max-w-xl mx-auto leading-relaxed">
-          <strong>Disclaimer:</strong> The Serenity Scrolls Servant is an AI-powered companion designed for spiritual reflection and Scripture-based guidance. It is not a substitute for professional counseling, medical advice, or pastoral care.
-        </p>
-      </div>
-      <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
+          <p className="text-[11px] text-muted-foreground text-center mt-4 max-w-xl mx-auto leading-relaxed">
+            <strong>Disclaimer:</strong> The Serenity Scrolls Servant is an AI-powered companion designed for spiritual reflection and Scripture-based guidance. It is not a substitute for professional counseling, medical advice, or pastoral care.
+          </p>
+        </div>{/* end inner container */}
+      </div>{/* end main chat area */}
+      </div>{/* end flex flex-1 pt-16 */}
+    </div>{/* end min-h-screen */}
+    <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -576,8 +689,8 @@ const Servant = () => {
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
-    </div>
+    </Dialog>
+    </>
   );
 };
 
