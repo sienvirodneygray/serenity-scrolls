@@ -393,6 +393,52 @@ serve(async (req) => {
             email: email.toLowerCase(),
         });
 
+        // ── Admin redemption notification ─────────────────────────────────────
+        try {
+            const resendKey = Deno.env.get("RESEND_API_KEY");
+            const siteUrl = Deno.env.get("SITE_URL") || "https://serenityscrolls.faith";
+            if (resendKey) {
+                const isNewUser = !existingUser;
+                const verifyLabel = verificationMethod === "sp-api" ? "✅ SP-API Verified" : "⚠️ Format-Only (unverified)";
+                const expiryStr = expiresAt.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+                const html = `
+                <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;background:#fafaf9;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+                  <div style="background:#14532d;padding:18px 24px;">
+                    <p style="margin:0;color:#bbf7d0;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Serenity Scrolls · Admin Notification</p>
+                    <h2 style="margin:4px 0 0;color:#fff;font-size:20px;">🎉 New Redemption</h2>
+                  </div>
+                  <div style="padding:24px;">
+                    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                      <tr><td style="padding:8px 0;color:#6b7280;width:160px;">Customer Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#14532d;font-weight:600;">${email}</a></td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Order ID</td><td style="padding:8px 0;font-family:monospace;color:#111827;font-weight:600;">${cleanOrderId}</td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Verification</td><td style="padding:8px 0;font-weight:700;color:${verificationMethod === "sp-api" ? "#16a34a" : "#d97706"};">${verifyLabel}</td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">User Status</td><td style="padding:8px 0;color:#111827;">${isNewUser ? "🆕 New account created" : "🔄 Existing user — access renewed"}</td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Trial Expires</td><td style="padding:8px 0;color:#111827;">${expiryStr}</td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Trial Length</td><td style="padding:8px 0;color:#16a34a;font-weight:700;">30 days</td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Redeemed At</td><td style="padding:8px 0;color:#6b7280;font-size:13px;">${now.toUTCString()}</td></tr>
+                    </table>
+                  </div>
+                  <div style="background:#f0fdf4;border-top:1px solid #bbf7d0;padding:12px 24px;">
+                    <p style="margin:0;font-size:12px;color:#16a34a;">✓ Trial access activated · 30-day window started</p>
+                  </div>
+                </div>`;
+
+                await fetch("https://api.resend.com/emails", {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
+                        to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
+                        subject: `🎉 [NEW REDEEM] ${email} · ${verificationMethod === "sp-api" ? "SP-API ✅" : "Format-Only ⚠️"}`,
+                        html,
+                    }),
+                });
+            }
+        } catch (notifyErr) {
+            // Non-fatal — log but don't block the response
+            console.error("Admin notify error:", notifyErr);
+        }
+
         return new Response(
             JSON.stringify({
                 success: true,
