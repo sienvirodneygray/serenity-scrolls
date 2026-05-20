@@ -194,16 +194,54 @@ serve(async (req) => {
     }
 
     // ── Helper: send admin notification ───────────────────────────────────
-    async function notifyAdmin(label: string, email: string) {
+    async function notifyAdmin(
+      label: string,
+      email: string,
+      expiresAt?: string,
+      extraNote?: string
+    ) {
       if (!resendKey) return;
+      const expiryDate = expiresAt ? new Date(expiresAt) : null;
+      const daysLeft = expiryDate
+        ? Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+      const expiryStr = expiryDate
+        ? expiryDate.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+        : "N/A";
+      const stageEmoji = label.includes("7") ? "🎁" : label.includes("3") ? "⏳" : label.includes("EXPIRY") ? "📜" : "📧";
+      const stageDesc = label.includes("7") ? "7-day exclusive offer email" :
+        label.includes("3") ? "3-day reminder email" :
+        label.includes("EXPIRY") ? "Access expired — expiry notice sent" : label;
+
+      const html = `
+        <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;background:#fafaf9;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+          <div style="background:#92400e;padding:18px 24px;">
+            <p style="margin:0;color:#fef3c7;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Serenity Scrolls · Admin Notification</p>
+            <h2 style="margin:4px 0 0;color:#fff;font-size:20px;">${stageEmoji} ${label}</h2>
+          </div>
+          <div style="padding:24px;">
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <tr><td style="padding:8px 0;color:#6b7280;width:140px;">Trigger</td><td style="padding:8px 0;color:#111827;font-weight:600;">${stageDesc}</td></tr>
+              <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Customer Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#92400e;font-weight:600;">${email}</a></td></tr>
+              <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Trial Expires</td><td style="padding:8px 0;color:#111827;">${expiryStr}</td></tr>
+              <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Days Remaining</td><td style="padding:8px 0;color:${daysLeft !== null && daysLeft <= 3 ? '#dc2626' : '#16a34a'};font-weight:700;">${daysLeft !== null ? `${daysLeft} day${daysLeft !== 1 ? 's' : ''}` : 'N/A'}</td></tr>
+              ${extraNote ? `<tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Note</td><td style="padding:8px 0;color:#374151;">${extraNote}</td></tr>` : ''}
+              <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Sent At</td><td style="padding:8px 0;color:#6b7280;font-size:13px;">${now.toUTCString()}</td></tr>
+            </table>
+          </div>
+          <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:12px 24px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#9ca3af;">Serenity Scrolls Servant · Automated Notification</p>
+          </div>
+        </div>`;
+
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
           to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
-          subject: `[${label}] Offer email sent`,
-          html: `<div style="font-family:sans-serif;font-size:14px;"><h2>${label}</h2><p><strong>Email:</strong> ${email}</p></div>`,
+          subject: `${stageEmoji} [${label}] ${email} · ${daysLeft !== null ? daysLeft + ' days left' : 'trial ended'}`,
+          html,
         }),
       });
     }
@@ -241,7 +279,7 @@ serve(async (req) => {
           if (user.id !== "test") {
             await supabase.from("profiles").update({ offer_7day_sent_at: now.toISOString() }).eq("id", user.id);
           }
-          await notifyAdmin("OFFER 7-DAY", user.email);
+          await notifyAdmin("OFFER 7-DAY", user.email, user.access_expires_at, "7-day exclusive discount offer sent");
           stats.email1_sent++;
         } catch (e: any) {
           stats.errors.push(`[7day] ${user.email}: ${e.message}`);
@@ -283,7 +321,7 @@ serve(async (req) => {
           if (user.id !== "test") {
             await supabase.from("profiles").update({ offer_3day_sent_at: now.toISOString() }).eq("id", user.id);
           }
-          await notifyAdmin("OFFER 3-DAY", user.email);
+          await notifyAdmin("OFFER 3-DAY", user.email, user.access_expires_at, `${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining — final reminder sent`);
           stats.email2_sent++;
         } catch (e: any) {
           stats.errors.push(`[3day] ${user.email}: ${e.message}`);
@@ -325,7 +363,7 @@ serve(async (req) => {
               offer_expiry_sent_at: now.toISOString(),
             }).eq("id", user.id);
           }
-          await notifyAdmin("EXPIRY NOTICE", user.email);
+          await notifyAdmin("EXPIRY NOTICE", user.email, user.access_expires_at, "Trial ended — has_access revoked, expiry email sent");
           stats.email3_sent++;
         } catch (e: any) {
           stats.errors.push(`[expiry] ${user.email}: ${e.message}`);
