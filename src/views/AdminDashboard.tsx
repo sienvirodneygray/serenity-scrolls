@@ -1,11 +1,10 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
-
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { BarChart3, ShoppingCart, Settings, Monitor, MousePointer, FileText, UserCheck, BookOpen, HelpCircle, Mail } from "lucide-react";
+import { BarChart3, ShoppingCart, Settings, UserCheck, BookOpen, Mail, Sparkles } from "lucide-react";
 import { TrafficAnalytics } from "@/components/admin/TrafficAnalytics";
 import { AmazonAnalytics } from "@/components/admin/AmazonAnalytics";
 import { AmazonOrdersAnalytics } from "@/components/admin/AmazonOrdersAnalytics";
@@ -18,11 +17,13 @@ import { AccessRequestsManagement } from "@/components/admin/AccessRequestsManag
 import { BlogManagement } from "@/components/admin/BlogManagement";
 import { FAQManagement } from "@/components/admin/FAQManagement";
 import { CourseManagement } from "@/components/admin/CourseManagement";
+import { ServantUsersManagement } from "@/components/admin/ServantUsersManagement";
 
 export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [activeTab, setActiveTab] = useState("analytics");
   const router = useRouter();
 
   useEffect(() => {
@@ -32,11 +33,7 @@ export default function AdminDashboard() {
   const checkAdminAccess = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        router.push("/admin/login");
-        return;
-      }
+      if (!session) { router.push("/admin/login"); return; }
 
       const { data: roleData, error } = await supabase
         .from("user_roles")
@@ -48,15 +45,10 @@ export default function AdminDashboard() {
       if (error) throw error;
 
       if (!roleData) {
-        toast({
-          variant: "destructive",
-          title: "Access Denied",
-          description: "You do not have admin privileges.",
-        });
+        toast({ variant: "destructive", title: "Access Denied", description: "You do not have admin privileges." });
         router.push("/");
         return;
       }
-
       setIsAdmin(true);
     } catch (error) {
       console.error("Error checking admin access:", error);
@@ -68,34 +60,18 @@ export default function AdminDashboard() {
 
   const handleSyncInventory = async () => {
     setIsSyncing(true);
-    toast({
-      title: "Syncing Inventory",
-      description: "Fetching live FBA quantities from Amazon SP-API...",
-    });
-
+    toast({ title: "Syncing Inventory", description: "Fetching live FBA quantities from Amazon SP-API..." });
     try {
       const { data, error } = await supabase.functions.invoke("sync-amazon-inventory");
-      
       if (error) throw error;
       if (data && !data.success) throw new Error(data.message);
-      
-      toast({
-        title: "Sync Complete!",
-        description: data?.message || "Successfully aligned local database with FBA warehouse levels.",
-      });
+      toast({ title: "Sync Complete!", description: data?.message || "Successfully aligned local database with FBA warehouse levels." });
     } catch (error: any) {
-      console.error("FBA Sync Error:", error);
-      toast({
-        title: "Sync Failed",
-        description: error.message || "Could not synchronize with Amazon FBA.",
-        variant: "destructive",
-      });
+      toast({ title: "Sync Failed", description: error.message || "Could not synchronize with Amazon FBA.", variant: "destructive" });
     } finally {
       setIsSyncing(false);
     }
   };
-
-  const [activeTab, setActiveTab] = useState("analytics");
 
   if (isLoading) {
     return (
@@ -112,17 +88,18 @@ export default function AdminDashboard() {
   if (!isAdmin) return null;
 
   const tabs = [
-    { id: "analytics", label: "Core Analytics", icon: <BarChart3 className="w-5 h-5" /> },
-    { id: "ecommerce", label: "E-Commerce", icon: <ShoppingCart className="w-5 h-5" /> },
-    { id: "marketing", label: "Marketing", icon: <Mail className="w-5 h-5" /> },
-    { id: "lms", label: "Learning (LMS)", icon: <BookOpen className="w-5 h-5" /> },
-    { id: "crm", label: "CRM & System", icon: <Settings className="w-5 h-5" /> },
+    { id: "analytics",  label: "Core Analytics",  icon: <BarChart3 className="w-5 h-5" /> },
+    { id: "ecommerce",  label: "E-Commerce",       icon: <ShoppingCart className="w-5 h-5" /> },
+    { id: "servant",    label: "Servant Users",    icon: <Sparkles className="w-5 h-5" /> },
+    { id: "marketing",  label: "Marketing",        icon: <Mail className="w-5 h-5" /> },
+    { id: "lms",        label: "Learning (LMS)",   icon: <BookOpen className="w-5 h-5" /> },
+    { id: "crm",        label: "CRM & System",     icon: <Settings className="w-5 h-5" /> },
   ];
 
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       <Navbar />
-      
+
       <div className="flex-1 flex overflow-hidden pt-[72px]">
         {/* Sidebar */}
         <aside className="w-64 border-r bg-muted/20 flex flex-col overflow-y-auto">
@@ -130,7 +107,7 @@ export default function AdminDashboard() {
             <h2 className="text-xl font-bold mb-1">Admin Panel</h2>
             <p className="text-xs text-muted-foreground">Serenity Scrolls</p>
           </div>
-          
+
           <nav className="flex-1 px-4 space-y-2">
             {tabs.map((tab) => (
               <button
@@ -149,9 +126,10 @@ export default function AdminDashboard() {
           </nav>
         </aside>
 
-        {/* Main Content Area */}
+        {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-8 bg-zinc-50/50 dark:bg-black/10">
           <div className="max-w-6xl mx-auto space-y-8">
+
             {activeTab === "analytics" && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="mb-6">
@@ -186,6 +164,12 @@ export default function AdminDashboard() {
                 <FbaInventoryTable />
                 <AmazonOrdersAnalytics />
                 <AmazonAnalytics />
+              </div>
+            )}
+
+            {activeTab === "servant" && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <ServantUsersManagement />
               </div>
             )}
 
@@ -237,6 +221,7 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+
           </div>
         </main>
       </div>
