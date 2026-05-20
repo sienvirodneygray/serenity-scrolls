@@ -15,11 +15,7 @@ interface Redemption {
   redemption_count: number | null;
   activated_at: string | null;
   created_at: string;
-  // joined from profiles
-  has_access?: boolean;
-  access_expires_at?: string | null;
-  subscription_status?: string | null;
-  offer_7day_sent_at?: string | null;
+  max_redemptions?: number | null;
 }
 
 function daysUntil(dateStr: string | null | undefined): number | null {
@@ -55,28 +51,12 @@ export function AccessRequestsManagement() {
   const load = async () => {
     setIsLoading(true);
     try {
-      // Fetch access_requests joined with profiles by email
-      const { data: requests, error } = await supabase
+      const { data, error } = await supabase
         .from("access_requests")
-        .select("*")
+        .select("id, email, order_id, status, verification_method, redemption_count, max_redemptions, activated_at, created_at")
         .order("activated_at", { ascending: false });
       if (error) throw error;
-
-      // Fetch profile data for all emails
-      const emails = (requests || []).map((r: any) => r.email).filter(Boolean);
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("email, has_access, access_expires_at, subscription_status, offer_7day_sent_at")
-        .in("email", emails);
-
-      const profileMap = Object.fromEntries((profiles || []).map((p: any) => [p.email, p]));
-
-      const merged: Redemption[] = (requests || []).map((r: any) => ({
-        ...r,
-        ...(profileMap[r.email] || {}),
-      }));
-
-      setRedemptions(merged);
+      setRedemptions((data as Redemption[]) || []);
     } catch (err) {
       console.error(err);
       toast({ variant: "destructive", title: "Error", description: "Failed to load redemptions" });
@@ -102,6 +82,7 @@ export function AccessRequestsManagement() {
 
   const real = redemptions.filter(r => r.verification_method === "sp-api");
   const tests = redemptions.filter(r => r.verification_method !== "sp-api");
+  const activeTrials = real.filter(r => r.status === "approved");
 
   if (isLoading) {
     return (
@@ -131,12 +112,12 @@ export function AccessRequestsManagement() {
           <p className="text-xs text-muted-foreground mt-1">Real Customers</p>
         </div>
         <div className="bg-card border rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-blue-600">{real.filter(r => r.subscription_status === "active").length}</p>
-          <p className="text-xs text-muted-foreground mt-1">Subscribed</p>
+          <p className="text-3xl font-bold text-blue-600">{activeTrials.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">Active Trials</p>
         </div>
         <div className="bg-card border rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-orange-500">{real.filter(r => { const d = daysUntil(r.access_expires_at); return d !== null && d >= 0 && d <= 7 && r.subscription_status !== "active"; }).length}</p>
-          <p className="text-xs text-muted-foreground mt-1">Expiring Soon</p>
+          <p className="text-3xl font-bold text-muted-foreground">{tests.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">Test Records</p>
         </div>
       </div>
 
@@ -159,8 +140,7 @@ export function AccessRequestsManagement() {
                     <th className="text-left py-2 px-3 font-medium">Customer</th>
                     <th className="text-left py-2 px-3 font-medium">Order ID</th>
                     <th className="text-left py-2 px-3 font-medium">Verified</th>
-                    <th className="text-left py-2 px-3 font-medium">Trial Status</th>
-                    <th className="text-left py-2 px-3 font-medium">Offer Sent</th>
+                    <th className="text-left py-2 px-3 font-medium">Redemptions</th>
                     <th className="text-left py-2 px-3 font-medium">Activated</th>
                     <th className="py-2 px-3"></th>
                   </tr>
@@ -170,16 +150,14 @@ export function AccessRequestsManagement() {
                     <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="py-3 px-3">
                         <p className="font-medium">{r.email}</p>
-                        {r.has_access && <span className="text-[10px] text-green-600 font-medium">● Active</span>}
-                        {!r.has_access && <span className="text-[10px] text-muted-foreground">● No access</span>}
+                        <span className="text-[10px] text-green-600 font-medium">● {r.status}</span>
                       </td>
                       <td className="py-3 px-3 font-mono text-xs text-muted-foreground">{r.order_id}</td>
                       <td className="py-3 px-3"><VerificationBadge method={r.verification_method} /></td>
-                      <td className="py-3 px-3"><TrialBadge expiresAt={r.access_expires_at} subscriptionStatus={r.subscription_status} /></td>
                       <td className="py-3 px-3">
-                        {r.offer_7day_sent_at
-                          ? <span className="text-xs text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> 7-day sent</span>
-                          : <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Pending</span>}
+                        <span className="text-xs text-muted-foreground">
+                          {r.redemption_count ?? 0} / {r.max_redemptions ?? 1} redeemed
+                        </span>
                       </td>
                       <td className="py-3 px-3 text-xs text-muted-foreground">
                         {r.activated_at ? new Date(r.activated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
