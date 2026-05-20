@@ -210,10 +210,9 @@ export default function AdminDashboard() {
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold">CRM & System Engine</h2>
-                  <p className="text-muted-foreground">App access requests and admin control panel</p>
+                  <p className="text-muted-foreground">Admin control panel and user management</p>
                 </div>
-                <AccessRequestsManagement />
-                <div className="border-t pt-8">
+                <div>
                   <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                     <Settings className="w-5 h-5" /> Admin Settings
                   </h3>
