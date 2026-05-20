@@ -13,9 +13,10 @@ interface Redemption {
   status: string;
   verification_method: string | null;
   redemption_count: number | null;
-  activated_at: string | null;
-  created_at: string;
   max_redemptions?: number | null;
+  activated_at: string | null;
+  access_expires_at?: string | null;
+  created_at: string;
 }
 
 function daysUntil(dateStr: string | null | undefined): number | null {
@@ -53,7 +54,7 @@ export function AccessRequestsManagement() {
     try {
       const { data, error } = await supabase
         .from("access_requests")
-        .select("id, email, order_id, status, verification_method, redemption_count, max_redemptions, activated_at, created_at")
+        .select("id, email, order_id, status, verification_method, redemption_count, max_redemptions, activated_at, access_expires_at, created_at")
         .order("activated_at", { ascending: false });
       if (error) throw error;
       setRedemptions((data as Redemption[]) || []);
@@ -140,6 +141,7 @@ export function AccessRequestsManagement() {
                     <th className="text-left py-2 px-3 font-medium">Customer</th>
                     <th className="text-left py-2 px-3 font-medium">Order ID</th>
                     <th className="text-left py-2 px-3 font-medium">Verified</th>
+                    <th className="text-left py-2 px-3 font-medium">Trial</th>
                     <th className="text-left py-2 px-3 font-medium">Redemptions</th>
                     <th className="text-left py-2 px-3 font-medium">Activated</th>
                     <th className="py-2 px-3"></th>
@@ -154,6 +156,7 @@ export function AccessRequestsManagement() {
                       </td>
                       <td className="py-3 px-3 font-mono text-xs text-muted-foreground">{r.order_id}</td>
                       <td className="py-3 px-3"><VerificationBadge method={r.verification_method} /></td>
+                      <td className="py-3 px-3"><TrialBadge expiresAt={r.access_expires_at} subscriptionStatus={null} /></td>
                       <td className="py-3 px-3">
                         <span className="text-xs text-muted-foreground">
                           {r.redemption_count ?? 0} / {r.max_redemptions ?? 1} redeemed
