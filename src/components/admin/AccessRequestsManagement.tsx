@@ -9,14 +9,16 @@ import { RefreshCw, ShieldCheck, ShieldAlert, Trash2, Users, Clock, CheckCircle 
 interface Redemption {
   id: string;
   email: string;
-  order_id: string;
-  status: string;
+  order_id: string | null;
+  status?: string;
   verification_method: string | null;
   redemption_count: number | null;
   max_redemptions?: number | null;
   activated_at: string | null;
   access_expires_at?: string | null;
-  created_at: string;
+  subscription_status?: string | null;
+  offer_7day_sent_at?: string | null;
+  access_granted_at?: string | null;
 }
 
 function daysUntil(dateStr: string | null | undefined): number | null {
@@ -52,12 +54,19 @@ export function AccessRequestsManagement() {
   const load = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("access_requests")
-        .select("id, email, order_id, status, verification_method, redemption_count, max_redemptions, activated_at, access_expires_at, created_at")
-        .order("activated_at", { ascending: false });
-      if (error) throw error;
-      setRedemptions((data as Redemption[]) || []);
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/get-servant-users`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }
+      );
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to load users");
+      setRedemptions(json.users as Redemption[]);
     } catch (err) {
       console.error(err);
       toast({ variant: "destructive", title: "Error", description: "Failed to load redemptions" });
@@ -67,6 +76,10 @@ export function AccessRequestsManagement() {
   };
 
   const handleDelete = async (r: Redemption) => {
+    if (!r.order_id) {
+      toast({ variant: "destructive", title: "Cannot delete", description: "No access_requests record for this user — remove via Supabase dashboard." });
+      return;
+    }
     if (!confirm(`Delete redemption for ${r.email}?\nThis allows the order ID to be reused.`)) return;
     setDeletingId(r.id);
     try {
@@ -82,8 +95,8 @@ export function AccessRequestsManagement() {
   };
 
   const real = redemptions.filter(r => r.verification_method === "sp-api");
-  const tests = redemptions.filter(r => r.verification_method !== "sp-api");
-  const activeTrials = real.filter(r => r.status === "approved");
+  const manual = redemptions.filter(r => r.verification_method === "manual");
+  const tests = redemptions.filter(r => r.verification_method === "format-only");
 
   if (isLoading) {
     return (
@@ -109,16 +122,16 @@ export function AccessRequestsManagement() {
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-card border rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-green-600">{real.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">Real Customers</p>
+          <p className="text-3xl font-bold text-green-600">{real.length + manual.length}</p>
+          <p className="text-xs text-muted-foreground mt-1">Active Users</p>
         </div>
         <div className="bg-card border rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-blue-600">{activeTrials.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">Active Trials</p>
+          <p className="text-3xl font-bold text-blue-600">{redemptions.filter(r => r.subscription_status === "active").length}</p>
+          <p className="text-xs text-muted-foreground mt-1">Subscribed</p>
         </div>
         <div className="bg-card border rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-muted-foreground">{tests.length}</p>
-          <p className="text-xs text-muted-foreground mt-1">Test Records</p>
+          <p className="text-3xl font-bold text-orange-500">{redemptions.filter(r => { const d = daysUntil(r.access_expires_at); return d !== null && d >= 0 && d <= 7 && r.subscription_status !== "active"; }).length}</p>
+          <p className="text-xs text-muted-foreground mt-1">Expiring Soon</p>
         </div>
       </div>
 
@@ -126,13 +139,13 @@ export function AccessRequestsManagement() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldCheck className="w-4 h-4 text-green-600" /> Verified Customers ({real.length})
+            <ShieldCheck className="w-4 h-4 text-green-600" /> Active Users ({real.length + manual.length})
           </CardTitle>
-          <CardDescription>Redeemed via Amazon SP-API — confirmed real orders</CardDescription>
+          <CardDescription>All users with active Servant access</CardDescription>
         </CardHeader>
         <CardContent>
-          {real.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8 text-sm">No verified redemptions yet</p>
+          {(real.length + manual.length) === 0 ? (
+            <p className="text-muted-foreground text-center py-8 text-sm">No active users yet</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -142,25 +155,25 @@ export function AccessRequestsManagement() {
                     <th className="text-left py-2 px-3 font-medium">Order ID</th>
                     <th className="text-left py-2 px-3 font-medium">Verified</th>
                     <th className="text-left py-2 px-3 font-medium">Trial</th>
-                    <th className="text-left py-2 px-3 font-medium">Redemptions</th>
+                    <th className="text-left py-2 px-3 font-medium">Offer Sent</th>
                     <th className="text-left py-2 px-3 font-medium">Activated</th>
                     <th className="py-2 px-3"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {real.map(r => (
+                  {[...real, ...manual].map(r => (
                     <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-3">
+                        <td className="py-3 px-3">
                         <p className="font-medium">{r.email}</p>
-                        <span className="text-[10px] text-green-600 font-medium">● {r.status}</span>
+                        <span className="text-[10px] text-green-600 font-medium">● active</span>
                       </td>
-                      <td className="py-3 px-3 font-mono text-xs text-muted-foreground">{r.order_id}</td>
+                      <td className="py-3 px-3 font-mono text-xs text-muted-foreground">{r.order_id ?? <span className="italic">manual</span>}</td>
                       <td className="py-3 px-3"><VerificationBadge method={r.verification_method} /></td>
-                      <td className="py-3 px-3"><TrialBadge expiresAt={r.access_expires_at} subscriptionStatus={null} /></td>
+                      <td className="py-3 px-3"><TrialBadge expiresAt={r.access_expires_at} subscriptionStatus={r.subscription_status ?? null} /></td>
                       <td className="py-3 px-3">
-                        <span className="text-xs text-muted-foreground">
-                          {r.redemption_count ?? 0} / {r.max_redemptions ?? 1} redeemed
-                        </span>
+                        {r.offer_7day_sent_at
+                          ? <span className="text-xs text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Sent</span>
+                          : <span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" /> Pending</span>}
                       </td>
                       <td className="py-3 px-3 text-xs text-muted-foreground">
                         {r.activated_at ? new Date(r.activated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
@@ -189,7 +202,7 @@ export function AccessRequestsManagement() {
         <Card className="border-dashed opacity-70">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base text-muted-foreground">
-              <ShieldAlert className="w-4 h-4" /> Test Records ({tests.length})
+              <ShieldAlert className="w-4 h-4" /> Test / Format-Only Records ({tests.length})
             </CardTitle>
             <CardDescription>Format-only verification — not confirmed real orders</CardDescription>
           </CardHeader>
