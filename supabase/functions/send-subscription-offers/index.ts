@@ -239,7 +239,7 @@ serve(async (req) => {
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
-          to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
+          to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com", "mccmetro@comcast.net"],
           subject: `${stageEmoji} [${label}] ${email} · ${daysLeft !== null ? daysLeft + ' days left' : 'trial ended'}`,
           html,
         }),
