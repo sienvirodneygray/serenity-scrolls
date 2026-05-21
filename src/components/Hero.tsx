@@ -18,7 +18,9 @@ export const Hero = () => {
       <div className="absolute inset-0 opacity-30">
         <img
           src={heroImage.src}
-          alt="Serenity Scrolls with glowing rainbow light"
+          alt="Serenity Scrolls Bible verse scrolls displayed with warm rainbow light"
+          width={1600}
+          height={1200}
           className="w-full h-full object-cover"
         />
       </div>
@@ -31,6 +33,8 @@ export const Hero = () => {
             <img
               src={logo.src}
               alt="Serenity Scrolls"
+              width={400}
+              height={176}
               className="h-44 w-auto drop-shadow-lg"
             />
           </div>

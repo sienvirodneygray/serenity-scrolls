@@ -26,6 +26,8 @@ export const ProductCard = ({ title, description, features, image, price, amazon
         <img
           src={image}
           alt={title}
+          width={800}
+          height={512}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
         {badge && (

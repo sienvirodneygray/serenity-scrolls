@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { toast } from "sonner";
 
@@ -75,7 +75,6 @@ const TIERS = [
 
 function CourageCovenantContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [loading, setLoading] = useState<string | null>(null);
 
   const supabase = createBrowserClient(
@@ -84,20 +83,21 @@ function CourageCovenantContent() {
   );
 
   useEffect(() => {
-    if (searchParams.get("enrolled") === "true") {
-      toast.success("Enrollment successful! 🎉", {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("enrolled") === "true") {
+      toast.success("Enrollment successful!", {
         description: "Your course access is now active. Check your email for details.",
         duration: 8000,
       });
-      // Optionally clean up the URL without triggering a reload
-      window.history.replaceState({}, '', '/learn/courage-covenant');
-    } else if (searchParams.get("cancelled") === "true") {
+      window.history.replaceState({}, "", "/learn/courage-covenant");
+    } else if (params.get("cancelled") === "true") {
       toast.error("Checkout cancelled", {
         description: "Your enrollment process was cancelled. You have not been charged.",
       });
-      window.history.replaceState({}, '', '/learn/courage-covenant');
+      window.history.replaceState({}, "", "/learn/courage-covenant");
     }
-  }, [searchParams]);
+  }, []);
 
   const handleEnroll = async (tier: typeof TIERS[0]) => {
     setLoading(tier.id);
@@ -375,9 +375,5 @@ function CourageCovenantContent() {
 }
 
 export default function CourageCovenanPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center">Loading course details...</div>}>
-      <CourageCovenantContent />
-    </Suspense>
-  );
+  return <CourageCovenantContent />;
 }

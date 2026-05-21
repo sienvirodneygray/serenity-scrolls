@@ -64,7 +64,7 @@ serve(async (req) => {
     // Send admin update email
     await resend.emails.send({
       from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
-      to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com"],
+      to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com", "mccmetro@comcast.net"],
       subject: "[ACCESS] User access approved",
       html: `
         <div style="font-family: sans-serif; font-size: 14px; line-height: 1.5; color: #333;">

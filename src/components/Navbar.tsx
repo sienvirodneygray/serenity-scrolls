@@ -13,8 +13,8 @@ export const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
 
   const fetchCartCount = async (currentUser: any) => {
-    let sessionId = typeof window !== 'undefined' ? window.localStorage.getItem('session_id') : null;
-    
+    const sessionId = typeof window !== "undefined" ? window.localStorage.getItem("session_id") : null;
+
     if (!currentUser && !sessionId) {
       setCartCount(0);
       return;
@@ -47,8 +47,6 @@ export const Navbar = () => {
       fetchCartCount(session?.user);
     });
 
-    // Also set up an interval to occasionally poll cart if they have an active session ID
-    // or just fetch once
     fetchCartCount(user);
 
     return () => subscription.unsubscribe();
@@ -68,14 +66,10 @@ export const Navbar = () => {
 
         <div className="flex items-center gap-4">
           <Button variant="ghost" asChild>
-            <Link href="/contact">
-              Contact
-            </Link>
+            <Link href="/contact">Contact</Link>
           </Button>
           <Button variant="ghost" asChild>
-            <Link href="/learn/courage-covenant">
-              📖 Courses
-            </Link>
+            <Link href="/learn/courage-covenant">Courses</Link>
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/servant-landing">
@@ -83,7 +77,7 @@ export const Navbar = () => {
               AI Servant
             </Link>
           </Button>
-          
+
           <Button variant="ghost" className="relative px-2" asChild>
             <Link href="/cart">
               <ShoppingCart className="h-5 w-5" />
@@ -98,9 +92,7 @@ export const Navbar = () => {
           {user ? (
             <>
               <Button variant="ghost" asChild>
-                <Link href="/servant">
-                  Your Servant
-                </Link>
+                <Link href="/servant">Your Servant</Link>
               </Button>
               <Button variant="outline" onClick={handleSignOut}>
                 Sign Out

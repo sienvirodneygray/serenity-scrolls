@@ -75,6 +75,8 @@ export const FeaturedBlogPosts = () => {
                       <img
                         src={post.featured_image}
                         alt={post.title}
+                        width={640}
+                        height={320}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>

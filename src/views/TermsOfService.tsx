@@ -16,7 +16,7 @@ const TermsOfService = () => {
             <p>Serenity Scrolls operates this Site and offers products and services through it.</p>
             <p>
                 Business name: Serenity Scrolls<br />
-                Email: [INSERT SUPPORT EMAIL]
+                Email: <a href="mailto:info@serenityscrolls.faith" className="text-primary hover:underline">info@serenityscrolls.faith</a>
             </p>
 
             <h2 className="text-2xl font-semibold mt-8 mb-4 text-foreground">2. Eligibility</h2>
@@ -42,7 +42,7 @@ const TermsOfService = () => {
             <p>Orders are not considered final until accepted and confirmed by our systems. We may decline any order due to suspected fraud, unavailability, or fulfillment constraints.</p>
 
             <h2 className="text-2xl font-semibold mt-8 mb-4 text-foreground">5. Pricing and Payments</h2>
-            <p>All prices are listed in [INSERT CURRENCY] and remain subject to change without notice.</p>
+            <p>All prices are listed in U.S. dollars (USD) unless otherwise stated and remain subject to change without notice.</p>
             <p>Payments are handled by third-party processors. By completing a purchase, you agree to their respective terms. We do not store full payment card details on our servers unless required by our checkout systems.</p>
             <p>You are responsible for any applicable taxes or duties associated with your order.</p>
 
@@ -113,7 +113,8 @@ const TermsOfService = () => {
             <p>We may suspend your access to the Site at any time if we believe you have violated these Terms or created a risk for our business operations.</p>
 
             <h2 className="text-2xl font-semibold mt-8 mb-4 text-foreground">18. Governing Law</h2>
-            <p>These Terms are governed by the laws of [INSERT STATE/PROVINCE/COUNTRY]. Any disputes will be resolved in the courts of [INSERT JURISDICTION].</p>
+            <p>These Terms are governed by the laws specified in any applicable checkout, order, or written agreement between you and Serenity Scrolls. Any disputes will be handled in the jurisdiction identified in that governing agreement.</p>
+            <p className="text-sm text-muted-foreground">Owner input needed: confirm the intended governing law and jurisdiction for a more specific legal statement.</p>
 
             <h2 className="text-2xl font-semibold mt-8 mb-4 text-foreground">19. Changes to These Terms</h2>
             <p>We may revise these Terms periodically. Updates will be posted on this page with a revised "Last updated" date. Continued use of the Site signifies acceptance of the updated Terms.</p>
