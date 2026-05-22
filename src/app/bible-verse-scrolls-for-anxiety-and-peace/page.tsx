@@ -109,20 +109,11 @@ const audiences = [
 
 const offers = [
   {
-    title: "Serenity Scrolls",
-    bestFor: "Daily Scripture encouragement and meaningful Christian gifting.",
-    includes: "96 color-coded Bible verse scrolls organized by emotion.",
-    href: "/shop",
-    cta: "Shop Serenity Scrolls",
-    image: tubeProduct.src,
-    alt: "Serenity Scrolls Bible verse scrolls in keepsake tube",
-  },
-  {
     title: "Reflection Journal",
     bestFor: "Prayer, journaling, emotional reflection, and going deeper with each verse.",
     includes: "Guided prompts for Scripture reflection, gratitude, prayer, and emotional processing.",
-    href: "/presale-journal",
-    cta: "Pre-Order the Journal",
+    href: "/reflection-journal",
+    cta: "Order the Journal",
     image: journalProduct.src,
     alt: "Christian Reflection Journal for prayer and Scripture",
   },
@@ -136,6 +127,15 @@ const offers = [
     alt: "AI Servant Scripture-based reflection companion preview",
     disclaimer:
       "The AI Servant is a reflection companion, not a replacement for Scripture, prayer, pastoral care, counseling, medical care, or emergency help.",
+  },
+  {
+    title: "Serenity Scrolls",
+    bestFor: "Daily Scripture encouragement and meaningful Christian gifting.",
+    includes: "96 color-coded Bible verse scrolls organized by emotion.",
+    href: "/shop",
+    cta: "Shop Serenity Scrolls",
+    image: tubeProduct.src,
+    alt: "Serenity Scrolls Bible verse scrolls in keepsake tube",
   },
 ];
 
@@ -556,7 +556,7 @@ export default function BibleVerseScrollsForAnxietyAndPeacePage() {
                   <Link href="/shop">Shop Serenity Scrolls</Link>
                 </Button>
                 <Button size="lg" variant="outline" className="h-14 px-8 text-lg" asChild>
-                  <Link href="/presale-journal">Pre-Order the Reflection Journal</Link>
+                  <Link href="/reflection-journal">Order the Reflection Journal</Link>
                 </Button>
               </div>
               <div className="flex flex-wrap justify-center gap-4 text-sm">

@@ -30,21 +30,6 @@ interface Product {
 const fallbackProducts: Product[] = [
   {
     id: "",
-    name: "Serenity Scrolls Tube",
-    description:
-      "96 color-coded Bible verse scrolls organized by emotion for anxiety, gratitude, sadness, joy, frustration, and troubled moments.",
-    price: 24.99,
-    image_url: tubeProduct.src,
-    image_alt: "Serenity Scrolls Bible verse scrolls in keepsake tube",
-    stock_quantity: 1,
-    is_available: true,
-    amazon_sku: AMAZON_PRODUCTS.scrolls.sku,
-    availability_label: "Available",
-    fallback_url: AMAZON_PRODUCTS.scrolls.url,
-    cta_label: "Shop Serenity Scrolls",
-  },
-  {
-    id: "",
     name: "Serenity Scrolls Reflection Journal",
     description:
       "A guided Christian reflection journal for prayer, Scripture reflection, gratitude, emotional processing, and going deeper with each Serenity Scrolls verse.",
@@ -54,9 +39,9 @@ const fallbackProducts: Product[] = [
     stock_quantity: 1,
     is_available: true,
     amazon_sku: AMAZON_PRODUCTS.journal.sku,
-    availability_label: "Pre-order available",
-    fallback_url: "/presale-journal",
-    cta_label: "Pre-Order the Journal",
+    availability_label: "Available",
+    fallback_url: "/reflection-journal",
+    cta_label: "Order the Journal",
   },
   {
     id: "",
@@ -72,6 +57,21 @@ const fallbackProducts: Product[] = [
     availability_label: "Subscription access available",
     fallback_url: "/servant-landing",
     cta_label: "Explore AI Servant",
+  },
+  {
+    id: "",
+    name: "Serenity Scrolls Tube",
+    description:
+      "96 color-coded Bible verse scrolls organized by emotion for anxiety, gratitude, sadness, joy, frustration, and troubled moments.",
+    price: 24.99,
+    image_url: tubeProduct.src,
+    image_alt: "Serenity Scrolls Bible verse scrolls in keepsake tube",
+    stock_quantity: 1,
+    is_available: true,
+    amazon_sku: AMAZON_PRODUCTS.scrolls.sku,
+    availability_label: "Available",
+    fallback_url: "/",
+    cta_label: "Shop Serenity Scrolls",
   },
 ];
 
@@ -134,7 +134,18 @@ const Shop = () => {
         product.name.toLowerCase().includes("servant")
       );
 
-      setProducts(hasServant ? hydratedProducts : [...hydratedProducts, fallbackProducts[2]]);
+      const getProductPriority = (product: Product) => {
+        const name = product.name.toLowerCase();
+        if (name.includes("journal") || name.includes("reflection")) return 1;
+        if (name.includes("servant") || name.includes("companion") || name.includes("ai")) return 2;
+        if (name.includes("tube") || name.includes("scrolls")) return 3;
+        return 4;
+      };
+
+      const baseProducts = hasServant ? hydratedProducts : [...hydratedProducts, fallbackProducts[1]];
+      const sortedProducts = baseProducts.sort((a, b) => getProductPriority(a) - getProductPriority(b));
+
+      setProducts(sortedProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
       setProducts(fallbackProducts);
@@ -332,7 +343,7 @@ const Shop = () => {
                   Serenity Scrolls products are made for the ordinary moments when your heart needs a clear place to begin: the anxious morning, the heavy evening, the grateful celebration, the difficult conversation, or the quiet devotional time before the day starts.
                 </p>
                 <p>
-                  The scrolls make Scripture easy to reach by organizing verses around emotion. The <Link href="/presale-journal" className="text-primary font-medium hover:underline">Christian Reflection Journal</Link> helps you slow down and respond in prayer. The <Link href="/servant-landing" className="text-primary font-medium hover:underline">AI Scripture companion</Link> offers reflection prompts and faith-centered encouragement when you want help thinking through what you are feeling.
+                  The scrolls make Scripture easy to reach by organizing verses around emotion. The <Link href="/reflection-journal" className="text-primary font-medium hover:underline">Christian Reflection Journal</Link> helps you slow down and respond in prayer. The <Link href="/servant-landing" className="text-primary font-medium hover:underline">AI Scripture companion</Link> offers reflection prompts and faith-centered encouragement when you want help thinking through what you are feeling.
                 </p>
               </div>
             </div>
@@ -363,7 +374,7 @@ const Shop = () => {
             <Link href="/bible-verse-scrolls-for-anxiety-and-peace" className="rounded-lg bg-background border border-border px-4 py-3 hover:text-primary hover:border-primary/30 transition-colors">
               Bible verse scrolls for anxiety and peace
             </Link>
-            <Link href="/presale-journal" className="rounded-lg bg-background border border-border px-4 py-3 hover:text-primary hover:border-primary/30 transition-colors">
+            <Link href="/reflection-journal" className="rounded-lg bg-background border border-border px-4 py-3 hover:text-primary hover:border-primary/30 transition-colors">
               Christian Reflection Journal
             </Link>
             <Link href="/servant-landing" className="rounded-lg bg-background border border-border px-4 py-3 hover:text-primary hover:border-primary/30 transition-colors">

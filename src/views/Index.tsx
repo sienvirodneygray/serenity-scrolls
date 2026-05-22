@@ -6,11 +6,10 @@ import { FeaturedBlogPosts } from "@/components/FeaturedBlogPosts";
 import { NewsletterModal } from "@/components/NewsletterModal";
 import { Navbar } from "@/components/Navbar";
 import { StructuredData } from "@/components/StructuredData";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { breadcrumbJsonLd } from "@/lib/seo";
-import { WEBSITE_AMAZON_URL, AMAZON_PRODUCTS } from "@/lib/amazonAttribution";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowRight, BookOpen, Heart, ExternalLink, ShoppingCart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -123,38 +122,235 @@ const Index = () => {
       <Navbar />
       <Hero />
 
-      {/* Pre-order Banner */}
+      {/* Now Available Banner */}
       <section className="py-6 bg-gradient-to-r from-purple-600 to-pink-500">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl font-bold text-white mb-2">📖 The Serenity Scrolls Journal is Coming!</h2>
-          <p className="text-white/90 mb-4">Be among the first to get your copy — pre-order now on Amazon.</p>
+          <h2 className="text-2xl font-bold text-white mb-2">📖 The Serenity Scrolls Reflection Journal is Now Available!</h2>
+          <p className="text-white/90 mb-4">Slow down with Scripture, pray honestly, and turn each verse into a deeper moment of reflection.</p>
           <Link
-            href="/presale-journal"
-            className="inline-block bg-white text-purple-700 font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            href="/reflection-journal"
+            className="inline-flex items-center gap-2 bg-white text-purple-700 font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
           >
-            Pre‑order the Journal →
+            Order the Journal <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </section>
 
-      {/* Products Section */}
-      <section id="products" className="py-20 bg-background">
+      {/* Choose Your Serenity Scrolls Experience Grid */}
+      <section className="py-16 bg-muted/20 border-b border-border">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Choose Your Journey to Peace</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Two beautifully crafted products designed to bring Scripture into your emotional wellness practice
+          <div className="text-center max-w-3xl mx-auto mb-12">
+            <p className="text-sm font-semibold uppercase tracking-wide text-primary mb-2">Serenity Scrolls Experience</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Choose Your Serenity Scrolls Experience
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Begin with the guided reflection journal, explore the AI Scripture companion, or shop the physical color-coded scrolls.
             </p>
           </div>
 
-          <Tabs defaultValue="scrolls" className="max-w-5xl mx-auto">
-            <TabsList className="grid w-full grid-cols-3 mb-8 h-auto">
-              <TabsTrigger value="scrolls" className="text-lg py-3">Serenity Scrolls Tube</TabsTrigger>
-              <TabsTrigger value="journal" className="text-lg py-3">Reflection Journal</TabsTrigger>
-              <TabsTrigger value="servant" className="text-lg py-3">AI Servant</TabsTrigger>
-            </TabsList>
+          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* 1. Reflection Journal */}
+            <div className="rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group">
+              <div className="overflow-hidden h-56 relative">
+                <img
+                  src={journalProduct.src}
+                  alt="Christian Reflection Journal for prayer and Scripture"
+                  loading="lazy"
+                  className="h-full w-full object-cover bg-muted transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute top-4 right-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                  Available Now
+                </span>
+              </div>
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="text-2xl font-bold mb-3">Reflection Journal</h3>
+                <p className="text-sm font-semibold text-foreground mb-1">Best for:</p>
+                <p className="text-muted-foreground text-sm mb-4">Prayer, daily journaling, emotional reflection, and going deeper with Scripture.</p>
+                <p className="text-sm font-semibold text-foreground mb-1">Includes:</p>
+                <p className="text-muted-foreground text-sm mb-5">Guided prompts for Scripture reflection, gratitude, and 2-page spreads for all 96 verses.</p>
+                <Button className="mt-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-bold" asChild>
+                  <Link href="/reflection-journal">Order the Journal</Link>
+                </Button>
+              </div>
+            </div>
 
-            <TabsContent value="scrolls" className="mt-0">
+            {/* 2. AI Servant */}
+            <div className="rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group">
+              <div className="overflow-hidden h-56 relative bg-gradient-to-br from-purple-500 to-amber-500 flex items-center justify-center">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
+                  <Sparkles className="w-8 h-8 text-white animate-pulse" />
+                </div>
+              </div>
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="text-2xl font-bold mb-3">AI Servant</h3>
+                <p className="text-sm font-semibold text-foreground mb-1">Best for:</p>
+                <p className="text-muted-foreground text-sm mb-4">Scripture-based reflection prompts and faith-centered encouragement anytime.</p>
+                <p className="text-sm font-semibold text-foreground mb-1">Includes:</p>
+                <p className="text-muted-foreground text-sm mb-5">Personalized Bible verse guidance, reflection prompts, and emotional support rooted in Scripture.</p>
+                <Button className="mt-auto bg-primary hover:bg-primary/95 font-bold" asChild>
+                  <Link href="/servant-landing">Explore AI Servant</Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* 3. Serenity Scrolls Tube */}
+            <div className="rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group">
+              <div className="overflow-hidden h-56 relative">
+                <img
+                  src={tubeProduct.src}
+                  alt="Serenity Scrolls Bible verse scrolls in keepsake tube"
+                  loading="lazy"
+                  className="h-full w-full object-cover bg-muted transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">
+                  Bestseller
+                </span>
+              </div>
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="text-2xl font-bold mb-3">Serenity Scrolls Tube</h3>
+                <p className="text-sm font-semibold text-foreground mb-1">Best for:</p>
+                <p className="text-muted-foreground text-sm mb-4">Daily Scripture encouragement and meaningful Christian gifting.</p>
+                <p className="text-sm font-semibold text-foreground mb-1">Includes:</p>
+                <p className="text-muted-foreground text-sm mb-5">96 color-coded Bible verse scrolls organized by emotion in a premium keepsake tube.</p>
+                <Button variant="outline" className="mt-auto border-2 font-bold hover:bg-muted/50" asChild>
+                  <a href="#tube-scrolls-section">Shop Serenity Scrolls</a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Products Section */}
+      <section id="products" className="py-20 bg-background border-b border-border/50">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">Choose Your Journey to Peace</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Three beautifully crafted products designed to bring Scripture into your emotional wellness practice
+            </p>
+          </div>
+
+          <div className="space-y-24">
+            {/* Showcase 1: Reflection Journal */}
+            <div id="journal-section" className="scroll-mt-24 py-4">
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <ProductCard
+                  title="Serenity Scrolls Reflection Journal"
+                  description="Your companion for deep spiritual reflection and growth"
+                  image={journalProduct.src}
+                  price={39.99}
+                  badge="New"
+                  features={[
+                    "All 96 KJV verses with immersive 2-page spreads",
+                    "10 reflection questions per verse",
+                    "Guided prayers and emotional processing guides",
+                    "Space for personal notes and spiritual insights",
+                    "Includes access code for 30 days of the AI Servant",
+                  ]}
+                  onAddToCart={() => addToCart(productIds['78-SH1V-JG7I'])}
+                />
+
+                {/* Journal Gallery */}
+                <div className="space-y-6">
+                  <div className="text-center md:text-left space-y-2">
+                    <h3 className="text-2xl font-bold text-foreground">Inside the Journal</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Peek inside the beautiful guided spreads designed to enrich your quiet time.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <img src={journal1.src} alt="Journal cover and pages" className="rounded-xl object-cover aspect-square w-full shadow-sm hover:scale-105 transition-transform duration-300 cursor-pointer" />
+                    <img src={journal2.src} alt="Journal emotion tabs" className="rounded-xl object-cover aspect-square w-full shadow-sm hover:scale-105 transition-transform duration-300 cursor-pointer" />
+                    <img src={journal4.src} alt="Journal reflection pages" className="rounded-xl object-cover aspect-square w-full shadow-sm hover:scale-105 transition-transform duration-300 cursor-pointer" />
+                    <img src={journal5.src} alt="Journal guided prompts" className="rounded-xl object-cover aspect-square w-full shadow-sm hover:scale-105 transition-transform duration-300 cursor-pointer" />
+                  </div>
+                  <div className="bg-muted/50 rounded-xl p-5 border border-border">
+                    <p className="text-sm text-muted-foreground italic text-center">
+                      "Our journal passages are drawn from the King James Version (KJV), chosen for its timeless language, poetic beauty, and deep roots in Christian tradition."
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Showcase 2: AI Servant */}
+            <div id="servant-section" className="scroll-mt-24 py-4">
+              <div className="max-w-4xl mx-auto">
+                <div className="relative group">
+                  <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-500 to-amber-500 rounded-3xl blur opacity-30 group-hover:opacity-40 transition duration-1000"></div>
+                  <div className="relative bg-gradient-to-br from-purple-50/90 to-amber-50/90 dark:from-purple-950/20 dark:to-amber-950/20 border border-purple-200/50 dark:border-purple-800/30 rounded-3xl p-8 md:p-12 text-center space-y-8 backdrop-blur-sm">
+                    <div className="mx-auto w-24 h-24 bg-gradient-to-br from-purple-500 to-amber-500 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300">
+                      <Sparkles className="w-12 h-12 text-white animate-pulse" />
+                    </div>
+                    <div className="space-y-3">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300">
+                        ✦ AI Spiritual Companion
+                      </span>
+                      <h3 className="text-3xl md:text-4xl font-bold tracking-tight">Serenity Scrolls Servant</h3>
+                      <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                        Your AI-powered spiritual companion. Share your mood or scroll color,
+                        and receive Scripture snapshots, reflections, journal prompts, and one small step — all guided by faith.
+                      </p>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4 max-w-2xl mx-auto text-left bg-background/50 backdrop-blur-sm p-6 rounded-2xl border border-border">
+                      <div className="flex items-start gap-3">
+                        <span className="text-purple-500 text-lg">✦</span>
+                        <div>
+                          <h4 className="font-semibold text-sm">Mood-based Scripture</h4>
+                          <p className="text-xs text-muted-foreground">Find matching Bible verses instantly for whatever you are feeling.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-purple-500 text-lg">✦</span>
+                        <div>
+                          <h4 className="font-semibold text-sm">Personalized Reflections</h4>
+                          <p className="text-xs text-muted-foreground">Get thoughtful devotional material customized to your current walk.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-purple-500 text-lg">✦</span>
+                        <div>
+                          <h4 className="font-semibold text-sm">Guided Prayer Prompts</h4>
+                          <p className="text-xs text-muted-foreground">Go deeper with daily prayer guidance to help build a lasting rhythm.</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="text-purple-500 text-lg">✦</span>
+                        <div>
+                          <h4 className="font-semibold text-sm">Free Trial Included</h4>
+                          <p className="text-xs text-muted-foreground">Get a 30-day trial automatically with any Scrolls purchase.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+                      <Link
+                        href="/servant-landing"
+                        className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-amber-500 hover:from-purple-700 hover:to-amber-600 text-white font-bold py-3.5 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                      >
+                        <Sparkles className="w-5 h-5 animate-pulse" />
+                        Explore AI Servant
+                      </Link>
+                      <Link
+                        href="/unlock"
+                        className="inline-flex items-center justify-center gap-2 border-2 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 font-bold py-3.5 px-8 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all hover:scale-105"
+                      >
+                        Already purchased? Unlock Access
+                      </Link>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Coming soon on Amazon as a digital product • Free 30-day trial included with every Scrolls purchase
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Showcase 3: Serenity Scrolls Tube */}
+            <div id="tube-scrolls-section" className="scroll-mt-24 py-4">
               <div className="max-w-2xl mx-auto">
                 <ProductCard
                   title="Serenity Scrolls Tube"
@@ -162,109 +358,18 @@ const Index = () => {
                   image={tubeProduct.src}
                   price={24.99}
                   badge="Bestseller"
-                  amazonUrl={WEBSITE_AMAZON_URL}
                   features={[
                     "96 carefully curated Bible verses",
                     "Color-coded for 6 emotions: Grateful, Frustrated, Anxious, Happy, Sad, Troubled",
-                    "Portable tube design - take peace anywhere",
+                    "Portable keepsake tube - take peace anywhere",
                     "Draw a scroll that speaks to your current mood",
                     "Perfect for daily devotions or group sharing",
                   ]}
                   onAddToCart={() => addToCart(productIds['PI-8N6M-AB86'])}
                 />
               </div>
-            </TabsContent>
-
-            <TabsContent value="journal" className="mt-0">
-              <div className="max-w-4xl mx-auto">
-                <div className="grid md:grid-cols-2 gap-8 items-start">
-                  <ProductCard
-                    title="Serenity Scrolls Reflection Journal"
-                    description="Your companion for deep spiritual reflection and growth"
-                    image={journalProduct.src}
-                    price={39.99}
-                    badge="Pre‑order"
-                    amazonUrl={process.env.NEXT_PUBLIC_AMAZON_PREORDER_URL || 'https://www.amazon.com/dp/B0GGV8FQCM?utm_source=presale&utm_medium=amazon&utm_campaign=journal_launch&utm_term=serenity_scrolls_journal'}
-                    features={[
-                      "All 96 verses with 2-page spreads",
-                      "10 reflection questions per verse",
-                      "Guided prayers for each emotion",
-                      "Space for personal notes and insights",
-                      "Includes product access code for AI Servant",
-                    ]}
-                    onAddToCart={() => addToCart(productIds['78-SH1V-JG7I'])}
-                  />
-
-                  {/* Journal Gallery */}
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-center mb-4">Inside the Journal</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      <img src={journal1.src} alt="Journal cover and pages" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
-                      <img src={journal2.src} alt="Journal emotion tabs" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
-                      <img src={journal4.src} alt="Journal reflection pages" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
-                      <img src={journal5.src} alt="Journal guided prompts" className="rounded-lg object-cover aspect-square w-full hover:scale-105 transition-transform cursor-pointer" />
-                    </div>
-                    <div className="bg-muted/50 rounded-lg p-4 text-center">
-                      <p className="text-sm text-muted-foreground italic">
-                        "Our journal passages are drawn from the King James Version (KJV), chosen for its timeless language, poetic beauty, and deep roots in Christian tradition."
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="servant" className="mt-0">
-              <div className="max-w-2xl mx-auto">
-                <div className="bg-gradient-to-br from-purple-50 to-amber-50 dark:from-purple-950/30 dark:to-amber-950/30 rounded-2xl p-8 text-center space-y-6">
-                  <div className="mx-auto w-20 h-20 bg-gradient-to-br from-purple-500 to-amber-500 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-10 h-10 text-white" />
-                  </div>
-                  <h3 className="text-3xl font-bold">Serenity Scrolls Servant</h3>
-                  <p className="text-lg text-muted-foreground max-w-lg mx-auto">
-                    Your AI-powered spiritual companion. Share your mood or scroll color,
-                    and receive Scripture snapshots, reflections, journal prompts, and one small step — all guided by faith.
-                  </p>
-                  <div className="grid sm:grid-cols-2 gap-4 max-w-md mx-auto text-left">
-                    <div className="flex items-start gap-2">
-                      <span className="text-purple-500 mt-1">✦</span>
-                      <span className="text-sm">Mood-based Scripture matching</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-purple-500 mt-1">✦</span>
-                      <span className="text-sm">Personalized reflections</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-purple-500 mt-1">✦</span>
-                      <span className="text-sm">Guided journal prompts</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-purple-500 mt-1">✦</span>
-                      <span className="text-sm">30-day free trial with purchase</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-                    <Link
-                      href="/servant-landing"
-                      className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-amber-500 text-white font-semibold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                    >
-                      <Sparkles className="w-4 h-4" />
-                      Learn More
-                    </Link>
-                    <Link
-                      href="/unlock"
-                      className="inline-flex items-center justify-center gap-2 border-2 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 font-semibold py-3 px-8 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
-                    >
-                      Already purchased? Unlock Access
-                    </Link>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Coming soon on Amazon as a digital product • Free 30-day trial included with every Scrolls purchase
-                  </p>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -431,7 +536,7 @@ const Index = () => {
               <Link href="/shop" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
                 Shop Christian Scripture gifts
               </Link>
-              <Link href="/presale-journal" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
+              <Link href="/reflection-journal" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
                 Christian Reflection Journal
               </Link>
               <Link href="/servant-landing" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">

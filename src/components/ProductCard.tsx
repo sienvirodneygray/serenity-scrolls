@@ -2,23 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
-import { trackAmazonClick } from "@/lib/trackAmazonClick";
-
 interface ProductCardProps {
   title: string;
   description: string;
   features: string[];
   image: string;
   price?: number;
-  amazonUrl?: string;
   badge?: string;
   onAddToCart?: () => void;
 }
 
-export const ProductCard = ({ title, description, features, image, price, amazonUrl, badge, onAddToCart }: ProductCardProps) => {
-  const handleAmazonClick = () => {
-    trackAmazonClick(title, 'product_card');
-  };
+export const ProductCard = ({ title, description, features, image, price, badge, onAddToCart }: ProductCardProps) => {
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-[var(--shadow-card)] hover:-translate-y-1">
@@ -50,19 +44,21 @@ export const ProductCard = ({ title, description, features, image, price, amazon
           ))}
         </ul>
       </CardContent>
-      <CardFooter className="flex-col gap-2">
+      <CardFooter className="flex-col gap-3">
         {price !== undefined && (
-          <div className="w-full flex items-baseline gap-2">
+          <div className="w-full flex items-baseline gap-2 mb-1">
             <span className="text-3xl font-bold text-foreground">${price.toFixed(2)}</span>
-            <span className="text-sm text-muted-foreground">USD</span>
+            <span className="text-sm text-muted-foreground font-semibold">USD</span>
           </div>
         )}
-        <Button
-          onClick={onAddToCart}
-          className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-        >
-          Add to Cart
-        </Button>
+        <div className="w-full">
+          <Button
+            onClick={onAddToCart}
+            className="w-full h-12 text-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+          >
+            Add to Cart
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

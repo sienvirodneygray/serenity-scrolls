@@ -5,7 +5,7 @@ const staticRoutes = [
   "",
   "/shop",
   "/blog",
-  "/presale-journal",
+  "/reflection-journal",
   "/servant-landing",
   "/bible-verse-scrolls-for-anxiety-and-peace",
   "/learn/courage-covenant",

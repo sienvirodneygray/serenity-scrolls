@@ -147,8 +147,8 @@ export const serenityProductsJsonLd = [
       "@type": "Offer",
       price: "39.99",
       priceCurrency: "USD",
-      availability: "https://schema.org/PreOrder",
-      url: canonicalUrl("/presale-journal"),
+      availability: "https://schema.org/InStock",
+      url: canonicalUrl("/reflection-journal"),
     },
   },
 ];

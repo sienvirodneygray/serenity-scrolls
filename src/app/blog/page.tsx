@@ -34,7 +34,7 @@ const categoryCards = [
     title: "Christian Journaling",
     description:
       "Explore guided reflection ideas that turn a Bible verse into gratitude, confession, hope, and growth.",
-    href: "/presale-journal",
+    href: "/reflection-journal",
     icon: PenLine,
   },
   {
@@ -90,7 +90,7 @@ export default async function BlogPage() {
                 Some visitors come here feeling anxious and need a verse to steady their breathing. Others are preparing a small group lesson, searching for Christian gifts for encouragement, or trying to begin a prayer journal for the first time. However you arrived, the aim is simple: help you connect emotions with Scripture in a way that feels peaceful, honest, and faithful.
               </p>
               <p>
-                You will find articles on Bible verses by emotion, daily Scripture reflection, prayer and journaling rhythms, meaningful Christian gifting, and how tools like the <Link href="/servant-landing" className="text-primary font-medium hover:underline">AI Scripture companion</Link> can support reflection while keeping Scripture, prayer, and wise human care in their proper place. For a practical starting point, explore our <Link href="/bible-verse-scrolls-for-anxiety-and-peace" className="text-primary font-medium hover:underline">Bible verse scrolls for anxiety and peace</Link>, browse the <Link href="/shop" className="text-primary font-medium hover:underline">shop for Christian Scripture gifts</Link>, or learn how the <Link href="/presale-journal" className="text-primary font-medium hover:underline">Christian Reflection Journal</Link> helps you go deeper with each verse.
+                You will find articles on Bible verses by emotion, daily Scripture reflection, prayer and journaling rhythms, meaningful Christian gifting, and how tools like the <Link href="/servant-landing" className="text-primary font-medium hover:underline">AI Scripture companion</Link> can support reflection while keeping Scripture, prayer, and wise human care in their proper place. For a practical starting point, explore our <Link href="/bible-verse-scrolls-for-anxiety-and-peace" className="text-primary font-medium hover:underline">Bible verse scrolls for anxiety and peace</Link>, browse the <Link href="/shop" className="text-primary font-medium hover:underline">shop for Christian Scripture gifts</Link>, or learn how the <Link href="/reflection-journal" className="text-primary font-medium hover:underline">Christian Reflection Journal</Link> helps you go deeper with each verse.
               </p>
             </div>
             <div className="rounded-xl border border-primary/15 bg-primary/5 p-6">
@@ -102,8 +102,8 @@ export default async function BlogPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/presale-journal" className="font-medium text-foreground hover:text-primary transition-colors">
-                    Pre-order the Christian Reflection Journal
+                  <Link href="/reflection-journal" className="font-medium text-foreground hover:text-primary transition-colors">
+                    Order the Christian Reflection Journal
                   </Link>
                 </li>
                 <li>

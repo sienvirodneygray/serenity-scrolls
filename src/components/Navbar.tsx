@@ -66,16 +66,19 @@ export const Navbar = () => {
 
         <div className="flex items-center gap-4">
           <Button variant="ghost" asChild>
-            <Link href="/contact">Contact</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/learn/courage-covenant">Courses</Link>
+            <Link href="/reflection-journal">Journal</Link>
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/servant-landing">
               <Sparkles className="mr-2 h-4 w-4" />
               AI Servant
             </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/learn/courage-covenant">Courses</Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/contact">Contact</Link>
           </Button>
 
           <Button variant="ghost" className="relative px-2" asChild>

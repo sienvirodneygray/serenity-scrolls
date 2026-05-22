@@ -6,13 +6,12 @@ import { breadcrumbJsonLd, buildSeoMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildSeoMetadata({
   title: "Christian Reflection Journal | Prayer, Scripture & Emotional Peace",
   description:
-    "Pre-order the Serenity Scrolls Reflection Journal for guided prayer, Scripture reflection, gratitude, emotional healing, and daily Christian journaling.",
-  path: "/presale-journal",
+    "Order the Serenity Scrolls Reflection Journal for guided prayer, Scripture reflection, gratitude, emotional healing, and daily Christian journaling.",
+  path: "/reflection-journal",
   image: "/journal-product.jpg",
-  noindex: true,
 });
 
-export default function PresaleJournalLayout({
+export default function ReflectionJournalLayout({
   children,
 }: {
   children: ReactNode;
@@ -22,7 +21,7 @@ export default function PresaleJournalLayout({
       <StructuredData
         data={breadcrumbJsonLd([
           { name: "Home", path: "/" },
-          { name: "Christian Reflection Journal", path: "/presale-journal" },
+          { name: "Christian Reflection Journal", path: "/reflection-journal" },
         ])}
       />
       {children}
