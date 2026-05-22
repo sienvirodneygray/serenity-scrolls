@@ -146,7 +146,7 @@ const Unlock = () => {
 
             toast({
                 title: "Access Granted! 🎉",
-                description: "Your 30-day free trial has started.",
+                description: `Your ${data.daysRemaining || 30}-day free trial has started.`,
             });
         } catch (error) {
             console.error("Verification error:", error);
@@ -255,7 +255,7 @@ const Unlock = () => {
                             </div>
                             <CardTitle className="text-green-600">Access Granted!</CardTitle>
                             <CardDescription>
-                                Your 30-day free trial has started. You have <strong>{daysRemaining} days</strong> of access to Servant 1.0.
+                                Your free trial has started! You have <strong>{daysRemaining} days</strong> of access to Servant 1.0.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -364,11 +364,11 @@ const Unlock = () => {
                                             />
                                         </div>
                                         <div>
-                                            <Label htmlFor="orderId">Order ID</Label>
+                                            <Label htmlFor="orderId">Order ID or Promo Code</Label>
                                             <Input
                                                 id="orderId"
                                                 type="text"
-                                                placeholder="SS-20260416-1234 or 123-4567890-1234567"
+                                                placeholder="SS-20260416-1234, 123-4567890-1234567, or SERVANT2026"
                                                 value={orderId}
                                                 onChange={(e) => setOrderId(e.target.value)}
                                                 required
@@ -377,7 +377,7 @@ const Unlock = () => {
                                             />
                                             <p className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
                                                 <HelpCircle className="h-3 w-3 mt-0.5 shrink-0" />
-                                                Found in your order confirmation email (SS-... for website orders, 123-... for Amazon)
+                                                Enter your website Order ID, Amazon Order ID, or a special Promo Code.
                                             </p>
                                         </div>
 

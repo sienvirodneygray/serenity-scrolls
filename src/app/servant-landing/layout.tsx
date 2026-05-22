@@ -8,6 +8,7 @@ export const metadata: Metadata = buildSeoMetadata({
   description:
     "Meet the Serenity Scrolls AI Servant, a Scripture-based companion for faith-centered encouragement, reflection prompts, and emotional support rooted in God's Word.",
   path: "/servant-landing",
+  image: "/servant-product.jpg",
 });
 
 export default function ServantLandingLayout({

@@ -213,30 +213,12 @@ serve(async (req) => {
         }
 
         const cleanOrderId = orderId.trim();
+        const promoCodes = ["SERVANT2026"];
+        const isPromoCode = promoCodes.includes(cleanOrderId.toUpperCase());
+        const finalOrderId = isPromoCode ? `PROMO-${cleanOrderId.toUpperCase()}` : cleanOrderId;
+
         const isInternalOrder = cleanOrderId.startsWith("SS-");
         const isMCFOrder = cleanOrderId.startsWith("CONSUMER-");
-
-        if (!isInternalOrder && !isMCFOrder && !AMAZON_ORDER_PATTERN.test(cleanOrderId)) {
-            return new Response(
-                JSON.stringify({
-                    error: "Invalid Order ID format. Order IDs look like: 123-4567890-1234567 (Amazon standard), CONSUMER-... (MCF), or SS-... (Website)",
-                    hint: "You can find your Order ID in your order confirmation email."
-                }),
-                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
-
-        // Explicitly block standard test/dummy Order IDs from being used in production
-        // Amazon treats ANY order starting with '123-' as a sandbox ID and returns dummy 200 OK payloads!
-        if (cleanOrderId.startsWith("123-") || cleanOrderId.startsWith("CONSUMER-[TEST]")) {
-            return new Response(
-                JSON.stringify({
-                    error: "Test order IDs cannot be used to unlock access.",
-                    hint: "Please use your real Amazon Order ID found in your confirmation email."
-                }),
-                { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-        }
 
         // Connect to Supabase
         const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -246,38 +228,64 @@ serve(async (req) => {
 
         let verificationMethod = "format-only";
 
-        if (isInternalOrder) {
-            // Verify internal order via database
-            const { data: order } = await supabase
-                .from("orders")
-                .select("id, status")
-                .eq("order_number", cleanOrderId)
-                .maybeSingle();
-
-            if (!order || (order.status !== "paid" && order.status !== "processing" && order.status !== "shipped" && order.status !== "delivered")) {
-                return new Response(
-                    JSON.stringify({
-                        error: "Order not found or payment not completed.",
-                        hint: "Please double-check your Order ID. If this issue persists, contact support."
-                    }),
-                    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-                );
-            }
-            verificationMethod = "website-order";
+        if (isPromoCode) {
+            verificationMethod = "promo-code";
         } else {
-            // ---- SP-API Real-Time Verification ----
-            const spVerification = await verifyOrderViaSPAPI(cleanOrderId, isMCFOrder);
-            if (!spVerification.verified) {
+            if (!isInternalOrder && !isMCFOrder && !AMAZON_ORDER_PATTERN.test(cleanOrderId)) {
                 return new Response(
                     JSON.stringify({
-                        error: spVerification.error || "Could not verify this Amazon Order ID.",
-                        hint: "Please double-check your Order ID. If this issue persists, contact support."
+                        error: "Invalid Order ID format. Order IDs look like: 123-4567890-1234567 (Amazon standard), CONSUMER-... (MCF), or SS-... (Website)",
+                        hint: "You can find your Order ID in your order confirmation email."
                     }),
                     { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
                 );
             }
-            if (spVerification.orderStatus) {
-                verificationMethod = "sp-api";
+
+            // Explicitly block standard test/dummy Order IDs from being used in production
+            // Amazon treats ANY order starting with '123-' as a sandbox ID and returns dummy 200 OK payloads!
+            if (cleanOrderId.startsWith("123-") || cleanOrderId.startsWith("CONSUMER-[TEST]")) {
+                return new Response(
+                    JSON.stringify({
+                        error: "Test order IDs cannot be used to unlock access.",
+                        hint: "Please use your real Amazon Order ID found in your confirmation email."
+                    }),
+                    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+
+            if (isInternalOrder) {
+                // Verify internal order via database
+                const { data: order } = await supabase
+                    .from("orders")
+                    .select("id, status")
+                    .eq("order_number", cleanOrderId)
+                    .maybeSingle();
+
+                if (!order || (order.status !== "paid" && order.status !== "processing" && order.status !== "shipped" && order.status !== "delivered")) {
+                    return new Response(
+                        JSON.stringify({
+                            error: "Order not found or payment not completed.",
+                            hint: "Please double-check your Order ID. If this issue persists, contact support."
+                        }),
+                        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                    );
+                }
+                verificationMethod = "website-order";
+            } else {
+                // ---- SP-API Real-Time Verification ----
+                const spVerification = await verifyOrderViaSPAPI(cleanOrderId, isMCFOrder);
+                if (!spVerification.verified) {
+                    return new Response(
+                        JSON.stringify({
+                            error: spVerification.error || "Could not verify this Amazon Order ID.",
+                            hint: "Please double-check your Order ID. If this issue persists, contact support."
+                        }),
+                        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                    );
+                }
+                if (spVerification.orderStatus) {
+                    verificationMethod = "sp-api";
+                }
             }
         }
 
@@ -285,7 +293,7 @@ serve(async (req) => {
         const { data: existingRequest } = await supabase
             .from("access_requests")
             .select("*")
-            .eq("order_id", cleanOrderId)
+            .eq("order_id", finalOrderId)
             .maybeSingle();
 
         if (existingRequest) {
@@ -316,7 +324,8 @@ serve(async (req) => {
 
         // Calculate access window
         const now = new Date();
-        const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+        const trialDays = isPromoCode ? 90 : 30;
+        const expiresAt = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000); // 30 or 90 days
 
         if (existingRequest) {
             // Update existing request (same order, different verification attempt)
@@ -337,7 +346,7 @@ serve(async (req) => {
                 .from("access_requests")
                 .insert({
                     email: email.toLowerCase(),
-                    order_id: cleanOrderId,
+                    order_id: finalOrderId,
                     status: "approved",
                     activated_at: now.toISOString(),
                     access_expires_at: expiresAt.toISOString(),
@@ -399,27 +408,36 @@ serve(async (req) => {
             const siteUrl = Deno.env.get("SITE_URL") || "https://serenityscrolls.faith";
             if (resendKey) {
                 const isNewUser = !existingUser;
-                const verifyLabel = verificationMethod === "sp-api" ? "✅ SP-API Verified" : "⚠️ Format-Only (unverified)";
+                const verifyLabel = verificationMethod === "sp-api" 
+                    ? "✅ SP-API Verified" 
+                    : verificationMethod === "promo-code"
+                    ? "✨ Promo Code Activated"
+                    : "⚠️ Format-Only (unverified)";
+                const verifyColor = verificationMethod === "sp-api" 
+                    ? "#16a34a" 
+                    : verificationMethod === "promo-code"
+                    ? "#7c3aed"
+                    : "#d97706";
                 const expiryStr = expiresAt.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
                 const html = `
                 <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;background:#fafaf9;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
-                  <div style="background:#14532d;padding:18px 24px;">
-                    <p style="margin:0;color:#bbf7d0;font-size:11px;letter-spacing:1px;text-transform:uppercase;">Serenity Scrolls · Admin Notification</p>
+                  <div style="background:${verificationMethod === "promo-code" ? "#5b21b6" : "#14532d"};padding:18px 24px;">
+                    <p style="margin:0;color:${verificationMethod === "promo-code" ? "#ddd6fe" : "#bbf7d0"};font-size:11px;letter-spacing:1px;text-transform:uppercase;">Serenity Scrolls · Admin Notification</p>
                     <h2 style="margin:4px 0 0;color:#fff;font-size:20px;">🎉 New Redemption</h2>
                   </div>
                   <div style="padding:24px;">
                     <table style="width:100%;border-collapse:collapse;font-size:14px;">
-                      <tr><td style="padding:8px 0;color:#6b7280;width:160px;">Customer Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#14532d;font-weight:600;">${email}</a></td></tr>
-                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Order ID</td><td style="padding:8px 0;font-family:monospace;color:#111827;font-weight:600;">${cleanOrderId}</td></tr>
-                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Verification</td><td style="padding:8px 0;font-weight:700;color:${verificationMethod === "sp-api" ? "#16a34a" : "#d97706"};">${verifyLabel}</td></tr>
+                      <tr><td style="padding:8px 0;color:#6b7280;width:160px;">Customer Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:${verificationMethod === "promo-code" ? "#7c3aed" : "#14532d"};font-weight:600;">${email}</a></td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Order ID</td><td style="padding:8px 0;font-family:monospace;color:#111827;font-weight:600;">${finalOrderId}</td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Verification</td><td style="padding:8px 0;font-weight:700;color:${verifyColor};">${verifyLabel}</td></tr>
                       <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">User Status</td><td style="padding:8px 0;color:#111827;">${isNewUser ? "🆕 New account created" : "🔄 Existing user — access renewed"}</td></tr>
                       <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Trial Expires</td><td style="padding:8px 0;color:#111827;">${expiryStr}</td></tr>
-                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Trial Length</td><td style="padding:8px 0;color:#16a34a;font-weight:700;">30 days</td></tr>
+                      <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Trial Length</td><td style="padding:8px 0;color:${verifyColor};font-weight:700;">${trialDays} days</td></tr>
                       <tr style="border-top:1px solid #f3f4f6;"><td style="padding:8px 0;color:#6b7280;">Redeemed At</td><td style="padding:8px 0;color:#6b7280;font-size:13px;">${now.toUTCString()}</td></tr>
                     </table>
                   </div>
-                  <div style="background:#f0fdf4;border-top:1px solid #bbf7d0;padding:12px 24px;">
-                    <p style="margin:0;font-size:12px;color:#16a34a;">✓ Trial access activated · 30-day window started</p>
+                  <div style="background:${verificationMethod === "promo-code" ? "#f5f3ff" : "#f0fdf4"};border-top:1px solid ${verificationMethod === "promo-code" ? "#ddd6fe" : "#bbf7d0"};padding:12px 24px;">
+                    <p style="margin:0;font-size:12px;color:${verifyColor};">✓ ${verificationMethod === "promo-code" ? "Promo trial access activated · 90-day window" : "Trial access activated · 30-day window"} started</p>
                   </div>
                 </div>`;
 
@@ -429,7 +447,13 @@ serve(async (req) => {
                     body: JSON.stringify({
                         from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
                         to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com", "mccmetro@comcast.net"],
-                        subject: `🎉 [NEW REDEEM] ${email} · ${verificationMethod === "sp-api" ? "SP-API ✅" : "Format-Only ⚠️"}`,
+                        subject: `🎉 [NEW REDEEM] ${email} · ${
+                            verificationMethod === "sp-api" 
+                                ? "SP-API ✅" 
+                                : verificationMethod === "promo-code"
+                                ? "Promo Code ✨"
+                                : "Format-Only ⚠️"
+                        }`,
                         html,
                     }),
                 });
@@ -442,9 +466,9 @@ serve(async (req) => {
         return new Response(
             JSON.stringify({
                 success: true,
-                message: "Access granted! Your 30-day free trial has started.",
+                message: `Access granted! Your ${trialDays}-day free trial has started.`,
                 accessExpiresAt: expiresAt.toISOString(),
-                daysRemaining: 30,
+                daysRemaining: trialDays,
                 email: email.toLowerCase(),
                 verificationMethod: verificationMethod,
                 // Include magic link token for auto-login

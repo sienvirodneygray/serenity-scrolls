@@ -67,6 +67,7 @@ function TrialBadge({ expiresAt, subscriptionStatus }: { expiresAt: string | nul
 
 function VerifiedBadge({ method }: { method: string | null }) {
   if (method === "sp-api") return <Badge className="bg-green-600 text-white text-[10px] gap-1"><ShieldCheck className="w-2.5 h-2.5" />SP-API</Badge>;
+  if (method === "promo-code") return <Badge className="bg-purple-600 text-white text-[10px] gap-1"><Sparkles className="w-2.5 h-2.5" />Promo Code</Badge>;
   if (method === "manual") return <Badge variant="secondary" className="text-[10px]">Manual</Badge>;
   return <Badge variant="outline" className="text-[10px]">Format-only</Badge>;
 }

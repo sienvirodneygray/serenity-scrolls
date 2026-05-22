@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { RefreshCw, ShieldCheck, ShieldAlert, Trash2, Users, Clock, CheckCircle } from "lucide-react";
+import { RefreshCw, ShieldCheck, ShieldAlert, Trash2, Users, Clock, CheckCircle, Sparkles } from "lucide-react";
 
 interface Redemption {
   id: string;
@@ -19,6 +19,7 @@ interface Redemption {
   subscription_status?: string | null;
   offer_7day_sent_at?: string | null;
   access_granted_at?: string | null;
+  created_at?: string;
 }
 
 function daysUntil(dateStr: string | null | undefined): number | null {
@@ -29,6 +30,8 @@ function daysUntil(dateStr: string | null | undefined): number | null {
 function VerificationBadge({ method }: { method: string | null }) {
   if (method === "sp-api")
     return <Badge className="bg-green-600 text-white gap-1"><ShieldCheck className="w-3 h-3" /> SP-API</Badge>;
+  if (method === "promo-code")
+    return <Badge className="bg-purple-600 hover:bg-purple-700 text-white gap-1"><Sparkles className="w-3 h-3" /> Promo Code</Badge>;
   if (method === "format-only")
     return <Badge variant="secondary" className="gap-1"><ShieldAlert className="w-3 h-3" /> Format Only</Badge>;
   return <Badge variant="outline">Unknown</Badge>;
@@ -96,6 +99,7 @@ export function AccessRequestsManagement() {
 
   const real = redemptions.filter(r => r.verification_method === "sp-api");
   const manual = redemptions.filter(r => r.verification_method === "manual");
+  const promos = redemptions.filter(r => r.verification_method === "promo-code");
   const tests = redemptions.filter(r => r.verification_method === "format-only");
 
   if (isLoading) {
@@ -122,7 +126,7 @@ export function AccessRequestsManagement() {
       {/* Summary Stats */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-card border rounded-xl p-4 text-center">
-          <p className="text-3xl font-bold text-green-600">{real.length + manual.length}</p>
+          <p className="text-3xl font-bold text-green-600">{real.length + manual.length + promos.length}</p>
           <p className="text-xs text-muted-foreground mt-1">Active Users</p>
         </div>
         <div className="bg-card border rounded-xl p-4 text-center">
@@ -139,12 +143,12 @@ export function AccessRequestsManagement() {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <ShieldCheck className="w-4 h-4 text-green-600" /> Active Users ({real.length + manual.length})
+            <ShieldCheck className="w-4 h-4 text-green-600" /> Active Users ({real.length + manual.length + promos.length})
           </CardTitle>
           <CardDescription>All users with active Servant access</CardDescription>
         </CardHeader>
         <CardContent>
-          {(real.length + manual.length) === 0 ? (
+          {(real.length + manual.length + promos.length) === 0 ? (
             <p className="text-muted-foreground text-center py-8 text-sm">No active users yet</p>
           ) : (
             <div className="overflow-x-auto">
@@ -161,7 +165,7 @@ export function AccessRequestsManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...real, ...manual].map(r => (
+                  {[...real, ...manual, ...promos].map(r => (
                     <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                         <td className="py-3 px-3">
                         <p className="font-medium">{r.email}</p>
@@ -218,7 +222,7 @@ export function AccessRequestsManagement() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
+                    <span className="text-xs text-muted-foreground">{r.created_at ? new Date(r.created_at).toLocaleDateString() : "—"}</span>
                     <Button
                       size="sm" variant="ghost"
                       className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"

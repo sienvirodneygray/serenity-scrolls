@@ -53,13 +53,9 @@ const ServantTestFlow = () => {
         setUnlockError("");
         setUnlockHint("");
 
-        const pattern = /^\d{3}-\d{7}-\d{7}$/;
-        if (!pattern.test(orderId.trim())) {
-            setUnlockStatus("error");
-            setUnlockError("Invalid Order ID format. Amazon Order IDs look like: 123-4567890-1234567");
-            setUnlockHint("You can find your Order ID in your Amazon order confirmation email.");
-            return;
-        }
+        const promoCodes = ["SERVANT2026"];
+        const cleanOrderId = orderId.trim();
+        const isPromoCode = promoCodes.includes(cleanOrderId.toUpperCase());
 
         if (!email.trim()) {
             setUnlockStatus("error");
@@ -67,8 +63,26 @@ const ServantTestFlow = () => {
             return;
         }
 
+        if (isPromoCode) {
+            // Simulate verification delay
+            await new Promise(r => setTimeout(r, 1800));
+            setDaysRemaining(90);
+            setUnlockStatus("success");
+            toast.success("Access granted! Your 90-day free trial has started.");
+            return;
+        }
+
+        const pattern = /^\d{3}-\d{7}-\d{7}$/;
+        if (!pattern.test(cleanOrderId)) {
+            setUnlockStatus("error");
+            setUnlockError("Invalid Order ID format. Amazon Order IDs look like: 123-4567890-1234567 or enter a valid Promo Code.");
+            setUnlockHint("You can find your Order ID in your Amazon order confirmation email.");
+            return;
+        }
+
         // Simulate verification delay
         await new Promise(r => setTimeout(r, 1800));
+        setDaysRemaining(30);
         setUnlockStatus("success");
         toast.success("Access granted! Your 30-day free trial has started.");
     };
@@ -196,7 +210,7 @@ const ServantTestFlow = () => {
                             </div>
                             <h1 className="text-2xl font-bold mb-1">Unlock Your AI Servant</h1>
                             <p className="text-sm text-muted-foreground">
-                                Enter your Amazon Order ID to start your free 30-day access
+                                Enter your Amazon Order ID or Promo Code to start your free trial
                             </p>
                         </div>
 
@@ -208,7 +222,7 @@ const ServantTestFlow = () => {
                                     </div>
                                     <CardTitle className="text-green-600">Access Granted!</CardTitle>
                                     <CardDescription>
-                                        Your 30-day free trial has started. You have <strong>30 days</strong> of access to Servant 1.0.
+                                        Your {daysRemaining}-day free trial has started. You have <strong>{daysRemaining} days</strong> of access to Servant 1.0.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -263,11 +277,11 @@ const ServantTestFlow = () => {
                                             <p className="text-xs text-muted-foreground mt-1">The email you used to purchase</p>
                                         </div>
                                         <div>
-                                            <Label htmlFor="test-order">Amazon Order ID</Label>
+                                            <Label htmlFor="test-order">Amazon Order ID or Promo Code</Label>
                                             <Input
                                                 id="test-order"
                                                 type="text"
-                                                placeholder="e.g., 123-4567890-1234567"
+                                                placeholder="e.g., 123-4567890-1234567 or SERVANT2026"
                                                 value={orderId}
                                                 onChange={(e) => setOrderId(e.target.value)}
                                                 required
@@ -276,7 +290,7 @@ const ServantTestFlow = () => {
                                             />
                                             <p className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
                                                 <HelpCircle className="h-3 w-3 mt-0.5 shrink-0" />
-                                                Found in your Amazon order confirmation email or under Your Orders
+                                                Found in your Amazon order confirmation email, or enter a special Promo Code.
                                             </p>
                                         </div>
 

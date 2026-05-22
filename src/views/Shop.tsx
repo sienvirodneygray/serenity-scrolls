@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import tubeProduct from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal-product.jpg";
+import servantProduct from "@/assets/servant-product.jpg";
 import logo from "@/assets/logo.png";
 import { AMAZON_PRODUCTS } from "@/lib/amazonAttribution";
 
@@ -49,8 +50,8 @@ const fallbackProducts: Product[] = [
     description:
       "A Scripture-based reflection companion for Bible verse guidance, prayer prompts, and faith-centered encouragement rooted in God's Word.",
     price: 29.99,
-    image_url: logo.src,
-    image_alt: "AI Servant Scripture-based reflection companion preview",
+    image_url: servantProduct.src,
+    image_alt: "AI Servant Scripture companion and physical Serenity Scrolls Tube",
     stock_quantity: 1,
     is_available: true,
     amazon_sku: AMAZON_PRODUCTS.servant.sku,

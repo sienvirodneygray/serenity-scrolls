@@ -1,3 +1,7 @@
 "use client";
-import ServantTestFlow from "@/views/ServantTestFlow";
-export default ServantTestFlow;
+import { notFound } from "next/navigation";
+
+export default function Page() {
+  notFound();
+  return null;
+}

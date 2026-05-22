@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import tubeProduct from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal-product.jpg";
+import servantProduct from "@/assets/servant-product.jpg";
 import journal1 from "@/assets/journal-1.jpg";
 import journal2 from "@/assets/journal-2.jpg";
 import journal4 from "@/assets/journal-4.jpg";
@@ -177,10 +178,16 @@ const Index = () => {
 
             {/* 2. AI Servant */}
             <div className="rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group">
-              <div className="overflow-hidden h-56 relative bg-gradient-to-br from-purple-500 to-amber-500 flex items-center justify-center">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm transition-transform duration-500 group-hover:scale-110">
-                  <Sparkles className="w-8 h-8 text-white animate-pulse" />
-                </div>
+              <div className="overflow-hidden h-56 relative">
+                <img
+                  src={servantProduct.src}
+                  alt="AI Servant Scripture companion and physical Serenity Scrolls Tube"
+                  loading="lazy"
+                  className="h-full w-full object-cover bg-muted transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                  Interactive AI
+                </span>
               </div>
               <div className="p-6 flex flex-col flex-1">
                 <h3 className="text-2xl font-bold mb-3">AI Servant</h3>
