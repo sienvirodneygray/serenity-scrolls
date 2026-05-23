@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, PenLine, ShoppingCart, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import tubeProduct from "@/assets/tube-product-real.png";
-import journalProduct from "@/assets/journal-product.jpg";
-import servantProduct from "@/assets/servant-product.jpg";
+import tubeProduct from "@/assets/tube.jpeg";
+import journalProduct from "@/assets/journal.png";
+import servantProduct from "@/assets/servant.jpeg";
 import logo from "@/assets/logo.png";
 import { AMAZON_PRODUCTS } from "@/lib/amazonAttribution";
 

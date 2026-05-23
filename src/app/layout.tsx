@@ -31,9 +31,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <head>
         <StructuredData data={organizationJsonLd} />
         <StructuredData data={webSiteJsonLd} />
+      </head>
+      <body>
         <Providers>
           {children}
         </Providers>

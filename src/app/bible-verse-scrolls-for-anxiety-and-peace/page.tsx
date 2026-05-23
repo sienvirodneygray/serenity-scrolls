@@ -20,8 +20,8 @@ import {
   faqPageJsonLd,
   serenityProductsJsonLd,
 } from "@/lib/seo";
-import tubeProduct from "@/assets/tube-product-real.png";
-import journalProduct from "@/assets/journal-product.jpg";
+import tubeProduct from "@/assets/tube.jpeg";
+import journalProduct from "@/assets/journal.png";
 import logo from "@/assets/logo.png";
 
 const emotions = [

@@ -112,18 +112,18 @@ const ServantLanding = () => {
             <Navbar />
 
             {/* ===== HERO SECTION ===== */}
-            <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+            <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden py-24 md:py-32">
                 <div className="absolute inset-0 bg-[var(--gradient-hero)]" />
                 {/* Subtle animated gradient orbs */}
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-[hsl(var(--anxious)/0.08)] blur-3xl animate-pulse" />
                 <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-[hsl(var(--grateful)/0.08)] blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
 
-                <div className="relative z-10 container mx-auto px-4 py-20 text-center">
-                    <div className="max-w-4xl mx-auto space-y-8">
+                <div className="relative z-10 container mx-auto px-4 text-center">
+                    <div className="max-w-4xl mx-auto space-y-6">
                         <div className="flex justify-center">
                             <div className="relative">
                                 <div className="absolute inset-0 bg-[hsl(var(--primary)/0.2)] blur-2xl rounded-full scale-150" />
-                                <img src={logo.src} alt="Serenity Scrolls" className="relative h-32 w-auto drop-shadow-lg" />
+                                <img src={logo.src} alt="Serenity Scrolls" className="relative h-20 md:h-24 w-auto drop-shadow-lg" />
                             </div>
                         </div>
 

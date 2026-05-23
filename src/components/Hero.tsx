@@ -10,7 +10,7 @@ export const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden py-24 md:py-32">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-[var(--gradient-hero)]" />
       
@@ -26,16 +26,16 @@ export const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 py-20 text-center">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <div className="relative z-10 container mx-auto px-4 text-center">
+        <div className="max-w-4xl mx-auto space-y-6">
           {/* Logo */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center mb-6">
             <img
               src={logo.src}
               alt="Serenity Scrolls"
               width={400}
               height={176}
-              className="h-44 w-auto drop-shadow-lg"
+              className="h-28 md:h-32 w-auto drop-shadow-lg"
             />
           </div>
 
@@ -78,7 +78,7 @@ export const Hero = () => {
           </div>
 
           {/* CTA */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             <Button size="lg" className="h-14 px-8 text-lg" asChild>
               <Link href="/shop">Shop Serenity Scrolls</Link>
             </Button>
@@ -98,7 +98,7 @@ export const Hero = () => {
             </Button>
           </div>
 
-          <p className="text-sm text-muted-foreground pt-8">
+          <p className="text-sm text-muted-foreground pt-6">
             Created to help real emotions meet the steady comfort of God's Word.
           </p>
         </div>

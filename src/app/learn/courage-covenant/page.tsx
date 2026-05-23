@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { toast } from "sonner";
+import { Navbar } from "@/components/Navbar";
 
 const MODULES = [
   { num: 1, title: "What Actually Happened?", desc: "Distinguish conflict, teasing, bullying, and danger with clear categories.", badge: "Foundation", color: "#10B981", free: true },
@@ -135,29 +136,15 @@ function CourageCovenantContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-['Vilonti']">
-
+    <div className="min-h-screen bg-background text-foreground">
       {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 border-b border-border bg-background/90 backdrop-blur-md">
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Serenity Scrolls" className="h-8 w-auto" />
-          <span className="font-bold text-foreground text-sm">Serenity Scrolls</span>
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/servant" className="text-sm text-muted-foreground hover:text-foreground transition-colors">AI Servant</Link>
-          <button
-            onClick={() => handleEnroll(TIERS[1])}
-            className="px-4 py-2 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-          >
-            Enroll Now
-          </button>
-        </div>
-      </nav>
+      <Navbar />
 
-      {/* HERO */}
-      <section className="pt-32 pb-20 px-6 text-center relative overflow-hidden">
+      <main className="font-['Vilonti']">
+        {/* HERO */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden pt-28 pb-20 px-6 text-center">
         <div className="absolute inset-0 pointer-events-none bg-[var(--gradient-hero)] opacity-20" />
-        <div className="relative max-w-4xl mx-auto">
+        <div className="relative max-w-4xl mx-auto w-full">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 border border-primary/20 bg-primary/10 text-primary">
             ✝ Faith-Based · 8 Modules · 32 Lessons
           </div>
@@ -370,6 +357,7 @@ function CourageCovenantContent() {
         <p className="mb-2">© {new Date().getFullYear()} Serenity Scrolls · <Link href="/privacy-policy" className="hover:text-foreground">Privacy</Link> · <Link href="/terms-of-service" className="hover:text-foreground">Terms</Link></p>
         <p>Courage Covenant™ is a devotional and educational resource. It is not therapy, legal advice, or crisis intervention. Always involve appropriate authorities when safety is at risk.</p>
       </footer>
+      </main>
     </div>
   );
 }

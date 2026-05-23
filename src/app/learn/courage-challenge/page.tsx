@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Navbar } from "@/components/Navbar";
 
 const DAYS = [
   { day: 1, title: "Name What Happened", desc: "Distinguish conflict from bullying. Give it the right category." },
@@ -39,19 +40,15 @@ export default function CourageChallengePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-['Vilonti']">
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 border-b border-border bg-background/90 backdrop-blur-md">
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Serenity Scrolls" className="h-8 w-auto" />
-          <span className="font-bold text-foreground text-sm">Serenity Scrolls</span>
-        </Link>
-        <Link href="/learn/courage-covenant" className="text-sm text-muted-foreground hover:text-foreground transition-colors">See Full Course →</Link>
-      </nav>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* NAV */}
+      <Navbar />
 
-      {/* HERO */}
-      <section className="pt-32 pb-16 px-6 text-center relative overflow-hidden">
+      <main className="font-['Vilonti']">
+        {/* HERO */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-x-hidden pt-28 pb-20 px-6 text-center">
         <div className="absolute inset-0 pointer-events-none bg-[var(--gradient-hero)] opacity-20" />
-        <div className="relative max-w-3xl mx-auto">
+        <div className="relative max-w-3xl mx-auto w-full">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 border border-green-500/40 bg-green-500/10 text-green-600 dark:text-green-400">
             ✓ Free · No credit card · Instant access
           </div>
@@ -145,6 +142,7 @@ export default function CourageChallengePage() {
         <p>© {new Date().getFullYear()} Serenity Scrolls · <Link href="/privacy-policy" className="hover:text-foreground">Privacy</Link></p>
         <p className="mt-1">This challenge is a devotional resource. It is not therapy, legal advice, or crisis intervention.</p>
       </footer>
+      </main>
     </div>
   );
 }
