@@ -22,7 +22,9 @@ export const ProductCard = ({ title, description, features, image, price, badge,
           alt={title}
           width={800}
           height={512}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+          className={`w-full h-full transition-transform duration-300 hover:scale-105 ${
+            image.includes('.png') ? 'object-contain p-4' : 'object-cover'
+          }`}
         />
         {badge && (
           <Badge className="absolute top-4 right-4 bg-gradient-to-r from-primary to-primary-glow text-white">

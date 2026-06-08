@@ -15,8 +15,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import tubeProduct from "@/assets/tube.jpeg";
+import tubeProductReal from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal.png";
+import journalProductReal from "@/assets/journal-product.jpg";
 import servantProduct from "@/assets/servant.jpeg";
+import servantProductReal from "@/assets/servant-product.jpg";
 import journal1 from "@/assets/journal-1.jpg";
 import journal2 from "@/assets/journal-2.jpg";
 import journal4 from "@/assets/journal-4.jpg";
@@ -155,7 +158,7 @@ const Index = () => {
             <div className="rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group">
               <div className="overflow-hidden h-56 relative">
                 <img
-                  src={journalProduct.src}
+                  src={journalProductReal.src}
                   alt="Christian Reflection Journal for prayer and Scripture"
                   loading="lazy"
                   className="h-full w-full object-cover bg-muted transition-transform duration-500 group-hover:scale-105"
@@ -180,7 +183,7 @@ const Index = () => {
             <div className="rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group">
               <div className="overflow-hidden h-56 relative">
                 <img
-                  src={servantProduct.src}
+                  src={servantProductReal.src}
                   alt="AI Servant Scripture companion and physical Serenity Scrolls Tube"
                   loading="lazy"
                   className="h-full w-full object-cover bg-muted transition-transform duration-500 group-hover:scale-105"
@@ -205,10 +208,10 @@ const Index = () => {
             <div className="rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col group">
               <div className="overflow-hidden h-56 relative">
                 <img
-                  src={tubeProduct.src}
+                  src={tubeProductReal.src}
                   alt="Serenity Scrolls Bible verse scrolls in keepsake tube"
                   loading="lazy"
-                  className="h-full w-full object-cover bg-muted transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-contain p-4 bg-muted/30 transition-transform duration-500 group-hover:scale-105"
                 />
                 <span className="absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full shadow">
                   Bestseller
@@ -246,7 +249,7 @@ const Index = () => {
                 <ProductCard
                   title="Serenity Scrolls Reflection Journal"
                   description="Your companion for deep spiritual reflection and growth"
-                  image={journalProduct.src}
+                  image={journalProductReal.src}
                   price={39.99}
                   badge="New"
                   features={[
@@ -362,7 +365,7 @@ const Index = () => {
                 <ProductCard
                   title="Serenity Scrolls Tube"
                   description="96 color-coded Bible verse scrolls organized by emotion"
-                  image={tubeProduct.src}
+                  image={tubeProductReal.src}
                   price={24.99}
                   badge="Bestseller"
                   features={[

@@ -8,8 +8,11 @@ import { BookOpen, PenLine, ShoppingCart, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import tubeProduct from "@/assets/tube.jpeg";
+import tubeProductReal from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal.png";
+import journalProductReal from "@/assets/journal-product.jpg";
 import servantProduct from "@/assets/servant.jpeg";
+import servantProductReal from "@/assets/servant-product.jpg";
 import logo from "@/assets/logo.png";
 import { AMAZON_PRODUCTS } from "@/lib/amazonAttribution";
 
@@ -35,7 +38,7 @@ const fallbackProducts: Product[] = [
     description:
       "A guided Christian reflection journal for prayer, Scripture reflection, gratitude, emotional processing, and going deeper with each Serenity Scrolls verse.",
     price: 39.99,
-    image_url: journalProduct.src,
+    image_url: journalProductReal.src,
     image_alt: "Christian Reflection Journal for prayer and Scripture",
     stock_quantity: 1,
     is_available: true,
@@ -50,7 +53,7 @@ const fallbackProducts: Product[] = [
     description:
       "A Scripture-based reflection companion for Bible verse guidance, prayer prompts, and faith-centered encouragement rooted in God's Word.",
     price: 29.99,
-    image_url: servantProduct.src,
+    image_url: servantProductReal.src,
     image_alt: "AI Servant Scripture companion and physical Serenity Scrolls Tube",
     stock_quantity: 1,
     is_available: true,
@@ -65,7 +68,7 @@ const fallbackProducts: Product[] = [
     description:
       "96 color-coded Bible verse scrolls organized by emotion for anxiety, gratitude, sadness, joy, frustration, and troubled moments.",
     price: 24.99,
-    image_url: tubeProduct.src,
+    image_url: tubeProductReal.src,
     image_alt: "Serenity Scrolls Bible verse scrolls in keepsake tube",
     stock_quantity: 1,
     is_available: true,
@@ -120,7 +123,7 @@ const Shop = () => {
           name: product.name,
           description: product.description,
           price: Number(product.price),
-          image_url: product.image_url || fallback?.image_url || tubeProduct.src,
+          image_url: product.image_url || fallback?.image_url || tubeProductReal.src,
           image_alt: fallback?.image_alt || product.name,
           stock_quantity: stock,
           is_available: product.is_available,

@@ -21,7 +21,10 @@ import {
   serenityProductsJsonLd,
 } from "@/lib/seo";
 import tubeProduct from "@/assets/tube.jpeg";
+import tubeProductReal from "@/assets/tube-product-real.png";
 import journalProduct from "@/assets/journal.png";
+import journalProductReal from "@/assets/journal-product.jpg";
+import servantProductReal from "@/assets/servant-product.jpg";
 import logo from "@/assets/logo.png";
 
 const emotions = [
@@ -114,7 +117,7 @@ const offers = [
     includes: "Guided prompts for Scripture reflection, gratitude, prayer, and emotional processing.",
     href: "/reflection-journal",
     cta: "Order the Journal",
-    image: journalProduct.src,
+    image: journalProductReal.src,
     alt: "Christian Reflection Journal for prayer and Scripture",
   },
   {
@@ -123,7 +126,7 @@ const offers = [
     includes: "Personalized Bible verse guidance, reflection prompts, and emotional support rooted in Scripture.",
     href: "/servant-landing",
     cta: "Explore AI Servant",
-    image: logo.src,
+    image: servantProductReal.src,
     alt: "AI Servant Scripture-based reflection companion preview",
     disclaimer:
       "The AI Servant is a reflection companion, not a replacement for Scripture, prayer, pastoral care, counseling, medical care, or emergency help.",
@@ -134,7 +137,7 @@ const offers = [
     includes: "96 color-coded Bible verse scrolls organized by emotion.",
     href: "/shop",
     cta: "Shop Serenity Scrolls",
-    image: tubeProduct.src,
+    image: tubeProductReal.src,
     alt: "Serenity Scrolls Bible verse scrolls in keepsake tube",
   },
 ];
@@ -294,11 +297,11 @@ export default function BibleVerseScrollsForAnxietyAndPeacePage() {
                 <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-amber-200/50 via-white/60 to-purple-200/40 blur-2xl" />
                 <div className="relative overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-4 shadow-2xl">
                   <img
-                    src={tubeProduct.src}
+                    src={tubeProductReal.src}
                     alt="Color-coded Scripture scrolls for anxiety, gratitude, sadness, joy, frustration, and troubled moments"
                     width={900}
                     height={700}
-                    className="aspect-[4/3] w-full rounded-xl object-cover"
+                    className="aspect-[4/3] w-full rounded-xl object-contain p-2"
                   />
                   <div className="grid grid-cols-3 gap-2 pt-4">
                     {emotions.slice(0, 6).map((emotion) => (
@@ -375,12 +378,12 @@ export default function BibleVerseScrollsForAnxietyAndPeacePage() {
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <img
-                  src={tubeProduct.src}
+                  src={tubeProductReal.src}
                   alt="Serenity Scrolls Bible verse scrolls in keepsake tube"
                   width={600}
                   height={600}
                   loading="lazy"
-                  className="rounded-2xl border border-border bg-card object-cover aspect-square shadow-sm"
+                  className="rounded-2xl border border-border bg-card object-contain aspect-square p-6 shadow-sm"
                 />
                 <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex flex-col justify-center">
                   <BookOpen className="h-10 w-10 text-primary mb-4" />
