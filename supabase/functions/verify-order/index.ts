@@ -290,24 +290,20 @@ serve(async (req) => {
         }
 
         // Check if this Order ID has already been redeemed
-        const { data: existingRequest } = await supabase
+        // If it's a promo code, check if THIS specific email has redeemed it.
+        // Otherwise, check if ANYONE has redeemed it.
+        let requestQuery = supabase
             .from("access_requests")
             .select("*")
-            .eq("order_id", finalOrderId)
-            .maybeSingle();
+            .eq("order_id", finalOrderId);
+
+        if (isPromoCode) {
+            requestQuery = requestQuery.eq("email", email.toLowerCase());
+        }
+
+        const { data: existingRequest } = await requestQuery.maybeSingle();
 
         if (existingRequest) {
-            // Order ID already used
-            if (existingRequest.redemption_count >= (existingRequest.max_redemptions || 1)) {
-                return new Response(
-                    JSON.stringify({
-                        error: "This Order ID has already been redeemed.",
-                        hint: "Each order can only be used once. If you believe this is an error, please contact support."
-                    }),
-                    { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-                );
-            }
-
             // Same email checking back - return existing access
             if (existingRequest.email === email.toLowerCase() && existingRequest.status === "approved") {
                 return new Response(
@@ -318,6 +314,17 @@ serve(async (req) => {
                         email: existingRequest.email,
                     }),
                     { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+
+            // Order ID already used
+            if (existingRequest.redemption_count >= (existingRequest.max_redemptions || 1)) {
+                return new Response(
+                    JSON.stringify({
+                        error: "This Order ID has already been redeemed.",
+                        hint: "Each order can only be used once. If you believe this is an error, please contact support."
+                    }),
+                    { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
                 );
             }
         }
@@ -406,7 +413,7 @@ serve(async (req) => {
         try {
             const resendKey = Deno.env.get("RESEND_API_KEY");
             const siteUrl = Deno.env.get("SITE_URL") || "https://serenityscrolls.faith";
-            if (resendKey) {
+            if (resendKey && !email.toLowerCase().endsWith("@test.com")) {
                 const isNewUser = !existingUser;
                 const verifyLabel = verificationMethod === "sp-api" 
                     ? "✅ SP-API Verified" 
