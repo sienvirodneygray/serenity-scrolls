@@ -78,6 +78,9 @@ export const Navbar = () => {
             <Link href="/learn/courage-covenant">Courses</Link>
           </Button>
           <Button variant="ghost" asChild>
+            <Link href="/b2b">Partners</Link>
+          </Button>
+          <Button variant="ghost" asChild>
             <Link href="/contact">Contact</Link>
           </Button>
 

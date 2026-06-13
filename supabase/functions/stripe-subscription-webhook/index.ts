@@ -278,11 +278,12 @@ serve(async (req) => {
             // Dispatch Amazon MCF fulfillment for each FBA item
             for (const item of items) {
               if (item.amazon_sku) {
+                const mcfSku = item.amazon_sku === "78-SH1V-JG7I-BUNDLE" ? "78-SH1V-JG7I" : item.amazon_sku;
                 try {
                   const mcfResponse = await supabase.functions.invoke("create-mcf-order", {
                     body: {
                       orderId: order.id,
-                      sellerSku: item.amazon_sku,
+                      sellerSku: mcfSku,
                       quantity: item.quantity,
                       shippingSpeed: "Standard",
                       address: {
@@ -295,10 +296,104 @@ serve(async (req) => {
                       },
                     },
                   });
-                  console.log(`MCF dispatched for SKU ${item.amazon_sku}:`, mcfResponse);
+                  console.log(`MCF dispatched for SKU ${mcfSku}:`, mcfResponse);
                 } catch (mcfErr) {
-                  console.error(`MCF dispatch failed for ${item.amazon_sku}:`, mcfErr);
+                  console.error(`MCF dispatch failed for ${mcfSku}:`, mcfErr);
                 }
+              }
+            }
+
+            // Check if Courage Covenant Course + Reflection Journal Bundle is in the order
+            const isBundlePurchased = items.some(
+              (item: any) => item.amazon_sku === "78-SH1V-JG7I-BUNDLE"
+            );
+
+            if (isBundlePurchased && customerEmail) {
+              console.log(`Bundle purchase detected for email ${customerEmail}. Enrolling in Courage Covenant course and granting 90 days AI access.`);
+              try {
+                // Get the courage-covenant course ID from the courses table
+                const { data: courseData } = await supabase
+                  .from("courses")
+                  .select("id")
+                  .eq("slug", "courage-covenant")
+                  .maybeSingle();
+
+                if (courseData?.id) {
+                  // Find or create the user in auth.users
+                  let targetUserId = userId;
+
+                  if (!targetUserId) {
+                    const { data: usersData } = await supabase.auth.admin.listUsers();
+                    const existingUser = usersData?.users?.find(
+                      (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+                    );
+
+                    if (existingUser) {
+                      targetUserId = existingUser.id;
+                      console.log(`Matched existing user: ${targetUserId}`);
+                    } else {
+                      const tempPassword = `servant-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+                      const { data: newUser, error: signUpError } = await supabase.auth.admin.createUser({
+                        email: customerEmail.toLowerCase(),
+                        password: tempPassword,
+                        email_confirm: true,
+                      });
+
+                      if (signUpError) {
+                        console.error("Error auto-creating user for course enrollment:", signUpError);
+                      } else if (newUser?.user) {
+                        targetUserId = newUser.user.id;
+                        console.log(`Created new user for course enrollment: ${targetUserId}`);
+                      }
+                    }
+                  }
+
+                  if (targetUserId) {
+                    // 1. Enroll user in course via create-course-enrollment function
+                    try {
+                      const enrollmentRes = await supabase.functions.invoke("create-course-enrollment", {
+                        body: {
+                          courseId: courseData.id,
+                          userId: targetUserId,
+                          stripeSessionId: session.id,
+                          stripePaymentIntentId: session.payment_intent as string,
+                          amountPaidCents: 14700, // Bundle amount cents
+                          track: "parent",
+                        },
+                      });
+                      console.log(`Enrollment function result:`, enrollmentRes);
+                    } catch (enrollErr) {
+                      console.error(`Failed to invoke create-course-enrollment for bundle:`, enrollErr);
+                    }
+
+                    // 2. Grant 90-day AI Servant access (upsert profile)
+                    const now = new Date();
+                    const expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); // 90 days
+
+                    const { error: profileError } = await supabase
+                      .from("profiles")
+                      .upsert({
+                        id: targetUserId,
+                        email: customerEmail.toLowerCase(),
+                        has_access: true,
+                        access_granted_at: now.toISOString(),
+                        access_expires_at: expiresAt.toISOString(),
+                        subscription_status: "trial",
+                      });
+
+                    if (profileError) {
+                      console.error("Failed to update profile for 90-day AI access:", profileError);
+                    } else {
+                      console.log(`Successfully updated profile with 90-day access for user ${targetUserId}`);
+                    }
+                  } else {
+                    console.error("Could not determine or create a target user ID for course enrollment.");
+                  }
+                } else {
+                  console.error("Could not find course with slug 'courage-covenant' in database.");
+                }
+              } catch (bundleErr) {
+                console.error("Failed to process bundle course auto-enrollment:", bundleErr);
               }
             }
 

@@ -434,6 +434,33 @@ const Index = () => {
         </div>
       </section>
 
+      {/* B2B / Organization Hub CTA */}
+      <section className="py-20 bg-background border-b border-border/50">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="relative group overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/5 to-purple-500/5 p-8 md:p-12">
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-3xl blur opacity-30 group-hover:opacity-40 transition duration-1000" />
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="space-y-4 text-center md:text-left max-w-2xl">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20 uppercase tracking-wider">
+                  ✝ Church &amp; Organization Partnerships
+                </span>
+                <h3 className="text-3xl font-bold tracking-tight">Serenity Scrolls for Groups &amp; Communities</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Bring Scripture-based emotional encouragement, wholesale devotional kits, and bullying response frameworks to your church, school, or counselors.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto shrink-0 justify-center">
+                <Button className="w-full sm:w-auto bg-primary text-primary-foreground font-semibold py-3 px-8 rounded-lg shadow-md hover:shadow-xl transition-all hover:-translate-y-0.5" asChild>
+                  <Link href="/b2b">
+                    Partnership Hub <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Testimonials />
 
       <FeaturedBlogPosts />
@@ -542,7 +569,7 @@ const Index = () => {
                 Explore the core Serenity Scrolls resources for daily devotion, emotional encouragement, prayer journaling, and faith-based support.
               </p>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 text-sm font-medium">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-3 text-sm font-medium">
               <Link href="/shop" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
                 Shop Christian Scripture gifts
               </Link>
@@ -551,6 +578,9 @@ const Index = () => {
               </Link>
               <Link href="/servant-landing" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
                 AI Scripture companion
+              </Link>
+              <Link href="/b2b" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
+                Church &amp; Group Partnerships
               </Link>
               <Link href="/bible-verse-scrolls-for-anxiety-and-peace" className="rounded-lg border border-border bg-background px-4 py-3 hover:border-primary/40 hover:text-primary transition-colors">
                 Bible verse scrolls for anxiety and peace

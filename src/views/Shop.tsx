@@ -33,6 +33,21 @@ interface Product {
 
 const fallbackProducts: Product[] = [
   {
+    id: "e659e7f9-ec66-4c3f-88a6-94779934ed79",
+    name: "Courage Covenant™ Course + Reflection Journal Bundle",
+    description:
+      "Get the complete 8-module Courage Covenant™ digital course (enrollment code sent instantly) plus the physical Serenity Scrolls Guided Reflection Journal shipped directly to your door (includes 90-day AI Servant access).",
+    price: 147.00,
+    image_url: "/journal-product.jpg",
+    image_alt: "Courage Covenant Course + Guided Reflection Journal Bundle",
+    stock_quantity: 887,
+    is_available: true,
+    amazon_sku: "78-SH1V-JG7I-BUNDLE",
+    availability_label: "Available",
+    fallback_url: "/shop",
+    cta_label: "Order the Bundle",
+  },
+  {
     id: "",
     name: "Serenity Scrolls Reflection Journal",
     description:
@@ -140,13 +155,14 @@ const Shop = () => {
 
       const getProductPriority = (product: Product) => {
         const name = product.name.toLowerCase();
-        if (name.includes("journal") || name.includes("reflection")) return 1;
-        if (name.includes("servant") || name.includes("companion") || name.includes("ai")) return 2;
-        if (name.includes("tube") || name.includes("scrolls")) return 3;
-        return 4;
+        if (name.includes("bundle") || product.amazon_sku === "78-SH1V-JG7I-BUNDLE") return 1;
+        if (name.includes("journal") || name.includes("reflection")) return 2;
+        if (name.includes("servant") || name.includes("companion") || name.includes("ai")) return 3;
+        if (name.includes("tube") || name.includes("scrolls")) return 4;
+        return 5;
       };
 
-      const baseProducts = hasServant ? hydratedProducts : [...hydratedProducts, fallbackProducts[1]];
+      const baseProducts = hasServant ? hydratedProducts : [...hydratedProducts, fallbackProducts[2]];
       const sortedProducts = baseProducts.sort((a, b) => getProductPriority(a) - getProductPriority(b));
 
       setProducts(sortedProducts);
