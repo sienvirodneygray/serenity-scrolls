@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LogIn, Sparkles, ShoppingCart } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 
 export const Navbar = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [cartCount, setCartCount] = useState(0);
 
@@ -65,18 +66,26 @@ export const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
-          <Button variant="ghost" asChild>
-            <Link href="/reflection-journal">Journal</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/servant-landing">
-              <Sparkles className="mr-2 h-4 w-4" />
-              AI Servant
-            </Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/learn/courage-covenant">Courses</Link>
-          </Button>
+          {pathname !== "/beta" ? (
+            <>
+              <Button variant="ghost" asChild>
+                <Link href="/reflection-journal">Journal</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/servant-landing">
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  AI Servant
+                </Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/learn/courage-covenant">Courses</Link>
+              </Button>
+            </>
+          ) : (
+            <span className="text-sm font-semibold text-primary px-3 py-1.5 bg-primary/10 rounded-full flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 animate-pulse" /> Beta Program
+            </span>
+          )}
           <Button variant="ghost" asChild>
             <Link href="/b2b">Partners</Link>
           </Button>
@@ -84,16 +93,18 @@ export const Navbar = () => {
             <Link href="/contact">Contact</Link>
           </Button>
 
-          <Button variant="ghost" className="relative px-2" asChild>
-            <Link href="/cart">
-              <ShoppingCart className="h-5 w-5" />
-              {cartCount > 0 && (
-                <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-primary text-primary-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center font-bold">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-          </Button>
+          {pathname !== "/beta" && (
+            <Button variant="ghost" className="relative px-2" asChild>
+              <Link href="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 -mt-1 -mr-1 bg-primary text-primary-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            </Button>
+          )}
 
           {user ? (
             <>

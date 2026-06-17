@@ -213,7 +213,7 @@ serve(async (req) => {
         }
 
         const cleanOrderId = orderId.trim();
-        const promoCodes = ["SERVANT2026"];
+        const promoCodes = ["SERVANT2026", "SSBETA2026"];
         const isPromoCode = promoCodes.includes(cleanOrderId.toUpperCase());
         const finalOrderId = isPromoCode ? `PROMO-${cleanOrderId.toUpperCase()}` : cleanOrderId;
 
