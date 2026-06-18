@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Loader2, BookOpen, HelpCircle, Sparkles, Mail, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
+import Link from "next/link";
 
 type UnlockStatus = "idle" | "verifying" | "success" | "error";
 type PageMode = "new" | "returning" | "magic-sent";
@@ -377,7 +378,14 @@ const Unlock = () => {
                                             />
                                             <p className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
                                                 <HelpCircle className="h-3 w-3 mt-0.5 shrink-0" />
-                                                Enter your website Order ID, Amazon Order ID, or a special Promo Code.
+                                                <span>
+                                                    Enter your website Order ID, Amazon Order ID, or a special Promo Code.{" "}
+                                                    <strong>For beta users:</strong> Please request access using the{" "}
+                                                    <Link href="/beta" className="underline hover:text-foreground font-semibold">
+                                                        Beta Tester Portal
+                                                    </Link>
+                                                    .
+                                                </span>
                                             </p>
                                         </div>
 

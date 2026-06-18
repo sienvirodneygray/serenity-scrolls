@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -126,7 +127,8 @@ serve(async (req) => {
     }
 
     try {
-        const { orderId, email, mode } = await req.json();
+        const { orderId, email, mode, isBeta } = await req.json();
+
 
         // ─── "Check Email" mode: verify this is a returning customer ───
         if (mode === "check-email") {
@@ -142,11 +144,25 @@ serve(async (req) => {
             const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
             const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-            // Look up the user by email in auth.users
-            const { data: users } = await supabase.auth.admin.listUsers();
-            const matchedUser = users?.users?.find(
-                (u: any) => u.email?.toLowerCase() === email.trim().toLowerCase()
-            );
+            // Look up the user by email in public.profiles first
+            let { data: profile } = await supabase
+                .from("profiles")
+                .select("id, has_access, subscription_status, access_expires_at")
+                .eq("email", email.trim().toLowerCase())
+                .maybeSingle();
+
+            let matchedUser = profile ? { id: profile.id } : null;
+
+            if (!matchedUser) {
+                // Fallback scan if they exist in GoTrue auth.users but profiles triggers didn't sync yet
+                const { data: usersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+                const foundUser = usersData?.users?.find(
+                    (u: any) => u.email?.toLowerCase() === email.trim().toLowerCase()
+                );
+                if (foundUser) {
+                    matchedUser = { id: foundUser.id };
+                }
+            }
 
             if (!matchedUser) {
                 return new Response(
@@ -158,12 +174,15 @@ serve(async (req) => {
                 );
             }
 
-            // Check if this user actually has access
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("has_access, subscription_status, access_expires_at")
-                .eq("id", matchedUser.id)
-                .single();
+            // Get profile details (fetched from auth fallback if profile is null)
+            if (!profile) {
+                const { data: fetchProfile } = await supabase
+                    .from("profiles")
+                    .select("id, has_access, subscription_status, access_expires_at")
+                    .eq("id", matchedUser.id)
+                    .maybeSingle();
+                profile = fetchProfile || { id: matchedUser.id, has_access: false, subscription_status: "none", access_expires_at: null };
+            }
 
             if (!profile?.has_access) {
                 return new Response(
@@ -234,8 +253,12 @@ serve(async (req) => {
             if (!isInternalOrder && !isMCFOrder && !AMAZON_ORDER_PATTERN.test(cleanOrderId)) {
                 return new Response(
                     JSON.stringify({
-                        error: "Invalid Order ID format. Order IDs look like: 123-4567890-1234567 (Amazon standard), CONSUMER-... (MCF), or SS-... (Website)",
-                        hint: "You can find your Order ID in your order confirmation email."
+                        error: isBeta 
+                            ? "Invalid Beta Access Code. Please double-check your code and try again." 
+                            : "Invalid Order ID format. Order IDs look like: 123-4567890-1234567 (Amazon standard), CONSUMER-... (MCF), or SS-... (Website)",
+                        hint: isBeta
+                            ? "Enter the custom access code provided for the beta cohort."
+                            : "You can find your Order ID in your order confirmation email."
                     }),
                     { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
                 );
@@ -363,18 +386,18 @@ serve(async (req) => {
         }
 
         // Create or find user account
-        // Check if user exists by email
-        const { data: existingUsers } = await supabase.auth.admin.listUsers();
-        let userId = null;
+        // 1. Try to find the existing user ID from public.profiles first
+        const { data: existingProfile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("email", email.toLowerCase())
+            .maybeSingle();
 
-        const existingUser = existingUsers?.users?.find(
-            (u: any) => u.email === email.toLowerCase()
-        );
+        let userId = existingProfile?.id || null;
+        let existingUser = existingProfile ? { id: existingProfile.id } : null;
 
-        if (existingUser) {
-            userId = existingUser.id;
-        } else {
-            // Create new user
+        if (!userId) {
+            // 2. If profile doesn't exist, try creating a new user
             const tempPassword = `servant-${Date.now()}-${Math.random().toString(36).slice(2)}`;
             const { data: newUser, error: signUpError } = await supabase.auth.admin.createUser({
                 email: email.toLowerCase(),
@@ -382,10 +405,19 @@ serve(async (req) => {
                 email_confirm: true,
             });
 
-            if (signUpError) {
-                console.error("Error creating user:", signUpError);
+            if (!signUpError && newUser?.user) {
+                userId = newUser.user.id;
             } else {
-                userId = newUser.user?.id;
+                // 3. Fallback scan if they exist in GoTrue auth.users but profiles triggers didn't sync yet
+                console.warn("User creation failed, scanning list users fallback:", signUpError?.message);
+                const { data: userList } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+                const matched = userList?.users?.find(
+                    (u: any) => u.email?.toLowerCase() === email.toLowerCase()
+                );
+                if (matched) {
+                    userId = matched.id;
+                    existingUser = { id: matched.id };
+                }
             }
         }
 
@@ -412,8 +444,8 @@ serve(async (req) => {
         // ── Admin redemption notification ─────────────────────────────────────
         try {
             const resendKey = Deno.env.get("RESEND_API_KEY");
-            const siteUrl = Deno.env.get("SITE_URL") || "https://serenityscrolls.faith";
             if (resendKey && !email.toLowerCase().endsWith("@test.com")) {
+                const resend = new Resend(resendKey);
                 const isNewUser = !existingUser;
                 const verifyLabel = verificationMethod === "sp-api" 
                     ? "✅ SP-API Verified" 
@@ -448,22 +480,120 @@ serve(async (req) => {
                   </div>
                 </div>`;
 
-                await fetch("https://api.resend.com/emails", {
-                    method: "POST",
-                    headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
-                        to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com", "mccmetro@comcast.net"],
-                        subject: `🎉 [NEW REDEEM] ${email} · ${
-                            verificationMethod === "sp-api" 
-                                ? "SP-API ✅" 
-                                : verificationMethod === "promo-code"
-                                ? "Promo Code ✨"
-                                : "Format-Only ⚠️"
-                        }`,
-                        html,
-                    }),
+                const text = `
+Serenity Scrolls · Admin Notification
+
+🎉 New Redemption Received
+Customer Email: ${email}
+Order ID: ${finalOrderId}
+Verification: ${verifyLabel}
+User Status: ${isNewUser ? "New account created" : "Existing user — access renewed"}
+Trial Expires: ${expiryStr}
+Trial Length: ${trialDays} days
+Redeemed At: ${now.toUTCString()}
+                `.trim();
+
+                const emailResponse = await resend.emails.send({
+                    from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
+                    to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com", "mccmetro@comcast.net"],
+                    reply_to: "teamsienvi@gmail.com",
+                    subject: `🎉 [NEW REDEEM] ${email} · ${
+                        verificationMethod === "sp-api" 
+                            ? "SP-API ✅" 
+                            : verificationMethod === "promo-code"
+                            ? "Promo Code ✨"
+                            : "Format-Only ⚠️"
+                    }`,
+                    html,
+                    text,
                 });
+                if (emailResponse.error) {
+                    console.error("Admin notification email failed to send. Error:", emailResponse.error);
+                } else {
+                    console.log("Admin notification email sent successfully:", emailResponse.data);
+                }
+
+                // ── Send Welcome Email to the User ──────────────────────────────────
+                const isPromo = verificationMethod === "promo-code";
+                const welcomeSubject = isPromo 
+                    ? "Your Serenity Scrolls Beta Access is Active! 🌿" 
+                    : "Your Serenity Scrolls Access is Active! 🎉";
+                const welcomeHeadline = isPromo
+                    ? "Welcome to Serenity Scrolls Servant! 🌿"
+                    : "Your Access Has Been Activated! 🎉";
+                const welcomeIntro = isPromo
+                    ? "Thank you for joining our exclusive beta program! Your access to the AI Scripture Companion is now fully active."
+                    : "Thank you for your purchase! Your access to the AI Scripture Companion has been verified and is now fully active.";
+                const accessPeriodLabel = isPromo
+                    ? `🗓️ Access Period: ${trialDays} Days (Beta Trial)`
+                    : `🗓️ Access Period: ${trialDays} Days`;
+                const welcomeClosing = isPromo
+                    ? "We are excited to have you shape the future of Serenity Scrolls. If you have any feedback or encounter issues, please reply directly to this email."
+                    : "We are excited to walk alongside you. If you have any feedback or encounter issues, please reply directly to this email.";
+
+                const userHtml = `
+                <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+                  <div style="background:#4f46e5;padding:24px;text-align:center;">
+                    <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;">${welcomeHeadline}</h1>
+                  </div>
+                  <div style="padding:24px;color:#374151;font-size:15px;line-height:1.6;">
+                    <p>Hello,</p>
+                    <p>${welcomeIntro}</p>
+                    
+                    <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:20px 0;border-left:4px solid #4f46e5;">
+                      <p style="margin:0;font-weight:600;color:#111827;">${accessPeriodLabel}</p>
+                      <p style="margin:4px 0 0;font-size:13px;color:#6b7280;">Your trial is set to run through ${expiryStr}.</p>
+                    </div>
+
+                    <h3 style="color:#111827;font-size:16px;margin-top:24px;margin-bottom:8px;">🔑 How to Log Back In Later</h3>
+                    <p>If you ever get logged out or want to access the app on another device:</p>
+                    <ol style="margin:0;padding-left:20px;">
+                      <li style="margin-bottom:8px;">Visit <a href="https://serenityscrolls.faith/unlock" style="color:#4f46e5;font-weight:600;text-decoration:underline;">serenityscrolls.faith/unlock</a></li>
+                      <li style="margin-bottom:8px;">Select the <strong>"Welcome Back"</strong> tab.</li>
+                      <li style="margin-bottom:8px;">Enter your email address (<strong>${email}</strong>) and click <strong>"Send Login Link"</strong>.</li>
+                      <li style="margin-bottom:0;">Click the secure login link sent to your inbox to log in instantly.</li>
+                    </ol>
+
+                    <p style="margin-top:24px;">${welcomeClosing}</p>
+                    
+                    <p style="margin-top:24px;margin-bottom:0;">Warmly,<br><strong>The Serenity Scrolls Team</strong></p>
+                  </div>
+                </div>`;
+
+                const userText = `
+${welcomeHeadline}
+
+${welcomeIntro}
+
+${accessPeriodLabel}
+Your trial is set to run through ${expiryStr}.
+
+🔑 How to Log Back In Later
+If you ever get logged out or want to access the app on another device:
+1. Visit: https://serenityscrolls.faith/unlock
+2. Select the "Welcome Back" tab.
+3. Enter your email address (${email}) and click "Send Login Link".
+4. Click the secure login link sent to your inbox to log in instantly.
+
+${welcomeClosing}
+
+Warmly,
+The Serenity Scrolls Team
+                `.trim();
+
+                const userEmailResponse = await resend.emails.send({
+                    from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
+                    to: [email],
+                    reply_to: "teamsienvi@gmail.com",
+                    subject: welcomeSubject,
+                    html: userHtml,
+                    text: userText,
+                });
+                if (userEmailResponse.error) {
+                    console.error("Welcome email failed to send. Error:", userEmailResponse.error);
+                } else {
+                    console.log("Welcome email sent to user successfully:", userEmailResponse.data);
+                }
             }
         } catch (notifyErr) {
             // Non-fatal — log but don't block the response

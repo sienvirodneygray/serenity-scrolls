@@ -323,15 +323,18 @@ serve(async (req) => {
                   let targetUserId = userId;
 
                   if (!targetUserId) {
-                    const { data: usersData } = await supabase.auth.admin.listUsers();
-                    const existingUser = usersData?.users?.find(
-                      (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
-                    );
+                    // Try to find the existing user ID from public.profiles first
+                    const { data: existingProfile } = await supabase
+                      .from("profiles")
+                      .select("id")
+                      .eq("email", customerEmail.toLowerCase())
+                      .maybeSingle();
 
-                    if (existingUser) {
-                      targetUserId = existingUser.id;
-                      console.log(`Matched existing user: ${targetUserId}`);
+                    if (existingProfile?.id) {
+                      targetUserId = existingProfile.id;
+                      console.log(`Matched existing user from profiles: ${targetUserId}`);
                     } else {
+                      // Try creating new user
                       const tempPassword = `servant-${Date.now()}-${Math.random().toString(36).slice(2)}`;
                       const { data: newUser, error: signUpError } = await supabase.auth.admin.createUser({
                         email: customerEmail.toLowerCase(),
@@ -339,11 +342,20 @@ serve(async (req) => {
                         email_confirm: true,
                       });
 
-                      if (signUpError) {
-                        console.error("Error auto-creating user for course enrollment:", signUpError);
-                      } else if (newUser?.user) {
+                      if (!signUpError && newUser?.user) {
                         targetUserId = newUser.user.id;
                         console.log(`Created new user for course enrollment: ${targetUserId}`);
+                      } else {
+                        // Fallback scan if they exist in GoTrue auth.users but profiles trigger didn't sync yet
+                        console.warn("User creation failed in webhook, scanning list users fallback:", signUpError?.message);
+                        const { data: userList } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+                        const matched = userList?.users?.find(
+                          (u: any) => u.email?.toLowerCase() === customerEmail.toLowerCase()
+                        );
+                        if (matched) {
+                          targetUserId = matched.id;
+                          console.log(`Matched existing user from auth fallback scan: ${targetUserId}`);
+                        }
                       }
                     }
                   }

@@ -115,6 +115,7 @@ const betaSteps = [
 
 const BetaLanding = () => {
     const [email, setEmail] = useState("");
+    const [accessCode, setAccessCode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
     const [errorMessage, setErrorMessage] = useState("");
@@ -140,8 +141,9 @@ const BetaLanding = () => {
                         Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
                     },
                     body: JSON.stringify({
-                        orderId: "SSBETA2026",
+                        orderId: accessCode.trim(),
                         email: trimmedEmail,
+                        isBeta: true,
                     }),
                 }
             );
@@ -241,11 +243,11 @@ const BetaLanding = () => {
                                     </div>
                                 ) : (
                                     <form onSubmit={handleBetaSignup} className="space-y-4 text-left">
-                                        <div>
-                                            <label htmlFor="beta-email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
-                                                Enter Email to Request Access
-                                            </label>
-                                            <div className="flex gap-2">
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label htmlFor="beta-email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                                                    Email Address
+                                                </label>
                                                 <Input
                                                     id="beta-email"
                                                     type="email"
@@ -256,14 +258,34 @@ const BetaLanding = () => {
                                                     className="h-12 bg-background/50"
                                                     disabled={isLoading}
                                                 />
-                                                <Button type="submit" disabled={isLoading} className="px-6 h-12 bg-primary hover:bg-primary/95 text-white">
-                                                    {isLoading ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                    ) : (
-                                                        <ArrowRight className="w-4 h-4" />
-                                                    )}
-                                                </Button>
                                             </div>
+
+                                            <div>
+                                                <label htmlFor="beta-code" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                                                    Beta Access Code
+                                                </label>
+                                                <Input
+                                                    id="beta-code"
+                                                    type="text"
+                                                    placeholder="Enter Beta Code"
+                                                    value={accessCode}
+                                                    onChange={(e) => setAccessCode(e.target.value)}
+                                                    required
+                                                    className="h-12 bg-background/50 font-mono"
+                                                    disabled={isLoading}
+                                                />
+                                            </div>
+
+                                            <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-2">
+                                                {isLoading ? (
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        Request Beta Access
+                                                        <ArrowRight className="w-4.5 h-4.5" />
+                                                    </>
+                                                )}
+                                            </Button>
                                         </div>
 
                                         {status === "error" && (
