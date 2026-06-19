@@ -6,16 +6,17 @@ import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { toast } from "sonner";
 import { Navbar } from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
 
 const MODULES = [
-  { num: 1, title: "What Actually Happened?", desc: "Distinguish conflict, teasing, bullying, and danger with clear categories.", badge: "Foundation", color: "#10B981", free: true },
-  { num: 2, title: "What Is the Child Feeling?", desc: "Name and validate 9 emotions so your child feels heard before you respond.", badge: "Emotion", color: "#6366F1" },
-  { num: 3, title: "What Does Scripture Say?", desc: "Use Scripture to support truth and courage — not passivity or spiritual duct tape.", badge: "Scripture", color: "#8B5CF6" },
-  { num: 4, title: "What the Child Can Say", desc: "Word-for-word boundary, exit, and help-seeking scripts they can use tomorrow.", badge: "Scripts", color: "#F59E0B" },
-  { num: 5, title: "What Parents Should Do", desc: "Respond in the first 60 seconds. The Listen → Document → Decide framework.", badge: "Parent Response", color: "#3B82F6" },
-  { num: 6, title: "🟢🟡🔴 Escalation Framework", desc: "Know exactly when to coach, document, or escalate immediately. No more fog.", badge: "Decision Map", color: "#EF4444" },
-  { num: 7, title: "Forgiveness, Boundaries & Wisdom", desc: "Biblical forgiveness without enabling harm. Boundaries are not bitterness.", badge: "Faith & Wisdom", color: "#EC4899" },
-  { num: 8, title: "The 7-Day Courage Ritual", desc: "Build the daily Scrolls + Journal + AI Servant habit that makes it all stick.", badge: "Ritual", color: "#6B46C1" },
+  { num: 1, title: "What Actually Happened?", desc: "Distinguish conflict, teasing, bullying, and danger with clear categories.", badge: "Foundation", color: "#10B981", free: true, firstLessonSlug: "what-actually-happened/conflict-vs-bullying" },
+  { num: 2, title: "What Is the Child Feeling?", desc: "Name and validate 9 emotions so your child feels heard before you respond.", badge: "Emotion", color: "#6366F1", firstLessonSlug: "what-is-child-feeling/naming-the-emotion" },
+  { num: 3, title: "What Does Scripture Say?", desc: "Use Scripture to support truth and courage — not passivity or spiritual duct tape.", badge: "Scripture", color: "#8B5CF6", firstLessonSlug: "what-does-scripture-say/scripture-does-not-deny-pain" },
+  { num: 4, title: "What the Child Can Say", desc: "Word-for-word boundary, exit, and help-seeking scripts they can use tomorrow.", badge: "Scripts", color: "#F59E0B", firstLessonSlug: "what-child-can-say/three-response-types" },
+  { num: 5, title: "What Parents Should Do", desc: "Respond in the first 60 seconds. The Listen → Document → Decide framework.", badge: "Parent Response", color: "#3B82F6", firstLessonSlug: "what-parents-should-do/first-60-seconds" },
+  { num: 6, title: "🟢🟡🔴 Escalation Framework", desc: "Know exactly when to coach, document, or escalate immediately. No more fog.", badge: "Decision Map", color: "#EF4444", firstLessonSlug: "green-yellow-red/green-monitor-and-coach" },
+  { num: 7, title: "Forgiveness, Boundaries & Wisdom", desc: "Biblical forgiveness without enabling harm. Boundaries are not bitterness.", badge: "Faith & Wisdom", color: "#EC4899", firstLessonSlug: "forgiveness-boundaries-wisdom/what-forgiveness-is" },
+  { num: 8, title: "The 7-Day Courage Ritual", desc: "Build the daily Scrolls + Journal + AI Servant habit that makes it all stick.", badge: "Ritual", color: "#6B46C1", firstLessonSlug: "seven-day-courage-ritual/the-daily-ritual" },
 ];
 
 const TIERS = [
@@ -77,11 +78,51 @@ const TIERS = [
 function CourageCovenantContent() {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
+  const [isEnrolled, setIsEnrolled] = useState(false);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
   );
+
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setIsEnrolled(false);
+          return;
+        }
+
+        const { data: course } = await supabase
+          .from("courses")
+          .select("id")
+          .eq("slug", "courage-covenant")
+          .maybeSingle();
+
+        if (course) {
+          const { data: enrollment } = await supabase
+            .from("course_enrollments")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("course_id", course.id)
+            .maybeSingle();
+
+          const { data: userRole } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id)
+            .eq("role", "admin")
+            .maybeSingle();
+
+          setIsEnrolled(!!enrollment || !!userRole);
+        }
+      } catch (err) {
+        console.error("Failed to check enrollment:", err);
+      }
+    };
+    checkEnrollment();
+  }, [supabase]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -161,14 +202,25 @@ function CourageCovenantContent() {
 
           {/* Big CTA */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button
-              id="hero-enroll-btn"
-              onClick={() => handleEnroll(TIERS[1])}
-              disabled={loading === "full"}
-              className="px-8 py-4 rounded-full text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-glow hover:scale-105 disabled:opacity-60"
-            >
-              {loading === "full" ? "Redirecting..." : "Enroll Now — $197"}
-            </button>
+            {isEnrolled ? (
+              <Button
+                asChild
+                className="px-8 py-6 rounded-full text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-glow hover:scale-105"
+              >
+                <Link href="/learn/courage-covenant/what-actually-happened/conflict-vs-bullying">
+                  Resume Course
+                </Link>
+              </Button>
+            ) : (
+              <button
+                id="hero-enroll-btn"
+                onClick={() => handleEnroll(TIERS[1])}
+                disabled={loading === "full"}
+                className="px-8 py-4 rounded-full text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-glow hover:scale-105 disabled:opacity-60"
+              >
+                {loading === "full" ? "Redirecting..." : "Enroll Now — $197"}
+              </button>
+            )}
             <Link href="#modules" className="px-8 py-4 rounded-full text-lg font-semibold border border-primary/20 text-primary hover:bg-primary/10 transition-all">
               See All 8 Modules
             </Link>
@@ -247,12 +299,17 @@ function CourageCovenantContent() {
                 <p className="text-xs text-primary mb-1">Module {mod.num}</p>
                 <h3 className="font-bold text-foreground mb-2 group-hover:text-primary transition-colors">{mod.title}</h3>
                 <p className="text-sm text-muted-foreground">{mod.desc}</p>
-                {mod.free && (
+                {isEnrolled ? (
+                  <Link href={`/learn/courage-covenant/${mod.firstLessonSlug}`}
+                    className="inline-block mt-3 text-xs text-primary hover:opacity-80 transition-opacity font-semibold">
+                    Go to Module →
+                  </Link>
+                ) : mod.free ? (
                   <Link href="/learn/courage-covenant/what-actually-happened/conflict-vs-bullying"
                     className="inline-block mt-3 text-xs text-green-600 dark:text-green-400 hover:opacity-80 transition-opacity font-semibold">
                     Start free lesson →
                   </Link>
-                )}
+                ) : null}
               </div>
             ))}
           </div>
@@ -321,14 +378,25 @@ function CourageCovenantContent() {
                     </li>
                   ))}
                 </ul>
-                <button
-                  id={`enroll-${tier.id}-btn`}
-                  onClick={() => handleEnroll(tier)}
-                  disabled={!!loading}
-                  className={`w-full py-3 rounded-full font-bold transition-all ${tier.highlight ? "bg-primary hover:bg-primary/90 text-primary-foreground" : "border border-primary text-primary hover:bg-primary/10"} disabled:opacity-60`}
-                >
-                  {loading === tier.id ? "Redirecting..." : tier.cta}
-                </button>
+                {isEnrolled ? (
+                  <Button
+                    asChild
+                    className={`w-full py-3 h-auto rounded-full font-bold transition-all ${tier.highlight ? "bg-primary hover:bg-primary/90 text-primary-foreground" : "border border-primary text-primary hover:bg-primary/10"}`}
+                  >
+                    <Link href="/learn/courage-covenant/what-actually-happened/conflict-vs-bullying">
+                      Access Course Player
+                    </Link>
+                  </Button>
+                ) : (
+                  <button
+                    id={`enroll-${tier.id}-btn`}
+                    onClick={() => handleEnroll(tier)}
+                    disabled={!!loading}
+                    className={`w-full py-3 rounded-full font-bold transition-all ${tier.highlight ? "bg-primary hover:bg-primary/90 text-primary-foreground" : "border border-primary text-primary hover:bg-primary/10"} disabled:opacity-60`}
+                  >
+                    {loading === tier.id ? "Redirecting..." : tier.cta}
+                  </button>
+                )}
               </div>
             ))}
           </div>

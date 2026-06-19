@@ -12,6 +12,45 @@ export const Navbar = () => {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [cartCount, setCartCount] = useState(0);
+  const [isEnrolled, setIsEnrolled] = useState(false);
+
+  const checkEnrollment = async (currentUser: any) => {
+    if (!currentUser) {
+      setIsEnrolled(false);
+      return;
+    }
+
+    try {
+      const { data: course } = await supabase
+        .from("courses")
+        .select("id")
+        .eq("slug", "courage-covenant")
+        .maybeSingle();
+
+      if (course?.id) {
+        const { data: enrollment } = await supabase
+          .from("course_enrollments")
+          .select("id")
+          .eq("user_id", currentUser.id)
+          .eq("course_id", course.id)
+          .maybeSingle();
+
+        const { data: userRole } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", currentUser.id)
+          .eq("role", "admin")
+          .maybeSingle();
+
+        setIsEnrolled(!!enrollment || !!userRole);
+      } else {
+        setIsEnrolled(false);
+      }
+    } catch (e) {
+      console.error("Failed to check course enrollment in Navbar:", e);
+      setIsEnrolled(false);
+    }
+  };
 
   const fetchCartCount = async (currentUser: any) => {
     const sessionId = typeof window !== "undefined" ? window.localStorage.getItem("session_id") : null;
@@ -37,18 +76,23 @@ export const Navbar = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      fetchCartCount(session?.user);
+      const u = session?.user ?? null;
+      setUser(u);
+      fetchCartCount(u);
+      checkEnrollment(u);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      fetchCartCount(session?.user);
+      const u = session?.user ?? null;
+      setUser(u);
+      fetchCartCount(u);
+      checkEnrollment(u);
     });
 
     fetchCartCount(user);
+    checkEnrollment(user);
 
     return () => subscription.unsubscribe();
   }, []);
@@ -78,7 +122,7 @@ export const Navbar = () => {
                 </Link>
               </Button>
               <Button variant="ghost" asChild>
-                <Link href="/learn/courage-covenant">Courses</Link>
+                <Link href={isEnrolled ? "/learn/courage-covenant/what-actually-happened/conflict-vs-bullying" : "/learn/courage-covenant"}>Courses</Link>
               </Button>
             </>
           ) : (
