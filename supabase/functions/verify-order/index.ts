@@ -62,8 +62,8 @@ async function verifyOrderViaSPAPI(orderId: string, isMCF: boolean): Promise<{ v
 
     const marketplace = Deno.env.get("AMAZON_MARKETPLACE_ID") || "ATVPDKIKX0DER"; // US marketplace default
     const endpoint = isMCF
-      ? `https://sellingpartnerapi-na.amazon.com/fba/outbound/2020-07-01/fulfillmentOrders/${orderId}`
-      : `https://sellingpartnerapi-na.amazon.com/orders/v0/orders/${orderId}`;
+        ? `https://sellingpartnerapi-na.amazon.com/fba/outbound/2020-07-01/fulfillmentOrders/${orderId}`
+        : `https://sellingpartnerapi-na.amazon.com/orders/v0/orders/${orderId}`;
 
     try {
         const response = await fetch(endpoint, {
@@ -97,10 +97,10 @@ async function verifyOrderViaSPAPI(orderId: string, isMCF: boolean): Promise<{ v
             return { verified: false, error: "Order not found." };
         }
 
-        const validStatuses = isMCF 
+        const validStatuses = isMCF
             ? ["Received", "Planning", "Processing", "Complete", "CompletePartialled", "Validating", "Invalid"] // MCF statuses
             : ["Shipped", "Unshipped", "PartiallyShipped", "Pending"]; // Regular AMZ statuses
-            
+
         if (!validStatuses.includes(actualStatus)) {
             if (actualStatus === "Cancelled" || actualStatus === "Unfulfillable") {
                 return {
@@ -204,7 +204,7 @@ serve(async (req) => {
                     .select("id")
                     .eq("user_id", matchedUser.id)
                     .maybeSingle();
-                
+
                 if (enrollment) {
                     hasActiveAccess = true;
                 }
@@ -266,8 +266,8 @@ serve(async (req) => {
             if (!isInternalOrder && !isMCFOrder && !AMAZON_ORDER_PATTERN.test(cleanOrderId)) {
                 return new Response(
                     JSON.stringify({
-                        error: isBeta 
-                            ? "Invalid Beta Access Code. Please double-check your code and try again." 
+                        error: isBeta
+                            ? "Invalid Beta Access Code. Please double-check your code and try again."
                             : "Invalid Order ID format. Order IDs look like: 123-4567890-1234567 (Amazon standard), CONSUMER-... (MCF), or SS-... (Website)",
                         hint: isBeta
                             ? "Enter the custom access code provided for the beta cohort."
@@ -340,14 +340,60 @@ serve(async (req) => {
         const { data: existingRequest } = await requestQuery.maybeSingle();
 
         if (existingRequest) {
-            // Same email checking back - return existing access
+            // Same email checking back - return existing access and auto-login token
             if (existingRequest.email === email.toLowerCase() && existingRequest.status === "approved") {
+                // Find or create user profile
+                const { data: existingProfile } = await supabase
+                    .from("profiles")
+                    .select("id")
+                    .eq("email", email.toLowerCase())
+                    .maybeSingle();
+
+                let userId = existingProfile?.id || null;
+                if (!userId) {
+                    const { data: userList } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+                    const matched = userList?.users?.find(
+                        (u: any) => u.email?.toLowerCase() === email.toLowerCase()
+                    );
+                    if (matched) {
+                        userId = matched.id;
+                    }
+                }
+
+                // If course beta, ensure they are enrolled
+                if (isCourseBeta && userId) {
+                    const { data: courseData } = await supabase
+                        .from("courses")
+                        .select("id")
+                        .eq("slug", "courage-covenant")
+                        .maybeSingle();
+
+                    if (courseData?.id) {
+                        await supabase
+                            .from("course_enrollments")
+                            .upsert({
+                                user_id: userId,
+                                course_id: courseData.id,
+                                stripe_session_id: `PROMO-${cleanOrderId.toUpperCase()}`,
+                                enrolled_at: new Date().toISOString(),
+                                track: "parent",
+                            }, { onConflict: "user_id,course_id", ignoreDuplicates: true });
+                    }
+                }
+
+                // Generate login link
+                const { data: magicLinkData } = await supabase.auth.admin.generateLink({
+                    type: "magiclink",
+                    email: email.toLowerCase(),
+                });
+
                 return new Response(
                     JSON.stringify({
                         success: true,
                         message: "Your access is still active!",
                         accessExpiresAt: existingRequest.access_expires_at,
                         email: existingRequest.email,
+                        token: magicLinkData?.properties?.hashed_token || null,
                     }),
                     { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
                 );
@@ -493,16 +539,16 @@ serve(async (req) => {
             if (resendKey && !email.toLowerCase().endsWith("@test.com")) {
                 const resend = new Resend(resendKey);
                 const isNewUser = !existingUser;
-                const verifyLabel = verificationMethod === "sp-api" 
-                    ? "✅ SP-API Verified" 
+                const verifyLabel = verificationMethod === "sp-api"
+                    ? "✅ SP-API Verified"
                     : verificationMethod === "promo-code"
-                    ? "✨ Promo Code Activated"
-                    : "⚠️ Format-Only (unverified)";
-                const verifyColor = verificationMethod === "sp-api" 
-                    ? "#16a34a" 
+                        ? "✨ Promo Code Activated"
+                        : "⚠️ Format-Only (unverified)";
+                const verifyColor = verificationMethod === "sp-api"
+                    ? "#16a34a"
                     : verificationMethod === "promo-code"
-                    ? "#7c3aed"
-                    : "#d97706";
+                        ? "#7c3aed"
+                        : "#d97706";
                 const expiryStr = expiresAt.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
                 const html = `
                 <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;background:#fafaf9;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
@@ -543,13 +589,12 @@ Redeemed At: ${now.toUTCString()}
                     from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
                     to: ["teamsienvi@gmail.com", "sienvirodneygray@gmail.com", "mccmetro@comcast.net"],
                     reply_to: "teamsienvi@gmail.com",
-                    subject: `🎉 [NEW REDEEM] ${email} · ${
-                        verificationMethod === "sp-api" 
-                            ? "SP-API ✅" 
+                    subject: `🎉 [NEW REDEEM] ${email} · ${verificationMethod === "sp-api"
+                            ? "SP-API ✅"
                             : verificationMethod === "promo-code"
-                            ? "Promo Code ✨"
-                            : "Format-Only ⚠️"
-                    }`,
+                                ? "Promo Code ✨"
+                                : "Format-Only ⚠️"
+                        }`,
                     html,
                     text,
                 });
@@ -564,29 +609,29 @@ Redeemed At: ${now.toUTCString()}
                 const isCourseBeta = cleanOrderId.toUpperCase() === "COVENANT2026";
                 const welcomeSubject = isCourseBeta
                     ? "Welcome to Courage Covenant™ Course Beta! 🎓"
-                    : isPromo 
-                    ? "Your Serenity Scrolls Beta Access is Active! 🌿" 
-                    : "Your Serenity Scrolls Access is Active! 🎉";
+                    : isPromo
+                        ? "Your Serenity Scrolls Beta Access is Active! 🌿"
+                        : "Your Serenity Scrolls Access is Active! 🎉";
                 const welcomeHeadline = isCourseBeta
                     ? "Welcome to the Courage Covenant™ Course! 🎓"
                     : isPromo
-                    ? "Welcome to Serenity Scrolls Servant! 🌿"
-                    : "Your Access Has Been Activated! 🎉";
+                        ? "Welcome to Serenity Scrolls Servant! 🌿"
+                        : "Your Access Has Been Activated! 🎉";
                 const welcomeIntro = isCourseBeta
                     ? "Thank you for joining our exclusive beta course program! Your access to the Courage Covenant™ Course is now fully active."
                     : isPromo
-                    ? "Thank you for joining our exclusive beta program! Your access to the AI Scripture Companion is now fully active."
-                    : "Thank you for your purchase! Your access to the AI Scripture Companion has been verified and is now fully active.";
+                        ? "Thank you for joining our exclusive beta program! Your access to the AI Scripture Companion is now fully active."
+                        : "Thank you for your purchase! Your access to the AI Scripture Companion has been verified and is now fully active.";
                 const accessPeriodLabel = isCourseBeta
                     ? "🗓️ Access Period: Full Course Beta"
                     : isPromo
-                    ? `🗓️ Access Period: ${trialDays} Days (Beta Trial)`
-                    : `🗓️ Access Period: ${trialDays} Days`;
+                        ? `🗓️ Access Period: ${trialDays} Days (Beta Trial)`
+                        : `🗓️ Access Period: ${trialDays} Days`;
                 const welcomeClosing = isCourseBeta
                     ? "We are excited to have you shape the future of the Courage Covenant course. If you have any feedback or encounter issues, please reply directly to this email."
                     : isPromo
-                    ? "We are excited to have you shape the future of Serenity Scrolls. If you have any feedback or encounter issues, please reply directly to this email."
-                    : "We are excited to walk alongside you. If you have any feedback or encounter issues, please reply directly to this email.";
+                        ? "We are excited to have you shape the future of Serenity Scrolls. If you have any feedback or encounter issues, please reply directly to this email."
+                        : "We are excited to walk alongside you. If you have any feedback or encounter issues, please reply directly to this email.";
 
                 const accessLink = isCourseBeta
                     ? "https://serenityscrolls.faith/learn/courage-covenant"
