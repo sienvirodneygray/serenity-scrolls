@@ -184,7 +184,33 @@ serve(async (req) => {
                 profile = fetchProfile || { id: matchedUser.id, has_access: false, subscription_status: "none", access_expires_at: null };
             }
 
-            if (!profile?.has_access) {
+            // Check if user has active companion app access
+            let hasActiveAccess = false;
+            if (profile?.has_access) {
+                if (profile.access_expires_at && profile.subscription_status !== "active") {
+                    const expiresAt = new Date(profile.access_expires_at);
+                    if (expiresAt >= new Date()) {
+                        hasActiveAccess = true;
+                    }
+                } else {
+                    hasActiveAccess = true;
+                }
+            }
+
+            // Fallback: Check if they have an active course enrollment
+            if (!hasActiveAccess) {
+                const { data: enrollment } = await supabase
+                    .from("course_enrollments")
+                    .select("id")
+                    .eq("user_id", matchedUser.id)
+                    .maybeSingle();
+                
+                if (enrollment) {
+                    hasActiveAccess = true;
+                }
+            }
+
+            if (!hasActiveAccess) {
                 return new Response(
                     JSON.stringify({
                         verified: false,
@@ -192,20 +218,6 @@ serve(async (req) => {
                     }),
                     { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
                 );
-            }
-
-            // Check if access is expired
-            if (profile.access_expires_at && profile.subscription_status !== "active") {
-                const expiresAt = new Date(profile.access_expires_at);
-                if (expiresAt < new Date()) {
-                    return new Response(
-                        JSON.stringify({
-                            verified: false,
-                            error: "Your access has expired. Please renew your subscription or make a new purchase.",
-                        }),
-                        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-                    );
-                }
             }
 
             return new Response(
@@ -428,12 +440,11 @@ serve(async (req) => {
                 id: userId,
                 email: email.toLowerCase(),
             };
-            if (!isCourseBeta) {
-                profileUpdate.has_access = true;
-                profileUpdate.access_granted_at = now.toISOString();
-                profileUpdate.access_expires_at = expiresAt.toISOString();
-                profileUpdate.subscription_status = "trial";
-            }
+            // Both course and app promo/trial activations grant companion app access
+            profileUpdate.has_access = true;
+            profileUpdate.access_granted_at = now.toISOString();
+            profileUpdate.access_expires_at = expiresAt.toISOString();
+            profileUpdate.subscription_status = "trial";
             await supabase
                 .from("profiles")
                 .upsert(profileUpdate);
