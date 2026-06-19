@@ -66,7 +66,7 @@ export const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
-          {pathname !== "/beta" && pathname !== "/beta-course" ? (
+          {(pathname !== "/beta" && pathname !== "/beta-course") || user ? (
             <>
               <Button variant="ghost" asChild>
                 <Link href="/reflection-journal">Journal</Link>
