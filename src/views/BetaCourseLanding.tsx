@@ -20,7 +20,9 @@ import {
     Users,
     GraduationCap,
     FileText,
-    Heart
+    Heart,
+    Mail,
+    ArrowLeft
 } from "lucide-react";
 
 const courseFeatures = [
@@ -85,6 +87,7 @@ const BetaCourseLanding = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
     const [errorMessage, setErrorMessage] = useState("");
+    const [mode, setMode] = useState<"new" | "returning" | "magic-sent">("new");
     const router = useRouter();
     const { toast } = useToast();
 
@@ -157,6 +160,73 @@ const BetaCourseLanding = () => {
         }
     };
 
+    const handleMagicLink = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setStatus("idle");
+        setErrorMessage("");
+
+        try {
+            const trimmedEmail = email.trim().toLowerCase();
+
+            // Step 1: Verify this email belongs to a real customer with active access
+            const checkRes = await fetch(
+                `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/verify-order`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        email: trimmedEmail,
+                        mode: "check-email",
+                    }),
+                }
+            );
+
+            const checkData = await checkRes.json();
+
+            if (!checkRes.ok || !checkData.verified) {
+                setStatus("error");
+                setErrorMessage(checkData.error || "Could not verify this email. Please use the 'New Cohort' tab to register.");
+                return;
+            }
+
+            // Step 2: Email is confirmed — now send the custom magic link
+            const sendRes = await fetch(
+                `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/send-magic-link`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        email: trimmedEmail,
+                        origin: window.location.origin,
+                        redirectTo: "/learn/courage-covenant",
+                    }),
+                }
+            );
+
+            if (!sendRes.ok) {
+                setStatus("error");
+                setErrorMessage("Could not send login link. Please try again.");
+                return;
+            }
+
+            setMode("magic-sent");
+            setStatus("idle");
+        } catch (error) {
+            console.error("Magic link error:", error);
+            setStatus("error");
+            setErrorMessage("Something went wrong. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen">
             <Navbar />
@@ -207,64 +277,157 @@ const BetaCourseLanding = () => {
                                         </p>
                                         <Loader2 className="w-5 h-5 animate-spin mx-auto text-primary" />
                                     </div>
+                                ) : mode === "magic-sent" ? (
+                                    <div className="text-center space-y-4 py-4">
+                                        <div className="mx-auto w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <Mail className="w-6 h-6 text-blue-600" />
+                                        </div>
+                                        <h3 className="font-bold text-lg text-blue-600 text-center font-['Vilonti']">Check Your Email</h3>
+                                        <p className="text-sm text-muted-foreground text-center">
+                                            We sent a login link to <strong>{email}</strong>. Click the link to sign in and start learning.
+                                        </p>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-11 border-border/80"
+                                            onClick={() => { setMode("returning"); setStatus("idle"); setErrorMessage(""); }}
+                                        >
+                                            <ArrowLeft className="w-4.5 h-4.5 mr-2" />
+                                            Try Another Email
+                                        </Button>
+                                    </div>
                                 ) : (
-                                    <form onSubmit={handleBetaSignup} className="space-y-4 text-left">
-                                        <div className="space-y-3">
-                                            <div>
-                                                <label htmlFor="beta-email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                                                    Email Address
-                                                </label>
-                                                <Input
-                                                    id="beta-email"
-                                                    type="email"
-                                                    placeholder="you@example.com"
-                                                    value={email}
-                                                    onChange={(e) => setEmail(e.target.value)}
-                                                    required
-                                                    className="h-12 bg-background/50"
-                                                    disabled={isLoading}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label htmlFor="beta-code" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                                                    Course Beta Access Code
-                                                </label>
-                                                <Input
-                                                    id="beta-code"
-                                                    type="text"
-                                                    placeholder="Enter Beta Code"
-                                                    value={accessCode}
-                                                    onChange={(e) => setAccessCode(e.target.value)}
-                                                    required
-                                                    className="h-12 bg-background/50 font-mono"
-                                                    disabled={isLoading}
-                                                />
-                                            </div>
-
-                                            <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-2">
-                                                {isLoading ? (
-                                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                                ) : (
-                                                    <>
-                                                        Enroll in Beta Course
-                                                        <ArrowRight className="w-4.5 h-4.5" />
-                                                    </>
-                                                )}
-                                            </Button>
+                                    <div className="space-y-4">
+                                        {/* Mode Toggle Tabs */}
+                                        <div className="flex items-center gap-1 bg-background/40 backdrop-blur-sm border border-border/50 rounded-lg p-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => { setMode("new"); setStatus("idle"); setErrorMessage(""); }}
+                                                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-all ${mode === "new"
+                                                    ? "bg-primary text-white shadow-sm"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                                    }`}
+                                            >
+                                                <Sparkles className="h-3.5 w-3.5" />
+                                                New Cohort
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setMode("returning"); setStatus("idle"); setErrorMessage(""); }}
+                                                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-all ${mode === "returning"
+                                                    ? "bg-primary text-white shadow-sm"
+                                                    : "text-muted-foreground hover:text-foreground"
+                                                    }`}
+                                            >
+                                                <Mail className="h-3.5 w-3.5" />
+                                                Welcome Back
+                                            </button>
                                         </div>
 
-                                        {status === "error" && (
-                                            <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-3">
-                                                {errorMessage}
-                                            </div>
-                                        )}
+                                        {mode === "new" ? (
+                                            <form onSubmit={handleBetaSignup} className="space-y-4 text-left">
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <label htmlFor="beta-email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                                                            Email Address
+                                                        </label>
+                                                        <Input
+                                                            id="beta-email"
+                                                            type="email"
+                                                            placeholder="you@example.com"
+                                                            value={email}
+                                                            onChange={(e) => setEmail(e.target.value)}
+                                                            required
+                                                            className="h-12 bg-background/50"
+                                                            disabled={isLoading}
+                                                        />
+                                                    </div>
 
-                                        <p className="text-[11px] text-muted-foreground text-center">
-                                            <Shield className="inline h-3.5 w-3.5 mr-1 align-text-bottom opacity-70" />
-                                            Immediate full course enrollment. No purchase required.
-                                        </p>
-                                    </form>
+                                                    <div>
+                                                        <label htmlFor="beta-code" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                                                            Course Beta Access Code
+                                                        </label>
+                                                        <Input
+                                                            id="beta-code"
+                                                            type="text"
+                                                            placeholder="Enter Beta Code"
+                                                            value={accessCode}
+                                                            onChange={(e) => setAccessCode(e.target.value)}
+                                                            required
+                                                            className="h-12 bg-background/50 font-mono"
+                                                            disabled={isLoading}
+                                                        />
+                                                    </div>
+
+                                                    <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-2">
+                                                        {isLoading ? (
+                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                Enroll in Beta Course
+                                                                <ArrowRight className="w-4.5 h-4.5" />
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
+
+                                                {status === "error" && (
+                                                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-3">
+                                                        {errorMessage}
+                                                    </div>
+                                                )}
+
+                                                <p className="text-[11px] text-muted-foreground text-center">
+                                                    <Shield className="inline h-3.5 w-3.5 mr-1 align-text-bottom opacity-70" />
+                                                    Immediate full course enrollment. No purchase required.
+                                                </p>
+                                            </form>
+                                        ) : (
+                                            <form onSubmit={handleMagicLink} className="space-y-4 text-left">
+                                                <div className="space-y-3">
+                                                    <div>
+                                                        <label htmlFor="returning-email" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                                                            Email Address
+                                                        </label>
+                                                        <Input
+                                                            id="returning-email"
+                                                            type="email"
+                                                            placeholder="you@example.com"
+                                                            value={email}
+                                                            onChange={(e) => setEmail(e.target.value)}
+                                                            required
+                                                            className="h-12 bg-background/50"
+                                                            disabled={isLoading}
+                                                        />
+                                                        <p className="text-[10px] text-muted-foreground mt-1">
+                                                            Use the same email you registered with.
+                                                        </p>
+                                                    </div>
+
+                                                    <Button type="submit" disabled={isLoading} className="w-full h-12 bg-primary hover:bg-primary/95 text-white flex items-center justify-center gap-2">
+                                                        {isLoading ? (
+                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                Send Login Link
+                                                                <Mail className="w-4.5 h-4.5" />
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                </div>
+
+                                                {status === "error" && (
+                                                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg p-3">
+                                                        {errorMessage}
+                                                    </div>
+                                                )}
+
+                                                <p className="text-[11px] text-muted-foreground text-center">
+                                                    <Shield className="inline h-3.5 w-3.5 mr-1 align-text-bottom opacity-70" />
+                                                    Get a direct login link sent straight to your inbox.
+                                                </p>
+                                            </form>
+                                        )}
+                                    </div>
                                 )}
                             </Card>
                         </div>

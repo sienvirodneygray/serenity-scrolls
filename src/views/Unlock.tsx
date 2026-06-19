@@ -50,7 +50,8 @@ const Unlock = () => {
                     });
 
                     if (!error) {
-                        router.push("/servant");
+                        const redirectTo = params.get("redirect_to") || "/servant";
+                        router.push(redirectTo);
                     } else {
                         router.replace("/unlock");
                         toast({

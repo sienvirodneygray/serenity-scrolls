@@ -19,7 +19,7 @@ serve(async (req) => {
   try {
     console.log("[send-magic-link] Function started");
 
-    const { email, origin } = await req.json();
+    const { email, origin, redirectTo } = await req.json();
     
     if (!email) {
       throw new Error("Email is required");
@@ -51,7 +51,7 @@ serve(async (req) => {
     }
 
     // The direct custom link the user will click
-    const accessLink = `${origin || "https://serenityscrollsservant.com"}/unlock?magic_token=${token}`;
+    const accessLink = `${origin || "https://serenityscrollsservant.com"}/unlock?magic_token=${token}${redirectTo ? `&redirect_to=${encodeURIComponent(redirectTo)}` : ""}`;
 
     const emailResponse = await resend.emails.send({
       from: "Serenity Scrolls <noreply@serenityscrolls.faith>",
