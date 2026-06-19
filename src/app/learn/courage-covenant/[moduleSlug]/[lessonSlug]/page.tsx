@@ -154,7 +154,7 @@ export default function LessonPlayer({ params }: Props) {
   const completedCount = completedLessons.size;
 
   const isModuleUnlocked = useCallback((modId: string) => {
-    if (isAdmin || enrolled) return true;
+    if (isAdmin) return true;
     const currentModIdx = modules.findIndex(m => m.id === modId);
     if (currentModIdx <= 0) return true;
     for (let i = 0; i < currentModIdx; i++) {
@@ -163,7 +163,7 @@ export default function LessonPlayer({ params }: Props) {
       if (!allCompleted) return false;
     }
     return true;
-  }, [modules, completedLessons, isAdmin, enrolled]);
+  }, [modules, completedLessons, isAdmin]);
 
   const currentMod = currentLesson ? modules.find(m => m.course_lessons.some(l => l.id === currentLesson.id)) : null;
   const currentLessonUnlocked = currentLesson
@@ -203,6 +203,14 @@ export default function LessonPlayer({ params }: Props) {
             <div className="h-full bg-primary rounded-full transition-all" style={{ width: totalLessons > 0 ? `${(completedCount / totalLessons) * 100}%` : "0%" }} />
           </div>
         </div>
+
+        {/* Sequential unlock info banner */}
+        {enrolled && !isAdmin && completedCount < totalLessons && (
+          <div className="px-4 py-2.5 bg-amber-500/10 border-b border-border text-[11px] text-amber-600 dark:text-amber-400 font-medium leading-normal flex items-start gap-2">
+            <span className="text-amber-500">💡</span>
+            <span>Modules unlock sequentially. Mark lessons as complete to progress.</span>
+          </div>
+        )}
 
         {/* Module/lesson tree */}
         <nav className="flex-1 overflow-y-auto py-2">
