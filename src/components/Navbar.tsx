@@ -66,7 +66,7 @@ export const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
-          {pathname !== "/beta" ? (
+          {pathname !== "/beta" && pathname !== "/beta-course" ? (
             <>
               <Button variant="ghost" asChild>
                 <Link href="/reflection-journal">Journal</Link>
@@ -83,7 +83,7 @@ export const Navbar = () => {
             </>
           ) : (
             <span className="text-sm font-semibold text-primary px-3 py-1.5 bg-primary/10 rounded-full flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 animate-pulse" /> Beta Program
+              <Sparkles className="w-4 h-4 animate-pulse" /> {pathname === "/beta-course" ? "Beta Course Program" : "Beta Program"}
             </span>
           )}
           <Button variant="ghost" asChild>
@@ -93,7 +93,7 @@ export const Navbar = () => {
             <Link href="/contact">Contact</Link>
           </Button>
 
-          {pathname !== "/beta" && (
+          {pathname !== "/beta" && pathname !== "/beta-course" && (
             <Button variant="ghost" className="relative px-2" asChild>
               <Link href="/cart">
                 <ShoppingCart className="h-5 w-5" />

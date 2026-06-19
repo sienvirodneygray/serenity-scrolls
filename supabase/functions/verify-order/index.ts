@@ -232,8 +232,9 @@ serve(async (req) => {
         }
 
         const cleanOrderId = orderId.trim();
-        const promoCodes = ["SERVANT2026", "SSBETA2026"];
+        const promoCodes = ["SERVANT2026", "SSBETA2026", "COVENANT2026"];
         const isPromoCode = promoCodes.includes(cleanOrderId.toUpperCase());
+        const isCourseBeta = cleanOrderId.toUpperCase() === "COVENANT2026";
         const finalOrderId = isPromoCode ? `PROMO-${cleanOrderId.toUpperCase()}` : cleanOrderId;
 
         const isInternalOrder = cleanOrderId.startsWith("SS-");
@@ -423,16 +424,50 @@ serve(async (req) => {
 
         // Update profile with access
         if (userId) {
+            const profileUpdate: any = {
+                id: userId,
+                email: email.toLowerCase(),
+            };
+            if (!isCourseBeta) {
+                profileUpdate.has_access = true;
+                profileUpdate.access_granted_at = now.toISOString();
+                profileUpdate.access_expires_at = expiresAt.toISOString();
+                profileUpdate.subscription_status = "trial";
+            }
             await supabase
                 .from("profiles")
-                .upsert({
-                    id: userId,
-                    email: email.toLowerCase(),
-                    has_access: true,
-                    access_granted_at: now.toISOString(),
-                    access_expires_at: expiresAt.toISOString(),
-                    subscription_status: "trial",
-                });
+                .upsert(profileUpdate);
+        }
+
+        // If it's the course beta, enroll user in Courage Covenant
+        if (isCourseBeta && userId) {
+            const { data: courseData } = await supabase
+                .from("courses")
+                .select("id")
+                .eq("slug", "courage-covenant")
+                .maybeSingle();
+
+            if (courseData?.id) {
+                const { error: enrollError } = await supabase
+                    .from("course_enrollments")
+                    .upsert({
+                        user_id: userId,
+                        course_id: courseData.id,
+                        stripe_session_id: `PROMO-${cleanOrderId.toUpperCase()}`,
+                        stripe_payment_intent_id: null,
+                        amount_paid_cents: 0,
+                        track: "parent",
+                        enrolled_at: now.toISOString(),
+                    }, { onConflict: "user_id,course_id", ignoreDuplicates: true });
+
+                if (enrollError) {
+                    console.error("Failed to enroll promo user in course:", enrollError);
+                } else {
+                    console.log(`Enrolled promo user ${userId} in course ${courseData.id}`);
+                }
+            } else {
+                console.error("Could not find course with slug 'courage-covenant' in database.");
+            }
         }
 
         // Generate a magic link for passwordless login
@@ -515,19 +550,30 @@ Redeemed At: ${now.toUTCString()}
 
                 // ── Send Welcome Email to the User ──────────────────────────────────
                 const isPromo = verificationMethod === "promo-code";
-                const welcomeSubject = isPromo 
+                const isCourseBeta = cleanOrderId.toUpperCase() === "COVENANT2026";
+                const welcomeSubject = isCourseBeta
+                    ? "Welcome to Courage Covenant™ Course Beta! 🎓"
+                    : isPromo 
                     ? "Your Serenity Scrolls Beta Access is Active! 🌿" 
                     : "Your Serenity Scrolls Access is Active! 🎉";
-                const welcomeHeadline = isPromo
+                const welcomeHeadline = isCourseBeta
+                    ? "Welcome to the Courage Covenant™ Course! 🎓"
+                    : isPromo
                     ? "Welcome to Serenity Scrolls Servant! 🌿"
                     : "Your Access Has Been Activated! 🎉";
-                const welcomeIntro = isPromo
+                const welcomeIntro = isCourseBeta
+                    ? "Thank you for joining our exclusive beta course program! Your access to the Courage Covenant™ Course is now fully active."
+                    : isPromo
                     ? "Thank you for joining our exclusive beta program! Your access to the AI Scripture Companion is now fully active."
                     : "Thank you for your purchase! Your access to the AI Scripture Companion has been verified and is now fully active.";
-                const accessPeriodLabel = isPromo
+                const accessPeriodLabel = isCourseBeta
+                    ? "🗓️ Access Period: Full Course Beta"
+                    : isPromo
                     ? `🗓️ Access Period: ${trialDays} Days (Beta Trial)`
                     : `🗓️ Access Period: ${trialDays} Days`;
-                const welcomeClosing = isPromo
+                const welcomeClosing = isCourseBeta
+                    ? "We are excited to have you shape the future of the Courage Covenant course. If you have any feedback or encounter issues, please reply directly to this email."
+                    : isPromo
                     ? "We are excited to have you shape the future of Serenity Scrolls. If you have any feedback or encounter issues, please reply directly to this email."
                     : "We are excited to walk alongside you. If you have any feedback or encounter issues, please reply directly to this email.";
 

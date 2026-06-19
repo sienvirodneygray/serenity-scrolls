@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import ReactMarkdown from "react-markdown";
+import { Lock } from "lucide-react";
 
 interface Lesson {
   id: string;
@@ -43,6 +44,7 @@ export default function LessonPlayer({ params }: Props) {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
   const [enrolled, setEnrolled] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [marking, setMarking] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -87,7 +89,7 @@ export default function LessonPlayer({ params }: Props) {
         setCurrentLesson(lesson);
       }
 
-      // Check enrollment
+      // Check enrollment and admin status
       if (user) {
         const { data: enrollment } = await supabase
           .from("course_enrollments")
@@ -95,7 +97,17 @@ export default function LessonPlayer({ params }: Props) {
           .eq("user_id", user.id)
           .eq("course_id", course.id)
           .maybeSingle();
-        setEnrolled(!!enrollment);
+
+        const { data: userRole } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+
+        const isUserAdmin = !!userRole;
+        setIsAdmin(isUserAdmin);
+        setEnrolled(!!enrollment || isUserAdmin);
 
         // Fetch progress
         const { data: progress } = await supabase
@@ -141,6 +153,33 @@ export default function LessonPlayer({ params }: Props) {
   const totalLessons = modules.flatMap(m => m.course_lessons).length;
   const completedCount = completedLessons.size;
 
+  const isModuleUnlocked = useCallback((modId: string) => {
+    if (isAdmin) return true;
+    const currentModIdx = modules.findIndex(m => m.id === modId);
+    if (currentModIdx <= 0) return true;
+    for (let i = 0; i < currentModIdx; i++) {
+      const prevMod = modules[i];
+      const allCompleted = prevMod.course_lessons.every(l => completedLessons.has(l.id));
+      if (!allCompleted) return false;
+    }
+    return true;
+  }, [modules, completedLessons, isAdmin]);
+
+  const currentMod = currentLesson ? modules.find(m => m.course_lessons.some(l => l.id === currentLesson.id)) : null;
+  const currentLessonUnlocked = currentLesson
+    ? (currentLesson.is_free_preview || isAdmin || (enrolled && currentMod && isModuleUnlocked(currentMod.id)))
+    : false;
+
+  const isLockedByEnrollment = currentLesson ? (!currentLesson.is_free_preview && !enrolled && !isAdmin) : false;
+
+  const firstIncompleteMod = modules.find(mod => {
+    const currentModIdx = modules.findIndex(m => m.id === mod.id);
+    const targetModIdx = currentMod ? modules.findIndex(m => m.id === currentMod.id) : -1;
+    if (currentModIdx >= targetModIdx) return false;
+    return !mod.course_lessons.every(l => completedLessons.has(l.id));
+  });
+  const firstIncompleteLesson = firstIncompleteMod?.course_lessons.find(l => !completedLessons.has(l.id));
+
   return (
     <div className="min-h-screen bg-background text-foreground font-['Vilonti'] flex">
 
@@ -167,37 +206,43 @@ export default function LessonPlayer({ params }: Props) {
 
         {/* Module/lesson tree */}
         <nav className="flex-1 overflow-y-auto py-2">
-          {modules.map((mod) => (
-            <div key={mod.id} className="mb-1">
-              <div className="px-4 py-2 text-xs font-bold text-primary uppercase tracking-wide">{mod.title}</div>
-              {mod.course_lessons.map((lesson) => {
-                const isActive = lesson.slug === lessonSlug;
-                const isDone = completedLessons.has(lesson.id);
-                const canAccess = lesson.is_free_preview || enrolled;
-                return (
-                  <div key={lesson.id}>
-                    {canAccess ? (
-                      <Link
-                        href={`/learn/${courseSlug}/${mod.slug}/${lesson.slug}`}
-                        className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${isActive ? "bg-primary/10 text-foreground border-l-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
-                      >
-                        <span className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center text-xs ${isDone ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground"}`}>
-                          {isDone ? "✓" : ""}
-                        </span>
-                        <span className="flex-1 line-clamp-1">{lesson.title}</span>
-                        <span className="text-xs text-primary">{lesson.duration_minutes}m</span>
-                      </Link>
-                    ) : (
-                      <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground opacity-60 cursor-not-allowed">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full border border-border flex items-center justify-center text-xs">🔒</span>
-                        <span className="flex-1 line-clamp-1">{lesson.title}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+          {modules.map((mod) => {
+            const isModUnlocked = isModuleUnlocked(mod.id);
+            return (
+              <div key={mod.id} className="mb-1">
+                <div className="px-4 py-2 text-xs font-bold text-primary uppercase tracking-wide flex items-center justify-between">
+                  <span>{mod.title}</span>
+                  {!isModUnlocked && <Lock className="w-3 h-3 text-muted-foreground/50" />}
+                </div>
+                {mod.course_lessons.map((lesson) => {
+                  const isActive = lesson.slug === lessonSlug;
+                  const isDone = completedLessons.has(lesson.id);
+                  const canAccess = lesson.is_free_preview || isAdmin || (enrolled && isModUnlocked);
+                  return (
+                    <div key={lesson.id}>
+                      {canAccess ? (
+                        <Link
+                          href={`/learn/${courseSlug}/${mod.slug}/${lesson.slug}`}
+                          className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${isActive ? "bg-primary/10 text-foreground border-l-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/30"}`}
+                        >
+                          <span className={`flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center text-xs ${isDone ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground"}`}>
+                            {isDone ? "✓" : ""}
+                          </span>
+                          <span className="flex-1 line-clamp-1">{lesson.title}</span>
+                          <span className="text-xs text-primary">{lesson.duration_minutes}m</span>
+                        </Link>
+                      ) : (
+                        <div className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground/60 cursor-not-allowed">
+                          <Lock className="flex-shrink-0 w-4 h-4 text-muted-foreground/45" />
+                          <span className="flex-1 line-clamp-1">{lesson.title}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </nav>
       </aside>
 
@@ -221,67 +266,118 @@ export default function LessonPlayer({ params }: Props) {
         <div className="flex-1 flex bg-background">
           <div className="flex-1 max-w-3xl mx-auto px-6 py-10 w-full">
             {currentLesson ? (
-              <>
-                {/* Escalation badge */}
-                {escalation && (
-                  <div className="mb-6 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: escalation.bg, border: `1px solid ${escalation.border}`, color: escalation.color }}>
-                    {escalation.label}
-                    {currentLesson.escalation_level === "red" && (
-                      <p className="mt-1 text-xs font-normal opacity-80">If you are in an emergency situation, contact appropriate authorities immediately. Do not rely on this course.</p>
-                    )}
-                  </div>
-                )}
+              currentLessonUnlocked ? (
+                <>
+                  {/* Escalation badge */}
+                  {escalation && (
+                    <div className="mb-6 px-4 py-3 rounded-xl text-sm font-semibold" style={{ background: escalation.bg, border: `1px solid ${escalation.border}`, color: escalation.color }}>
+                      {escalation.label}
+                      {currentLesson.escalation_level === "red" && (
+                        <p className="mt-1 text-xs font-normal opacity-80">If you are in an emergency situation, contact appropriate authorities immediately. Do not rely on this course.</p>
+                      )}
+                    </div>
+                  )}
 
-                {/* Video embed */}
-                {currentLesson.video_url && (
-                  <div className="mb-8 rounded-2xl overflow-hidden aspect-video bg-black shadow-card relative flex items-center justify-center group">
-                    {currentLesson.video_url === 'placeholder' ? (
-                      <div className="text-center p-6 text-white/50">
-                        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                          <svg className="w-8 h-8 text-white/70 group-hover:text-primary transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                  {/* Video embed */}
+                  {currentLesson.video_url && (
+                    <div className="mb-8 rounded-2xl overflow-hidden aspect-video bg-black shadow-card relative flex items-center justify-center group">
+                      {currentLesson.video_url === 'placeholder' ? (
+                        <div className="text-center p-6 text-white/50">
+                          <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                            <svg className="w-8 h-8 text-white/70 group-hover:text-primary transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                          </div>
+                          <p className="font-semibold text-lg">Lesson Video Placeholder</p>
+                          <p className="text-sm opacity-70">The final video for "{currentLesson.title}" will be embedded here.</p>
                         </div>
-                        <p className="font-semibold text-lg">Lesson Video Placeholder</p>
-                        <p className="text-sm opacity-70">The final video for "{currentLesson.title}" will be embedded here.</p>
-                      </div>
-                    ) : (
-                      <iframe src={currentLesson.video_url} className="w-full h-full absolute inset-0" allow="autoplay; fullscreen" allowFullScreen />
-                    )}
-                  </div>
-                )}
+                      ) : (
+                        <iframe src={currentLesson.video_url} className="w-full h-full absolute inset-0" allow="autoplay; fullscreen" allowFullScreen />
+                      )}
+                    </div>
+                  )}
 
-                <h1 className="text-3xl font-bold text-foreground mb-6">{currentLesson.title}</h1>
-                <div className="prose dark:prose-invert prose-purple max-w-none prose-p:leading-relaxed prose-p:mb-4">
-                  <ReactMarkdown>
-                    {currentLesson.content_body || ""}
-                  </ReactMarkdown>
+                  <h1 className="text-3xl font-bold text-foreground mb-6">{currentLesson.title}</h1>
+                  <div className="prose dark:prose-invert prose-purple max-w-none prose-p:leading-relaxed prose-p:mb-4">
+                    <ReactMarkdown>
+                      {currentLesson.content_body || ""}
+                    </ReactMarkdown>
+                  </div>
+
+                  {/* Free preview upsell */}
+                  {currentLesson.is_free_preview && !enrolled && (
+                    <div className="mt-10 p-6 rounded-2xl border border-primary/40 bg-primary/5 text-center shadow-soft">
+                      <p className="text-foreground font-semibold mb-2">You're viewing a free preview.</p>
+                      <p className="text-muted-foreground text-sm mb-4">Enroll to access all 32 lessons, worksheets, scripts, and AI Servant integration.</p>
+                      <Link href={`/learn/${courseSlug}#pricing`} className="inline-block px-6 py-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold transition-all shadow-glow">
+                        Enroll Now — from $97
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Complete button */}
+                  {(enrolled || currentLesson.is_free_preview) && (
+                    <div className="mt-10 pt-8 border-t border-border flex items-center justify-between">
+                      <button
+                        id="mark-complete-btn"
+                        onClick={markComplete}
+                        disabled={isCompleted || marking}
+                        className={`px-6 py-3 rounded-full font-bold transition-all ${isCompleted ? "bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 cursor-default" : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow"}`}
+                      >
+                        {isCompleted ? "✓ Completed" : marking ? "Saving..." : "Mark Complete & Continue →"}
+                      </button>
+                      <span className="text-xs text-primary">{currentLesson.duration_minutes} min lesson</span>
+                    </div>
+                  )}
+                </>
+              ) : isLockedByEnrollment ? (
+                /* ENROLLMENT LOCK SCREEN */
+                <div className="flex flex-col items-center justify-center text-center py-16 px-4">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 border border-primary/20 shadow-glow">
+                    <Lock className="w-8 h-8 text-primary" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-foreground mb-3 font-['Vilonti']">Enroll to Unlock</h2>
+                  <p className="text-muted-foreground max-w-md mb-8 text-sm">
+                    This lesson is part of the premium Courage Covenant™ course. Enroll today to access all 32 lessons, worksheets, scripts, and AI Servant integration.
+                  </p>
+                  <Link 
+                    href={`/learn/${courseSlug}#pricing`}
+                    className="inline-flex items-center justify-center px-8 py-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-base font-bold transition-all shadow-glow"
+                  >
+                    Enroll Now — from $97
+                  </Link>
                 </div>
-
-                {/* Free preview upsell */}
-                {currentLesson.is_free_preview && !enrolled && (
-                  <div className="mt-10 p-6 rounded-2xl border border-primary/40 bg-primary/5 text-center shadow-soft">
-                    <p className="text-foreground font-semibold mb-2">You're viewing a free preview.</p>
-                    <p className="text-muted-foreground text-sm mb-4">Enroll to access all 32 lessons, worksheets, scripts, and AI Servant integration.</p>
-                    <Link href={`/learn/${courseSlug}#pricing`} className="inline-block px-6 py-3 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold transition-all shadow-glow">
-                      Enroll Now — from $97
-                    </Link>
+              ) : (
+                /* SEQUENTIAL MODULE LOCK SCREEN */
+                <div className="flex flex-col items-center justify-center text-center py-16 px-4">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 border border-primary/20 shadow-glow">
+                    <Lock className="w-8 h-8 text-primary" />
                   </div>
-                )}
-
-                {/* Complete button */}
-                {(enrolled || currentLesson.is_free_preview) && (
-                  <div className="mt-10 pt-8 border-t border-border flex items-center justify-between">
-                    <button
-                      id="mark-complete-btn"
-                      onClick={markComplete}
-                      disabled={isCompleted || marking}
-                      className={`px-6 py-3 rounded-full font-bold transition-all ${isCompleted ? "bg-green-500/10 border border-green-500/20 text-green-600 dark:text-green-400 cursor-default" : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-glow"}`}
+                  <h2 className="text-2xl font-bold text-foreground mb-3 font-['Vilonti']">Module Locked</h2>
+                  <p className="text-muted-foreground max-w-md mb-8 text-sm">
+                    To keep the learning experience structured and effective, you need to complete all previous modules before moving forward.
+                  </p>
+                  
+                  {firstIncompleteMod && firstIncompleteLesson ? (
+                    <div className="bg-card border border-border p-6 rounded-2xl max-w-md w-full shadow-soft mb-8">
+                      <p className="text-xs text-primary font-bold uppercase tracking-wider mb-2">Next Step Needed</p>
+                      <h4 className="font-semibold text-foreground mb-1 text-sm">Finish preceding module:</h4>
+                      <p className="text-sm text-muted-foreground mb-4">{firstIncompleteMod.title}</p>
+                      <Link 
+                        href={`/learn/${courseSlug}/${firstIncompleteMod.slug}/${firstIncompleteLesson.slug}`}
+                        className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold transition-all shadow-glow"
+                      >
+                        Resume Learning: {firstIncompleteLesson.title} →
+                      </Link>
+                    </div>
+                  ) : (
+                    <Link 
+                      href={`/learn/${courseSlug}`}
+                      className="inline-flex items-center justify-center px-6 py-2.5 rounded-full border border-primary text-primary hover:bg-primary/10 text-sm font-semibold transition-all"
                     >
-                      {isCompleted ? "✓ Completed" : marking ? "Saving..." : "Mark Complete & Continue →"}
-                    </button>
-                    <span className="text-xs text-primary">{currentLesson.duration_minutes} min lesson</span>
-                  </div>
-                )}
-              </>
+                      Go to Course Overview
+                    </Link>
+                  )}
+                </div>
+              )
             ) : (
               <div className="text-center text-primary py-20">Lesson not found.</div>
             )}
