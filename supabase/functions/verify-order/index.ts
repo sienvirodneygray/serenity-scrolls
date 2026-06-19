@@ -342,6 +342,19 @@ serve(async (req) => {
         if (existingRequest) {
             // Same email checking back - return existing access and auto-login token
             if (existingRequest.email === email.toLowerCase() && existingRequest.status === "approved") {
+                // Check if the request's access window has expired
+                const expiresAt = existingRequest.access_expires_at ? new Date(existingRequest.access_expires_at) : null;
+                const isExpired = expiresAt && expiresAt < new Date();
+                
+                if (isExpired) {
+                    return new Response(
+                        JSON.stringify({
+                            error: "Your trial access for this purchase has expired.",
+                            hint: "If you'd like to continue using the Servant, please subscribe to an active plan."
+                        }),
+                        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                    );
+                }
                 // Find or create user profile
                 const { data: existingProfile } = await supabase
                     .from("profiles")

@@ -335,6 +335,18 @@ serve(async (req) => {
     // Also revokes has_access
     // ══════════════════════════════════════════════════════════════════════
     if (!body.test_stage || body.test_stage === "expiry") {
+      // 1. Bulk revoke has_access for ALL expired users who still have access in the database
+      const { error: bulkRevokeError } = await supabase
+        .from("profiles")
+        .update({ has_access: false, subscription_status: "expired" })
+        .eq("has_access", true)
+        .lt("access_expires_at", now.toISOString())
+        .or("subscription_status.is.null,subscription_status.eq.trial,subscription_status.eq.none,subscription_status.eq.cancelled");
+
+      if (bulkRevokeError) {
+        console.error("Bulk revocation failed in send-subscription-offers:", bulkRevokeError);
+      }
+
       const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
 
       const { data: usersExp } = await supabase
