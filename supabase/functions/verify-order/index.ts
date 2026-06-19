@@ -577,6 +577,13 @@ Redeemed At: ${now.toUTCString()}
                     ? "We are excited to have you shape the future of Serenity Scrolls. If you have any feedback or encounter issues, please reply directly to this email."
                     : "We are excited to walk alongside you. If you have any feedback or encounter issues, please reply directly to this email.";
 
+                const accessLink = isCourseBeta
+                    ? "https://serenityscrolls.faith/learn/courage-covenant"
+                    : "https://serenityscrolls.faith/servant";
+                const accessButtonText = isCourseBeta
+                    ? "Go to the Course"
+                    : "Go to Scripture Companion";
+
                 const userHtml = `
                 <div style="font-family:'Helvetica Neue',Arial,sans-serif;max-width:520px;margin:0 auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
                   <div style="background:#4f46e5;padding:24px;text-align:center;">
@@ -585,6 +592,12 @@ Redeemed At: ${now.toUTCString()}
                   <div style="padding:24px;color:#374151;font-size:15px;line-height:1.6;">
                     <p>Hello,</p>
                     <p>${welcomeIntro}</p>
+                    
+                    <div style="text-align:center;margin:24px 0;">
+                      <a href="${accessLink}" style="background-color:#4f46e5;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                        ${accessButtonText}
+                      </a>
+                    </div>
                     
                     <div style="background:#f3f4f6;border-radius:8px;padding:16px;margin:20px 0;border-left:4px solid #4f46e5;">
                       <p style="margin:0;font-weight:600;color:#111827;">${accessPeriodLabel}</p>
@@ -610,6 +623,8 @@ Redeemed At: ${now.toUTCString()}
 ${welcomeHeadline}
 
 ${welcomeIntro}
+
+👉 Access Link: ${accessLink}
 
 ${accessPeriodLabel}
 Your trial is set to run through ${expiryStr}.

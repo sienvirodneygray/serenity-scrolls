@@ -81,7 +81,7 @@ const courseModules = [
 
 const BetaCourseLanding = () => {
     const [email, setEmail] = useState("");
-    const [accessCode, setAccessCode] = useState("COVENANT2026");
+    const [accessCode, setAccessCode] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
     const [errorMessage, setErrorMessage] = useState("");
