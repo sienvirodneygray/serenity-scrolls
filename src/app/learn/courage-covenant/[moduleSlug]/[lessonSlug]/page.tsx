@@ -154,7 +154,7 @@ export default function LessonPlayer({ params }: Props) {
   const completedCount = completedLessons.size;
 
   const isModuleUnlocked = useCallback((modId: string) => {
-    if (isAdmin) return true;
+    if (isAdmin || enrolled) return true;
     const currentModIdx = modules.findIndex(m => m.id === modId);
     if (currentModIdx <= 0) return true;
     for (let i = 0; i < currentModIdx; i++) {
@@ -163,7 +163,7 @@ export default function LessonPlayer({ params }: Props) {
       if (!allCompleted) return false;
     }
     return true;
-  }, [modules, completedLessons, isAdmin]);
+  }, [modules, completedLessons, isAdmin, enrolled]);
 
   const currentMod = currentLesson ? modules.find(m => m.course_lessons.some(l => l.id === currentLesson.id)) : null;
   const currentLessonUnlocked = currentLesson
