@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, Loader2, BookOpen, HelpCircle, Sparkles, Mail, ArrowLeft } from "lucide-react";
+import { CheckCircle, Loader2, BookOpen, HelpCircle, Sparkles, Mail, ArrowLeft, GraduationCap } from "lucide-react";
 import logo from "@/assets/logo.png";
 import Link from "next/link";
 
@@ -22,6 +22,9 @@ const Unlock = () => {
     const [daysRemaining, setDaysRemaining] = useState(30);
     const [mode, setMode] = useState<PageMode>("new");
     const [checkingSession, setCheckingSession] = useState(true);
+    const [hasAppAccess, setHasAppAccess] = useState(false);
+    const [hasCourseAccess, setHasCourseAccess] = useState(false);
+    const [showChoice, setShowChoice] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -34,6 +37,66 @@ const Unlock = () => {
         if (prefillEmail) setEmail(prefillEmail);
     }, [searchParams]);
 
+    const determineAccessAndRedirect = async (userId: string) => {
+        try {
+            // 1. Check profile companion app access
+            const { data: profile } = await supabase
+                .from("profiles")
+                .select("has_access, access_expires_at, subscription_status")
+                .eq("id", userId)
+                .maybeSingle();
+
+            const appAccess = !!profile?.has_access && !(
+                profile.access_expires_at &&
+                new Date(profile.access_expires_at) < new Date() &&
+                profile.subscription_status !== "active"
+            );
+
+            // 2. Check course enrollment access
+            const { data: course } = await supabase
+                .from("courses")
+                .select("id")
+                .eq("slug", "courage-covenant")
+                .maybeSingle();
+
+            let courseAccess = false;
+            if (course) {
+                const { data: enrollment } = await supabase
+                    .from("course_enrollments")
+                    .select("id")
+                    .eq("user_id", userId)
+                    .eq("course_id", course.id)
+                    .maybeSingle();
+
+                const { data: userRole } = await supabase
+                    .from("user_roles")
+                    .select("role")
+                    .eq("user_id", userId)
+                    .eq("role", "admin")
+                    .maybeSingle();
+
+                courseAccess = !!enrollment || !!userRole;
+            }
+
+            setHasAppAccess(appAccess);
+            setHasCourseAccess(courseAccess);
+
+            if (appAccess && courseAccess) {
+                setShowChoice(true);
+                setCheckingSession(false);
+            } else if (appAccess) {
+                router.push("/servant");
+            } else if (courseAccess) {
+                router.push("/learn/courage-covenant/what-actually-happened/conflict-vs-bullying");
+            } else {
+                setCheckingSession(false);
+            }
+        } catch (e) {
+            console.error("Error determining access:", e);
+            setCheckingSession(false);
+        }
+    };
+
     // Handle custom magic token from branded email login
     useEffect(() => {
         const handleMagicToken = async () => {
@@ -44,14 +107,18 @@ const Unlock = () => {
             if (token) {
                 setCheckingSession(true);
                 try {
-                    const { error } = await supabase.auth.verifyOtp({
+                    const { error, data } = await supabase.auth.verifyOtp({
                         type: "magiclink",
                         token_hash: token,
                     });
 
-                    if (!error) {
-                        const redirectTo = params.get("redirect_to") || "/servant";
-                        router.push(redirectTo);
+                    if (!error && data?.user) {
+                        const explicitRedirect = params.get("redirect_to");
+                        if (explicitRedirect) {
+                            router.push(explicitRedirect);
+                        } else {
+                            await determineAccessAndRedirect(data.user.id);
+                        }
                     } else {
                         router.replace("/unlock");
                         toast({
@@ -59,11 +126,12 @@ const Unlock = () => {
                             description: "Your login link has expired or is invalid. Please request a new one.",
                             variant: "destructive",
                         });
+                        setCheckingSession(false);
                     }
                 } catch (e) {
                     router.replace("/unlock");
+                    setCheckingSession(false);
                 }
-                setCheckingSession(false);
             }
         };
         handleMagicToken();
@@ -72,30 +140,21 @@ const Unlock = () => {
     // Auto-redirect if user already has an active session with access
     useEffect(() => {
         const checkExistingSession = async () => {
+            if (typeof window === 'undefined') return;
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get("magic_token");
+            if (token) return; // handled by magic token useEffect
+
             try {
                 const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    const { data: profile } = await supabase
-                        .from("profiles")
-                        .select("has_access, access_expires_at, subscription_status")
-                        .eq("id", session.user.id)
-                        .single();
-
-                    if (profile?.has_access) {
-                        const isExpired = profile.access_expires_at
-                            && new Date(profile.access_expires_at) < new Date()
-                            && profile.subscription_status !== "active";
-
-                        if (!isExpired) {
-                            router.push("/servant");
-                            return;
-                        }
-                    }
+                if (session?.user) {
+                    await determineAccessAndRedirect(session.user.id);
+                } else {
+                    setCheckingSession(false);
                 }
             } catch (e) {
-                // Silently continue to unlock page
+                setCheckingSession(false);
             }
-            setCheckingSession(false);
         };
         checkExistingSession();
     }, [router]);
@@ -226,6 +285,93 @@ const Unlock = () => {
             <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900 flex flex-col items-center justify-center gap-4">
                 <h1 className="text-2xl font-bold">Unlock Your Serenity Scrolls Access</h1>
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    if (showChoice) {
+        return (
+            <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900 flex items-center justify-center px-4 py-8">
+                <div className="w-full max-w-2xl">
+                    {/* Logo + Header */}
+                    <div className="text-center mb-8">
+                        <div className="flex justify-center mb-4">
+                            <img src={logo.src} alt="Serenity Scrolls" className="h-16 w-auto" />
+                        </div>
+                        <h1 className="text-3xl font-bold mb-2 font-['Vilonti'] bg-gradient-to-r from-[hsl(var(--grateful))] via-[hsl(var(--primary))] to-[hsl(var(--anxious))] bg-clip-text text-transparent">
+                            Welcome Back
+                        </h1>
+                        <p className="text-sm text-muted-foreground mt-2">
+                            Your account has access to multiple experiences. Choose where you'd like to go:
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Option 1: AI Scripture Companion */}
+                        <Card className="hover:shadow-2xl transition-all duration-300 border-border/80 bg-card/90 backdrop-blur-md flex flex-col h-full group hover:border-amber-500/50">
+                            <CardHeader className="text-center pb-2 flex-grow">
+                                <div className="mx-auto mb-4 w-14 h-14 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Sparkles className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                                </div>
+                                <CardTitle className="text-xl font-bold font-['Vilonti'] text-amber-700 dark:text-amber-400">
+                                    Scripture Companion
+                                </CardTitle>
+                                <CardDescription className="text-sm mt-2 min-h-[48px]">
+                                    Interact with your scrolls, write reflections, and seek guidance from the AI Servant.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-2 flex flex-col gap-3">
+                                <Button 
+                                    onClick={() => router.push("/servant")} 
+                                    className="w-full bg-amber-600 hover:bg-amber-700 text-white font-medium shadow-md shadow-amber-500/10"
+                                    size="lg"
+                                >
+                                    <Sparkles className="w-4 h-4 mr-2" />
+                                    Open Companion
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        {/* Option 2: Courage Covenant™ Course */}
+                        <Card className="hover:shadow-2xl transition-all duration-300 border-border/80 bg-card/90 backdrop-blur-md flex flex-col h-full group hover:border-blue-500/50">
+                            <CardHeader className="text-center pb-2 flex-grow">
+                                <div className="mx-auto mb-4 w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <GraduationCap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <CardTitle className="text-xl font-bold font-['Vilonti'] text-blue-700 dark:text-blue-400">
+                                    Courage Covenant™
+                                </CardTitle>
+                                <CardDescription className="text-sm mt-2 min-h-[48px]">
+                                    Navigate conflict, emotional validation, and biblical boundaries in our 8-module curriculum.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pt-2 flex flex-col gap-3">
+                                <Button 
+                                    onClick={() => router.push("/learn/courage-covenant/what-actually-happened/conflict-vs-bullying")} 
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-md shadow-blue-500/10"
+                                    size="lg"
+                                >
+                                    <GraduationCap className="w-4 h-4 mr-2" />
+                                    Resume Course
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Footer / Sign Out option */}
+                    <div className="text-center mt-8 space-y-2">
+                        <button
+                            onClick={async () => {
+                                await supabase.auth.signOut();
+                                setShowChoice(false);
+                                router.refresh();
+                            }}
+                            className="text-sm text-muted-foreground hover:text-foreground underline transition-colors"
+                        >
+                            Sign out of this account
+                        </button>
+                    </div>
+                </div>
             </div>
         );
     }
