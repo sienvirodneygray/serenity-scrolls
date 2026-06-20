@@ -49,6 +49,7 @@ export default function LessonPlayer({ params }: Props) {
   const [marking, setMarking] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [aiPanel, setAiPanel] = useState(false);
+  const [reflection, setReflection] = useState("");
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -393,27 +394,37 @@ export default function LessonPlayer({ params }: Props) {
 
           {/* AI SERVANT PANEL */}
           {aiPanel && (
-            <aside className="w-80 border-l border-border bg-card flex flex-col p-4">
-              <div className="flex items-center justify-between mb-4">
+            <aside className="w-80 border-l border-border bg-card flex flex-col p-4 sticky top-[60px] h-[calc(100vh-60px)] self-start overflow-y-auto shrink-0 z-20">
+              <div className="flex items-center justify-between mb-4 shrink-0">
                 <p className="text-sm font-bold text-foreground">✨ AI Servant</p>
-                <button onClick={() => setAiPanel(false)} className="text-muted-foreground hover:text-foreground">✕</button>
+                <button onClick={() => setAiPanel(false)} className="text-muted-foreground hover:text-foreground font-semibold">✕</button>
               </div>
               {currentLesson?.escalation_level === "red" && (
-                <div className="mb-3 p-3 rounded-lg border border-destructive/20 bg-destructive/10 text-xs text-destructive">
+                <div className="mb-3 p-3 rounded-lg border border-destructive/20 bg-destructive/10 text-xs text-destructive shrink-0">
                   🔴 This lesson covers Red-level situations. If you or someone you know is in immediate danger, please contact emergency services. The AI Servant cannot provide crisis intervention.
                 </div>
               )}
-              <div className="text-xs text-muted-foreground mb-4 p-3 bg-muted/30 rounded-lg border border-border">
+              <div className="text-xs text-muted-foreground mb-4 p-3 bg-muted/30 rounded-lg border border-border shrink-0">
                 <p className="font-semibold text-foreground mb-1">Lesson Reflection Prompt:</p>
                 <p>{currentLesson ? `You're on: "${currentLesson.title}". What emotion came up for you in this lesson?` : "What are you reflecting on today?"}</p>
               </div>
+              
+              <div className="flex-1 flex flex-col min-h-[140px] mb-4 shrink-0">
+                <textarea
+                  className="w-full flex-1 p-3 text-xs rounded-xl border border-border bg-background text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary font-sans"
+                  placeholder="Type your reflection or answer here..."
+                  value={reflection}
+                  onChange={(e) => setReflection(e.target.value)}
+                />
+              </div>
+
               <Link
-                href={`/servant?context=courage-covenant&lesson=${currentLesson?.slug}`}
-                className="mt-auto px-4 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold text-center transition-all shadow-glow"
+                href={`/servant?context=courage-covenant&lesson=${currentLesson?.slug}&title=${encodeURIComponent(currentLesson?.title || "")}${reflection ? `&reflection=${encodeURIComponent(reflection)}` : ""}`}
+                className="mt-auto px-4 py-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold text-center transition-all shadow-glow shrink-0"
               >
-                Open Full AI Servant →
+                {reflection ? "Send Reflection to AI →" : "Open Full AI Servant →"}
               </Link>
-              <p className="text-center text-xs text-muted-foreground mt-3">The AI Servant is a reflection tool. It is not therapy or crisis support.</p>
+              <p className="text-center text-xs text-muted-foreground mt-3 shrink-0">The AI Servant is a reflection tool. It is not therapy or crisis support.</p>
             </aside>
           )}
         </div>

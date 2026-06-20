@@ -131,6 +131,14 @@ const Servant = () => {
     }
     if (profile.subscription_status === "active") setVersion("2.0");
 
+    const reflection = urlParams.get("reflection");
+    const lessonTitle = urlParams.get("title");
+    if (reflection && lessonTitle) {
+      setInput(`Regarding the lesson "${lessonTitle}", here is my reflection:\n\n"${reflection}"`);
+    } else if (lessonTitle) {
+      setInput(`I am studying the Courage Covenant lesson "${lessonTitle}". Let's reflect on it.`);
+    }
+
     const { data: chatMessages } = await supabase
       .from("chat_messages")
       .select("*")
