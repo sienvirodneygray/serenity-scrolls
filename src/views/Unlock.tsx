@@ -299,7 +299,7 @@ const Unlock = () => {
                             <img src={logo.src} alt="Serenity Scrolls" className="h-16 w-auto" />
                         </div>
                         <h1 className="text-3xl font-bold mb-2 font-['Vilonti'] bg-gradient-to-r from-[hsl(var(--grateful))] via-[hsl(var(--primary))] to-[hsl(var(--anxious))] bg-clip-text text-transparent">
-                            Welcome Back
+                            Your Account
                         </h1>
                         <p className="text-sm text-muted-foreground mt-2">
                             Your account has access to multiple experiences. Choose where you'd like to go:

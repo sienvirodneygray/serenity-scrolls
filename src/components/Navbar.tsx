@@ -153,7 +153,7 @@ export const Navbar = () => {
           {user ? (
             <>
               <Button variant="ghost" asChild>
-                <Link href="/servant">Your Servant</Link>
+                <Link href="/unlock">Your Account</Link>
               </Button>
               <Button variant="outline" onClick={handleSignOut}>
                 Sign Out
