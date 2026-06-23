@@ -309,39 +309,67 @@ export const BlogManagement = () => {
         </TabsList>
 
         <TabsContent value="posts" className="space-y-4">
-          <Card>
-            <CardHeader className="flex flex-col gap-4">
+          <Card className="border border-border/60 shadow-sm overflow-hidden">
+            <CardHeader className="flex flex-col gap-6">
               <div className="flex flex-row items-center justify-between">
-                <CardTitle>Website SEAL Generator</CardTitle>
-                <Button onClick={() => { setEditingPost(null); setFormData(initialFormData); setIsDialogOpen(true); }}>
+                <div>
+                  <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-indigo-500" />
+                    Website SEAL Generator
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Generate structured blog posts using AI or write them manually
+                  </p>
+                </div>
+                <Button onClick={() => { setEditingPost(null); setFormData(initialFormData); setIsDialogOpen(true); }} className="shadow-sm">
                   <Plus className="h-4 w-4 mr-2" />
                   New SEAL
                 </Button>
               </div>
               
-              <div className="flex flex-col gap-3 p-4 bg-muted/50 rounded-lg">
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <div className="flex-1">
-                    <Input
-                      placeholder="Enter a topic (e.g., 'finding joy in difficult times')..."
-                      value={generateTopic}
-                      onChange={(e) => setGenerateTopic(e.target.value)}
-                      disabled={isGenerating}
-                    />
+              <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-indigo-50/40 via-muted/30 to-background dark:from-indigo-950/20 dark:via-muted/5 dark:to-card p-5 shadow-inner">
+                {/* Visual Glow */}
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="relative z-10 space-y-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex-1">
+                      <Input
+                        placeholder="Enter a topic (e.g., 'finding joy in difficult times')..."
+                        value={generateTopic}
+                        onChange={(e) => setGenerateTopic(e.target.value)}
+                        disabled={isGenerating}
+                        className="bg-background/80 backdrop-blur-sm border-border/80 focus-visible:ring-indigo-500"
+                      />
+                    </div>
+                    <Button 
+                      onClick={generateBlog} 
+                      disabled={isGenerating} 
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shrink-0 transition-all hover:shadow-indigo-500/20"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Synthesizing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2 animate-pulse text-indigo-200" />
+                          Generate SEAL with AI
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  <Button onClick={generateBlog} disabled={isGenerating} variant="outline" className="shrink-0">
-                    {isGenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                    Generate SEAL with AI
-                  </Button>
+                  <Textarea
+                    placeholder="Additional context or keywords (optional)..."
+                    value={additionalContext}
+                    onChange={(e) => setAdditionalContext(e.target.value)}
+                    disabled={isGenerating}
+                    rows={2}
+                    className="text-sm bg-background/80 backdrop-blur-sm border-border/80 focus-visible:ring-indigo-500 resize-none"
+                  />
                 </div>
-                <Textarea
-                  placeholder="Additional context (optional)..."
-                  value={additionalContext}
-                  onChange={(e) => setAdditionalContext(e.target.value)}
-                  disabled={isGenerating}
-                  rows={2}
-                  className="text-sm"
-                />
               </div>
             </CardHeader>
 
@@ -357,49 +385,68 @@ export const BlogManagement = () => {
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Keywords</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="font-semibold text-foreground">Title</TableHead>
+                      <TableHead className="font-semibold text-foreground">Category</TableHead>
+                      <TableHead className="font-semibold text-foreground">Status</TableHead>
+                      <TableHead className="font-semibold text-foreground">Keywords</TableHead>
+                      <TableHead className="font-semibold text-foreground">Created</TableHead>
+                      <TableHead className="text-right font-semibold text-foreground">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {posts?.map((post) => {
                       const status = getPostStatus(post);
                       return (
-                        <TableRow key={post.id}>
-                          <TableCell className="font-medium max-w-[200px] truncate">{post.title}</TableCell>
-                          <TableCell className="capitalize">{post.category}</TableCell>
+                        <TableRow key={post.id} className="hover:bg-muted/40 transition-colors group">
+                          <TableCell className="font-medium max-w-[240px] truncate">{post.title}</TableCell>
+                          <TableCell className="capitalize">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground border border-border/30">
+                              {post.category}
+                            </span>
+                          </TableCell>
                           <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs ${status === "published" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"}`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                              status === "published" 
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60" 
+                                : "bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60"
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${status === "published" ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
                               {status === "published" ? "Published" : "Draft"}
                             </span>
                           </TableCell>
                           <TableCell className="max-w-[150px]">
                             {post.seo_keywords && post.seo_keywords.length > 0 ? (
-                              <span className="text-xs text-muted-foreground truncate block">
-                                {post.seo_keywords.slice(0, 2).join(", ")}
-                                {post.seo_keywords.length > 2 && ` +${post.seo_keywords.length - 2}`}
-                              </span>
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {post.seo_keywords.slice(0, 1).map((kw, i) => (
+                                  <span key={i} className="inline-flex text-[10px] bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900/50 px-1.5 py-0.5 rounded">
+                                    {kw}
+                                  </span>
+                                ))}
+                                {post.seo_keywords.length > 1 && (
+                                  <span className="text-[10px] text-muted-foreground font-semibold px-1">
+                                    +{post.seo_keywords.length - 1}
+                                  </span>
+                                )}
+                              </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
+                              <span className="text-xs text-muted-foreground/60">—</span>
                             )}
                           </TableCell>
-                          <TableCell>{format(new Date(post.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell className="text-muted-foreground text-xs">
+                            {format(new Date(post.created_at), "MMM d, yyyy")}
+                          </TableCell>
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button size="icon" variant="ghost" asChild>
+                            <div className="flex justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                              <Button size="icon" variant="ghost" className="h-8 w-8 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50" asChild>
                                 <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer">
                                   <Eye className="h-4 w-4" />
                                 </a>
                               </Button>
-                              <Button size="icon" variant="ghost" onClick={() => handleEdit(post)}>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50" onClick={() => handleEdit(post)}>
                                 <Pencil className="h-4 w-4" />
                               </Button>
-                              <Button size="icon" variant="ghost" onClick={() => { if (confirm("Delete this post?")) deleteMutation.mutate(post.id); }}>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50" onClick={() => { if (confirm("Delete this post?")) deleteMutation.mutate(post.id); }}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -488,17 +535,39 @@ export const BlogManagement = () => {
                   </div>
                 )}
                 {seoValidationResult && (
-                  <div className={`p-3 rounded-lg border ${seoValidationResult.valid ? "bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800" : "bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800"}`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      {seoValidationResult.valid ? <CheckCircle className="h-4 w-4 text-green-600" /> : <XCircle className="h-4 w-4 text-red-600" />}
-                      <span className="font-medium text-sm">{seoValidationResult.valid ? "All checks passed" : "Issues found"}</span>
+                  <div className={`p-4 rounded-xl border ${
+                    seoValidationResult.valid 
+                      ? "bg-emerald-50/50 border-emerald-200 dark:bg-emerald-950/20 dark:border-emerald-800/80" 
+                      : "bg-rose-50/50 border-rose-200 dark:bg-rose-950/20 dark:border-rose-800/80"
+                  }`}>
+                    <div className="flex items-center gap-2 mb-3">
+                      {seoValidationResult.valid ? (
+                        <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                      )}
+                      <span className={`font-semibold text-sm ${seoValidationResult.valid ? "text-emerald-800 dark:text-emerald-400" : "text-rose-800 dark:text-rose-400"}`}>
+                        {seoValidationResult.valid ? "All Quality Checks Passed" : "Quality Issues Discovered"}
+                      </span>
                     </div>
-                    {seoValidationResult.issues?.map((issue: string, i: number) => (
-                      <p key={i} className="text-xs text-red-700 dark:text-red-300">• {issue}</p>
-                    ))}
-                    {seoValidationResult.warnings?.map((warn: string, i: number) => (
-                      <p key={i} className="text-xs text-yellow-700 dark:text-yellow-300">⚠ {warn}</p>
-                    ))}
+                    {seoValidationResult.issues && seoValidationResult.issues.length > 0 && (
+                      <div className="space-y-1.5 mb-2">
+                        {seoValidationResult.issues.map((issue: string, i: number) => (
+                          <p key={i} className="text-xs text-rose-700 dark:text-rose-300 flex items-start gap-1.5">
+                            <span className="mt-0.5">•</span> {issue}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    {seoValidationResult.warnings && seoValidationResult.warnings.length > 0 && (
+                      <div className="space-y-1.5 pt-1.5 border-t border-yellow-200/50 dark:border-yellow-800/30">
+                        {seoValidationResult.warnings.map((warn: string, i: number) => (
+                          <p key={i} className="text-xs text-amber-700 dark:text-amber-300 flex items-start gap-1.5">
+                            <span className="mt-0.5">⚠</span> {warn}
+                          </p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>

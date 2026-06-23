@@ -125,27 +125,21 @@ export default function CampaignDashboardPage() {
     <CampaignLayout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4" style={{ color: "hsl(262 83% 65%)" }} />
-              <span className="text-xs font-medium tracking-widest uppercase" style={{ color: "hsl(262 83% 65%)" }}>
+            <div className="flex items-center gap-2 mb-1.5">
+              <TrendingUp className="h-4.5 w-4.5 text-primary" />
+              <span className="text-xs font-semibold tracking-widest uppercase text-primary">
                 Overview
               </span>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Campaign Dashboard</h1>
-            <p className="mt-1 text-sm" style={{ color: "hsl(240 10% 45%)" }}>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Campaign Dashboard</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               Live view of your email marketing operations.
             </p>
           </div>
           <Link href="/admin/campaigns/new">
-            <button
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-white transition-all duration-200 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                background: "linear-gradient(135deg, hsl(262 83% 58%), hsl(280 70% 50%))",
-                boxShadow: "0 0 20px hsl(262 83% 58% / 0.3)",
-              }}
-            >
+            <button className="bg-primary hover:bg-primary/95 text-primary-foreground font-semibold shadow-sm transition-all flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm hover:shadow-md">
               <Plus className="h-4 w-4" />
               New Campaign
             </button>
@@ -157,34 +151,26 @@ export default function CampaignDashboardPage() {
           {stats.map((stat) => (
             <div
               key={stat.name}
-              className="rounded-xl p-5 relative overflow-hidden"
-              style={{
-                background: "hsl(240 10% 8%)",
-                border: "1px solid hsl(240 8% 13%)",
-              }}
+              className="bg-card border border-border/80 shadow-sm rounded-2xl p-5 relative overflow-hidden group hover:shadow-md transition-all"
             >
-              {/* Background glow */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-60`}
-              />
-              <div className="relative">
+              {/* Subtle background glow */}
+              <div className="absolute -top-10 -left-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none group-hover:bg-primary/10 transition-all" />
+              
+              <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-xs font-medium tracking-wide uppercase" style={{ color: "hsl(240 10% 45%)" }}>
+                  <p className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
                     {stat.name}
                   </p>
-                  <div
-                    className="h-8 w-8 rounded-lg flex items-center justify-center"
-                    style={{ background: "hsl(240 10% 12%)" }}
-                  >
-                    <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
+                  <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/50">
+                    <stat.icon className={`h-4.5 w-4.5 text-indigo-600 dark:text-indigo-400`} />
                   </div>
                 </div>
                 {stat.value === null ? (
-                  <Loader2 className="h-6 w-6 animate-spin" style={{ color: "hsl(240 10% 40%)" }} />
+                  <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
                 ) : (
-                  <p className="text-3xl font-bold text-white tracking-tight">{stat.value}</p>
+                  <p className="text-3xl font-bold text-foreground tracking-tight">{stat.value}</p>
                 )}
-                <p className="text-xs mt-1" style={{ color: "hsl(240 10% 40%)" }}>
+                <p className="text-xs text-muted-foreground mt-1">
                   {stat.description}
                 </p>
               </div>
@@ -193,38 +179,25 @@ export default function CampaignDashboardPage() {
         </div>
 
         {/* Upcoming Sends */}
-        <div
-          className="rounded-xl overflow-hidden"
-          style={{
-            background: "hsl(240 10% 8%)",
-            border: "1px solid hsl(240 8% 13%)",
-          }}
-        >
+        <div className="bg-card border border-border/80 shadow-sm rounded-2xl overflow-hidden">
           {/* Panel Header */}
-          <div
-            className="flex items-center justify-between px-6 py-4"
-            style={{ borderBottom: "1px solid hsl(240 8% 12%)" }}
-          >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border/60 bg-muted/5">
             <div className="flex items-center gap-3">
-              <div
-                className="h-7 w-7 rounded-lg flex items-center justify-center"
-                style={{ background: "hsl(213 90% 58% / 0.15)" }}
-              >
-                <CalendarClock className="h-3.5 w-3.5 text-blue-400" />
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                <CalendarClock className="h-4.5 w-4.5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">Upcoming Sends</p>
-                <p className="text-xs" style={{ color: "hsl(240 10% 40%)" }}>
+                <p className="text-sm font-bold text-foreground">Upcoming Sends</p>
+                <p className="text-xs text-muted-foreground">
                   Scheduled emails pending dispatch
                 </p>
               </div>
             </div>
             <Link
               href="/admin/campaigns"
-              className="flex items-center gap-1 text-xs transition-colors hover:text-white"
-              style={{ color: "hsl(240 10% 45%)" }}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-medium"
             >
-              View all <ArrowRight className="h-3 w-3" />
+              View all <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
 
@@ -232,31 +205,21 @@ export default function CampaignDashboardPage() {
           <div className="px-6 py-4">
             {loadingSchedules ? (
               <div className="flex justify-center py-10">
-                <Loader2 className="w-5 h-5 animate-spin" style={{ color: "hsl(240 10% 35%)" }} />
+                <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
               </div>
             ) : !upcomingSchedules || upcomingSchedules.length === 0 ? (
-              <div className="text-center py-12">
-                <div
-                  className="h-12 w-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-                  style={{ background: "hsl(240 10% 11%)" }}
-                >
-                  <CalendarClock className="h-6 w-6" style={{ color: "hsl(240 10% 30%)" }} />
+              <div className="text-center py-12 bg-muted/5 rounded-xl border border-dashed border-border/80">
+                <div className="h-12 w-12 rounded-xl mx-auto mb-4 flex items-center justify-center bg-muted">
+                  <CalendarClock className="h-6 w-6 text-muted-foreground/60" />
                 </div>
-                <p className="text-sm font-medium" style={{ color: "hsl(240 10% 50%)" }}>
+                <p className="text-sm font-bold text-foreground">
                   No upcoming sends
                 </p>
-                <p className="text-xs mt-1 mb-5" style={{ color: "hsl(240 10% 35%)" }}>
+                <p className="text-xs text-muted-foreground mt-1 mb-5">
                   Schedule a campaign to see it here.
                 </p>
                 <Link href="/admin/campaigns">
-                  <button
-                    className="text-xs px-4 py-2 rounded-lg font-medium transition-all hover:opacity-80"
-                    style={{
-                      background: "hsl(240 10% 12%)",
-                      border: "1px solid hsl(240 8% 18%)",
-                      color: "hsl(240 10% 60%)",
-                    }}
-                  >
+                  <button className="text-xs px-4 py-2 rounded-xl font-medium border border-border hover:bg-muted text-muted-foreground hover:text-foreground transition-all shadow-sm">
                     Go to Campaigns
                   </button>
                 </Link>
@@ -266,31 +229,17 @@ export default function CampaignDashboardPage() {
                 {upcomingSchedules.map((schedule, idx) => (
                   <div
                     key={schedule.id}
-                    className="flex items-center justify-between py-3 rounded-lg px-3 transition-colors"
-                    style={
-                      idx !== upcomingSchedules.length - 1
-                        ? { borderBottom: "1px solid hsl(240 8% 11%)" }
-                        : {}
-                    }
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "hsl(240 10% 11%)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
-                    }}
+                    className="flex items-center justify-between py-3 rounded-xl px-4 transition-colors hover:bg-muted/40 border-b border-border/30 last:border-0"
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                        style={{ background: "hsl(262 83% 58% / 0.12)" }}
-                      >
-                        <Mail className="h-3.5 w-3.5" style={{ color: "hsl(270 90% 70%)" }} />
+                      <div className="h-8 w-8 rounded-xl flex items-center justify-center bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                        <Mail className="h-4.5 w-4.5" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-white">
+                        <p className="text-sm font-semibold text-foreground">
                           {schedule.email_templates?.subject ?? "Untitled Email"}
                         </p>
-                        <p className="text-xs mt-0.5" style={{ color: "hsl(240 10% 40%)" }}>
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {schedule.email_campaigns?.name ?? "—"}
                         </p>
                       </div>
@@ -298,19 +247,13 @@ export default function CampaignDashboardPage() {
                     <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                       <div className="text-right">
                         <div className="flex items-center gap-1.5 justify-end">
-                          <Clock className="h-3 w-3" style={{ color: "hsl(240 10% 40%)" }} />
-                          <p className="text-xs font-medium" style={{ color: "hsl(240 10% 60%)" }}>
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
+                          <p className="text-xs font-semibold text-muted-foreground">
                             {format(new Date(schedule.scheduled_at), "MMM d, h:mm a")}
                           </p>
                         </div>
                       </div>
-                      <span
-                        className="text-xs font-medium px-2.5 py-1 rounded-full"
-                        style={{
-                          background: "hsl(213 90% 58% / 0.12)",
-                          color: "hsl(213 90% 72%)",
-                        }}
-                      >
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800/60">
                         Pending
                       </span>
                     </div>

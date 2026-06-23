@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Navbar } from "@/components/Navbar";
 import {
   LayoutDashboard,
   Mail,
@@ -26,70 +27,45 @@ export function CampaignLayout({ children }: { children: React.ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: "hsl(240 10% 5%)" }}>
-      <div className="flex h-screen">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
+      <Navbar />
+
+      <div className="flex-1 flex overflow-hidden pt-24">
         {/* Sidebar */}
-        <aside
-          className="w-60 h-full flex flex-col py-6 px-3 flex-shrink-0"
-          style={{
-            background: "hsl(240 10% 7%)",
-            borderRight: "1px solid hsl(240 8% 12%)",
-          }}
-        >
+        <aside className="w-64 h-full flex flex-col py-6 px-4 bg-muted/20 border-r border-border/80 flex-shrink-0 overflow-y-auto">
           {/* Logo */}
-          <div className="mb-8 px-3 flex items-center gap-3">
-            <div
-              className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{
-                background: "linear-gradient(135deg, hsl(262 83% 58%), hsl(280 70% 45%))",
-              }}
-            >
-              <Sparkles className="h-4 w-4 text-white" />
+          <div className="mb-8 px-2 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl flex items-center justify-center bg-primary text-primary-foreground shadow-sm">
+              <Sparkles className="h-4.5 w-4.5 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-white leading-none">Email Platform</p>
-              <p className="text-xs mt-0.5" style={{ color: "hsl(240 10% 45%)" }}>
+              <p className="text-sm font-bold text-foreground leading-none">Email Platform</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Marketing & CRM
               </p>
             </div>
           </div>
 
           {/* Nav */}
-          <nav className="space-y-0.5 flex-1">
+          <nav className="space-y-1.5 flex-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive =
-                pathname === link.href ||
-                (pathname.startsWith(link.href) && link.href !== "/admin");
+                link.href === "/admin"
+                  ? pathname === "/admin"
+                  : link.href === "/admin/campaigns"
+                  ? pathname.startsWith("/admin/campaigns") && !pathname.startsWith("/admin/campaigns/dashboard")
+                  : pathname.startsWith(link.href);
+
               return (
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 text-sm"
-                  style={
+                  className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium ${
                     isActive
-                      ? {
-                          background: "linear-gradient(135deg, hsl(262 83% 58% / 0.2), hsl(280 70% 45% / 0.1))",
-                          color: "hsl(270 90% 75%)",
-                          borderLeft: "2px solid hsl(262 83% 65%)",
-                          paddingLeft: "10px",
-                        }
-                      : {
-                          color: "hsl(240 10% 50%)",
-                        }
-                  }
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = "hsl(240 10% 80%)";
-                      e.currentTarget.style.background = "hsl(240 8% 11%)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = "hsl(240 10% 50%)";
-                      e.currentTarget.style.background = "transparent";
-                    }
-                  }}
+                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/10"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
                 >
                   <Icon className="h-4 w-4 flex-shrink-0" />
                   {link.name}
@@ -99,11 +75,10 @@ export function CampaignLayout({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Footer */}
-          <div className="px-3 pt-4" style={{ borderTop: "1px solid hsl(240 8% 12%)" }}>
+          <div className="border-t border-border/60 pt-4 px-2">
             <Link
               href="/"
-              className="text-xs transition-colors"
-              style={{ color: "hsl(240 10% 35%)" }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1.5"
             >
               ← Back to site
             </Link>
@@ -111,7 +86,7 @@ export function CampaignLayout({ children }: { children: React.ReactNode }) {
         </aside>
 
         {/* Main Workspace */}
-        <main className="flex-1 overflow-y-auto" style={{ background: "hsl(240 10% 6%)" }}>
+        <main className="flex-1 overflow-y-auto bg-gradient-to-b from-purple-50/40 via-background to-background dark:from-purple-950/5 dark:via-background dark:to-background">
           <div className="max-w-6xl mx-auto p-8">
             {children}
           </div>
@@ -120,3 +95,4 @@ export function CampaignLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+

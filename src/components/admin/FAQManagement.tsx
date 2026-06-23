@@ -184,43 +184,58 @@ export const FAQManagement = () => {
 
         <CardContent>
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
             </div>
           ) : faqs?.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <HelpCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No FAQs yet. Add your first FAQ from keyword research!</p>
+            <div className="relative overflow-hidden rounded-2xl border border-dashed p-12 text-center bg-muted/10">
+              {/* Dotted grid background pattern */}
+              <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] opacity-60 pointer-events-none" />
+              <div className="relative z-10 max-w-sm mx-auto flex flex-col items-center">
+                <div className="p-4 rounded-full bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 mb-4 ring-8 ring-indigo-500/5">
+                  <HelpCircle className="h-8 w-8 animate-pulse" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-1">No FAQs Configured Yet</h3>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Add FAQs compiled from your keyword research to address common customer questions and improve your site's SEO score.
+                </p>
+                <Button onClick={handleNewFAQ} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all hover:shadow-indigo-500/20">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First FAQ
+                </Button>
+              </div>
             </div>
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]">Order</TableHead>
-                  <TableHead>Question</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="w-[100px]">Active</TableHead>
-                  <TableHead className="text-right w-[120px]">Actions</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[80px] font-semibold text-foreground">Order</TableHead>
+                  <TableHead className="font-semibold text-foreground">Question</TableHead>
+                  <TableHead className="font-semibold text-foreground">Category</TableHead>
+                  <TableHead className="w-[100px] font-semibold text-foreground">Active</TableHead>
+                  <TableHead className="text-right w-[120px] font-semibold text-foreground">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {faqs?.map((faq) => (
-                  <TableRow key={faq.id}>
+                  <TableRow key={faq.id} className="hover:bg-muted/40 transition-colors group">
                     <TableCell>
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <GripVertical className="h-4 w-4" />
+                      <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                        <GripVertical className="h-4 w-4 text-muted-foreground/40 cursor-grab active:cursor-grabbing" />
                         {faq.sort_order}
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-[300px]">
-                      <p className="font-medium truncate">{faq.question}</p>
-                      <p className="text-xs text-muted-foreground truncate">{faq.answer.slice(0, 80)}...</p>
+                    <TableCell className="max-w-[340px]">
+                      <p className="font-semibold text-foreground truncate">{faq.question}</p>
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">{faq.answer}</p>
                     </TableCell>
                     <TableCell>
                       {faq.category ? (
-                        <span className="px-2 py-1 bg-muted rounded text-xs">{faq.category}</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-indigo-50 text-indigo-700 border border-indigo-100 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-900/50 capitalize">
+                          {faq.category}
+                        </span>
                       ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
+                        <span className="text-muted-foreground/60 text-xs">—</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -229,16 +244,18 @@ export const FAQManagement = () => {
                         onCheckedChange={(checked) =>
                           toggleActiveMutation.mutate({ id: faq.id, is_active: checked })
                         }
+                        className="data-[state=checked]:bg-indigo-600"
                       />
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button size="icon" variant="ghost" onClick={() => handleEdit(faq)}>
+                      <div className="flex justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                        <Button size="icon" variant="ghost" className="h-8 w-8 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50" onClick={() => handleEdit(faq)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           size="icon"
                           variant="ghost"
+                          className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50"
                           onClick={() => {
                             if (confirm("Are you sure you want to delete this FAQ?")) {
                               deleteMutation.mutate(faq.id);
