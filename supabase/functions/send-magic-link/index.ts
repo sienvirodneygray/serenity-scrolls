@@ -61,9 +61,9 @@ serve(async (req) => {
         "Your Login Link ✨ — Serenity Scrolls",
         `
           <p>Dear Serenity Seeker,</p>
-          <p>Click the button below to instantly sign back into your Servant.</p>
+          <p>Click the button below to instantly sign back into your account.</p>
           <p style="text-align: center;">
-            <a href="${accessLink}" class="btn">Log In to My Servant</a>
+            <a href="${accessLink}" class="btn">Log In to My Account</a>
           </p>
           <p>If you didn't request this link, you can safely ignore this email.</p>
           

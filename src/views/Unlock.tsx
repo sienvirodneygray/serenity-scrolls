@@ -443,7 +443,7 @@ const Unlock = () => {
                             </div>
                             <CardTitle className="text-blue-600">Check Your Email</CardTitle>
                             <CardDescription>
-                                We sent a login link to <strong>{email}</strong>. Click the link to sign in and access your Servant.
+                                We sent a login link to <strong>{email}</strong>. Click the link to sign in and access your account.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -570,7 +570,7 @@ const Unlock = () => {
                                 <CardHeader>
                                     <CardTitle className="text-lg">Sign Back In</CardTitle>
                                     <CardDescription>
-                                        Enter your email and we'll send you a link to access your Servant instantly
+                                        Enter your email and we'll send you a link to access your account instantly
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
