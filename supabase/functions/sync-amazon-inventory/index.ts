@@ -70,7 +70,6 @@ serve(async (req) => {
         }
 
         // Initialize Supabase Admin Client for database operations
-        const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
         const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
         console.log("Fetching LWA token...");
