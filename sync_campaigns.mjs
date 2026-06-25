@@ -1,5 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
+import crypto from 'crypto';
+
+function getDeterministicUUID(seed) {
+  const hash = crypto.createHash('sha256').update(seed).digest('hex');
+  return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+}
 
 function parseEnv(filePath) {
   if (!fs.existsSync(filePath)) return {};
@@ -587,6 +593,58 @@ async function syncCRMAndTrackingMetrics() {
   }
 
   console.log(`Successfully synced ${sendsToUpsert.length} email sends.`);
+
+  // 5. Sync campaign_schedules
+  console.log('Syncing campaign schedules...');
+  const schedulesToUpsert = [];
+  const { data: senderCampsWithSchedules, error: campsSchedErr } = await sender
+    .from('campaigns')
+    .select('id, sequence_data')
+    .eq('client_id', SERENITY_CLIENT_ID);
+  
+  if (campsSchedErr) {
+    console.error('Error fetching campaigns for schedules sync:', campsSchedErr);
+  } else {
+    for (const c of senderCampsWithSchedules || []) {
+      const templates = campaignTemplateMap.get(c.id) || [];
+      templates.sort((a, b) => a.sequence_order - b.sequence_order);
+      
+      const schedules = c.sequence_data?.schedules || [];
+      for (let i = 0; i < templates.length; i++) {
+        const template = templates[i];
+        const schedTime = schedules[i];
+        if (!schedTime) continue;
+        
+        const scheduledDate = new Date(schedTime);
+        if (isNaN(scheduledDate.getTime())) continue;
+        
+        const isFuture = scheduledDate.getTime() > Date.now();
+        const status = isFuture ? 'pending' : 'completed';
+        const deterministicId = getDeterministicUUID(`${c.id}-${template.id}-${schedTime}`);
+        
+        schedulesToUpsert.push({
+          id: deterministicId,
+          campaign_id: c.id,
+          email_template_id: template.id,
+          scheduled_at: scheduledDate.toISOString(),
+          status: status,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+    }
+    
+    for (let i = 0; i < schedulesToUpsert.length; i += batchSize) {
+      const chunk = schedulesToUpsert.slice(i, i + batchSize);
+      const { error: upsertSchedErr } = await serenity.from('campaign_schedules').upsert(chunk);
+      if (upsertSchedErr) {
+        console.error(`Failed to upsert campaign schedules batch starting at ${i}:`, upsertSchedErr);
+        return;
+      }
+    }
+    console.log(`Successfully synced ${schedulesToUpsert.length} campaign schedules.`);
+  }
+
   console.log('--- CRM METRICS SYNC COMPLETED SUCCESSFULLY ---');
 }
 

@@ -57,6 +57,19 @@ export default function CampaignDashboardPage() {
     },
   });
 
+  const { data: scheduledCount, isLoading: loadingScheduledCount } = useQuery({
+    queryKey: ["dashboard-scheduled-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("campaign_schedules")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending")
+        .gte("scheduled_at", new Date().toISOString());
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
   const { data: customerCount, isLoading: loadingCustomers } = useQuery({
     queryKey: ["dashboard-customer-count"],
     queryFn: async () => {
@@ -91,7 +104,7 @@ export default function CampaignDashboardPage() {
     },
     {
       name: "Scheduled",
-      value: loadingSchedules ? null : (upcomingSchedules?.length ?? 0).toString(),
+      value: loadingScheduledCount ? null : (scheduledCount ?? 0).toString(),
       icon: Calendar,
       description:
         upcomingSchedules && upcomingSchedules.length > 0
