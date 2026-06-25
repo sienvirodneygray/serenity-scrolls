@@ -26,7 +26,7 @@ export default function CampaignDashboardPage() {
       const { count, error } = await supabase
         .from("email_sends")
         .select("id", { count: "exact", head: true })
-        .eq("status", "sent");
+        .in("status", ["sent", "delivered"]);
       if (error) throw error;
       return count ?? 0;
     },

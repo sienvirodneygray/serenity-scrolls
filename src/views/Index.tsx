@@ -4,6 +4,7 @@ import { Testimonials } from "@/components/Testimonials";
 import { FAQ } from "@/components/FAQ";
 import { FeaturedBlogPosts } from "@/components/FeaturedBlogPosts";
 import { NewsletterModal } from "@/components/NewsletterModal";
+import { RecentPurchasePopup } from "@/components/RecentPurchasePopup";
 import { Navbar } from "@/components/Navbar";
 import { StructuredData } from "@/components/StructuredData";
 import { Button } from "@/components/ui/button";
@@ -630,6 +631,7 @@ const Index = () => {
       </footer>
 
       <NewsletterModal />
+      <RecentPurchasePopup />
     </div>
   );
 };
