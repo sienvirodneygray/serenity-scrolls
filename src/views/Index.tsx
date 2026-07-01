@@ -10,7 +10,7 @@ import { StructuredData } from "@/components/StructuredData";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { breadcrumbJsonLd } from "@/lib/seo";
-import { Sparkles, ArrowRight, BookOpen, Heart, ExternalLink, ShoppingCart } from "lucide-react";
+import { Sparkles, ArrowRight, BookOpen, Heart, ExternalLink, ShoppingCart, Youtube, Facebook, Instagram } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -604,6 +604,55 @@ const Index = () => {
             <p className="text-sm text-muted-foreground text-center">
               Find peace in every emotion through Scripture
             </p>
+            <div className="flex items-center gap-5 my-2">
+              <a
+                href="https://www.youtube.com/@Serenityscrollsofficial"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center w-10 h-10 rounded-full border border-border bg-background/50 hover:bg-red-600 hover:border-red-600 transition-all duration-300 hover:scale-110 hover:shadow-[0_0_15px_rgba(220,38,38,0.5)]"
+                aria-label="YouTube"
+              >
+                <Youtube className="w-5 h-5 text-muted-foreground group-hover:text-white transition-colors duration-300" />
+              </a>
+              <a
+                href="https://www.tiktok.com/@serenity_scrolls"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center w-10 h-10 rounded-full border border-border bg-background/50 hover:bg-black hover:border-black dark:hover:bg-zinc-800 dark:hover:border-zinc-800 transition-all duration-300 hover:scale-110 hover:shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+                aria-label="TikTok"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-5 h-5 text-muted-foreground group-hover:text-white transition-colors duration-300"
+                >
+                  <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+                </svg>
+              </a>
+              <a
+                href="https://www.facebook.com/serenityscrolls"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center w-10 h-10 rounded-full border border-border bg-background/50 hover:bg-blue-600 hover:border-blue-600 transition-all duration-300 hover:scale-110 hover:shadow-[0_0_15px_rgba(37,99,235,0.5)]"
+                aria-label="Facebook"
+              >
+                <Facebook className="w-5 h-5 text-muted-foreground group-hover:text-white transition-colors duration-300" />
+              </a>
+              <a
+                href="https://www.instagram.com/serenityscrolls_official/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-center w-10 h-10 rounded-full border border-border bg-background/50 hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 hover:border-transparent transition-all duration-300 hover:scale-110 hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-5 h-5 text-muted-foreground group-hover:text-white transition-colors duration-300" />
+              </a>
+            </div>
             <div className="flex items-center gap-4">
               <a
                 href="mailto:info@serenityscrolls.faith"

@@ -36,6 +36,19 @@ const ESCALATION_STYLES: Record<string, { label: string; color: string; bg: stri
   red: { label: "🔴 Red — Escalate Immediately", color: "hsl(var(--destructive))", bg: "hsl(var(--destructive) / 0.1)", border: "hsl(var(--destructive) / 0.2)" },
 };
 
+const cleanContentBody = (body: string) => {
+  if (!body) return "";
+  const trimmed = body.trimStart();
+  if (trimmed.startsWith("# ")) {
+    const firstNewlineIndex = trimmed.indexOf("\n");
+    if (firstNewlineIndex !== -1) {
+      return trimmed.substring(firstNewlineIndex + 1);
+    }
+    return "";
+  }
+  return body;
+};
+
 export default function LessonPlayer({ params }: Props) {
   const { moduleSlug, lessonSlug } = use(params);
   const courseSlug = "courage-covenant"; // Hardcoded because of folder structure
@@ -307,7 +320,7 @@ export default function LessonPlayer({ params }: Props) {
                   <h1 className="text-3xl font-bold text-foreground mb-6">{currentLesson.title}</h1>
                   <div className="prose dark:prose-invert prose-purple max-w-none prose-p:leading-relaxed prose-p:mb-4">
                     <ReactMarkdown>
-                      {currentLesson.content_body || ""}
+                      {cleanContentBody(currentLesson.content_body)}
                     </ReactMarkdown>
                   </div>
 
