@@ -18,6 +18,59 @@ import {
   CreditCard,
 } from "lucide-react";
 
+const US_STATES = [
+  { code: "AL", name: "Alabama" },
+  { code: "AK", name: "Alaska" },
+  { code: "AZ", name: "Arizona" },
+  { code: "AR", name: "Arkansas" },
+  { code: "CA", name: "California" },
+  { code: "CO", name: "Colorado" },
+  { code: "CT", name: "Connecticut" },
+  { code: "DE", name: "Delaware" },
+  { code: "FL", name: "Florida" },
+  { code: "GA", name: "Georgia" },
+  { code: "HI", name: "Hawaii" },
+  { code: "ID", name: "Idaho" },
+  { code: "IL", name: "Illinois" },
+  { code: "IN", name: "Indiana" },
+  { code: "IA", name: "Iowa" },
+  { code: "KS", name: "Kansas" },
+  { code: "KY", name: "Kentucky" },
+  { code: "LA", name: "Louisiana" },
+  { code: "ME", name: "Maine" },
+  { code: "MD", name: "Maryland" },
+  { code: "MA", name: "Massachusetts" },
+  { code: "MI", name: "Michigan" },
+  { code: "MN", name: "Minnesota" },
+  { code: "MS", name: "Mississippi" },
+  { code: "MO", name: "Missouri" },
+  { code: "MT", name: "Montana" },
+  { code: "NE", name: "Nebraska" },
+  { code: "NV", name: "Nevada" },
+  { code: "NH", name: "New Hampshire" },
+  { code: "NJ", name: "New Jersey" },
+  { code: "NM", name: "New Mexico" },
+  { code: "NY", name: "New York" },
+  { code: "NC", name: "North Carolina" },
+  { code: "ND", name: "North Dakota" },
+  { code: "OH", name: "Ohio" },
+  { code: "OK", name: "Oklahoma" },
+  { code: "OR", name: "Oregon" },
+  { code: "PA", name: "Pennsylvania" },
+  { code: "RI", name: "Rhode Island" },
+  { code: "SC", name: "South Carolina" },
+  { code: "SD", name: "South Dakota" },
+  { code: "TN", name: "Tennessee" },
+  { code: "TX", name: "Texas" },
+  { code: "UT", name: "Utah" },
+  { code: "VT", name: "Vermont" },
+  { code: "VA", name: "Virginia" },
+  { code: "WA", name: "Washington" },
+  { code: "WV", name: "West Virginia" },
+  { code: "WI", name: "Wisconsin" },
+  { code: "WY", name: "Wyoming" }
+];
+
 interface CartItem {
   id: string;
   quantity: number;
@@ -41,6 +94,9 @@ const Checkout = () => {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchingAddress, setSearchingAddress] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,12 +109,132 @@ const Checkout = () => {
     prefillFromSession();
   }, []);
 
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setShowSuggestions(false);
+    };
+    window.addEventListener("click", handleOutsideClick);
+    return () => window.removeEventListener("click", handleOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    if (address.length < 5) {
+      setSuggestions([]);
+      return;
+    }
+
+    const lastSelected = typeof window !== 'undefined' ? window.localStorage.getItem("last_selected_address") : null;
+    if (lastSelected === address) {
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setSearchingAddress(true);
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&addressdetails=1&limit=5&countrycodes=us`;
+        const res = await fetch(url, {
+          headers: {
+            "Accept-Language": "en",
+            "User-Agent": "SerenityScrollsCheckout/1.0"
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions(data || []);
+          setShowSuggestions(true);
+        }
+      } catch (err) {
+        console.error("Address lookup failed:", err);
+      } finally {
+        setSearchingAddress(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(delayDebounce);
+  }, [address]);
+
+  const handleSelectSuggestion = (place: any) => {
+    const addr = place.address || {};
+    const street = [addr.house_number, addr.road].filter(Boolean).join(" ");
+    
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem("last_selected_address", street || place.display_name);
+    }
+
+    setAddress(street || place.display_name);
+    
+    const cityVal = addr.city || addr.town || addr.village || addr.suburb || "";
+    setCity(cityVal);
+    
+    const stateVal = addr.state || "";
+    const matchedState = US_STATES.find(
+      (s) => s.name.toLowerCase() === stateVal.toLowerCase() || s.code.toLowerCase() === stateVal.toLowerCase()
+    );
+    if (matchedState) {
+      setState(matchedState.code);
+    } else if (addr.state) {
+      setState(addr.state.substring(0, 2).toUpperCase());
+    }
+
+    if (addr.postcode) {
+      const zip = addr.postcode.split("-")[0];
+      setZipCode(zip);
+    }
+    
+    setShowSuggestions(false);
+  };
+
+  useEffect(() => {
+    const lookupZip = async () => {
+      const cleanZip = zipCode.trim();
+      if (cleanZip.length === 5 && /^\d+$/.test(cleanZip)) {
+        try {
+          const res = await fetch(`https://api.zippopotam.us/us/${cleanZip}`);
+          if (res.ok) {
+            const data = await res.json();
+            const place = data.places?.[0];
+            if (place) {
+              setCity(place["place name"]);
+              setState(place["state abbreviation"]);
+            }
+          }
+        } catch (err) {
+          console.error("ZIP code lookup failed:", err);
+        }
+      }
+    };
+    lookupZip();
+  }, [zipCode]);
+
   const prefillFromSession = async () => {
     const {
       data: { session },
     } = await supabase.auth.getSession();
     if (session?.user?.email) {
       setEmail(session.user.email);
+      
+      try {
+        // Fetch the user's latest order to auto-fill their shipping details
+        const { data: latestOrder } = await supabase
+          .from("orders")
+          .select("shipping_address")
+          .eq("user_id", session.user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latestOrder?.shipping_address) {
+          const addr = latestOrder.shipping_address as any;
+          if (addr.firstName) setFirstName(addr.firstName);
+          if (addr.lastName) setLastName(addr.lastName);
+          if (addr.line1) setAddress(addr.line1);
+          if (addr.city) setCity(addr.city);
+          if (addr.state) setState(addr.state);
+          if (addr.zip) setZipCode(addr.zip);
+        }
+      } catch (err) {
+        console.error("Error pre-filling address from latest order:", err);
+      }
     }
   };
 
@@ -468,7 +644,7 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="relative">
                     <Label htmlFor="address">Street Address</Label>
                     <Input
                       id="address"
@@ -477,6 +653,28 @@ const Checkout = () => {
                       placeholder="123 Main St"
                       required
                     />
+                    {searchingAddress && (
+                      <div className="absolute right-3 top-9 flex items-center gap-1 text-xs text-muted-foreground">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      </div>
+                    )}
+                    {showSuggestions && suggestions.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border border-border rounded-md shadow-md max-h-60 overflow-y-auto">
+                        {suggestions.map((place, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectSuggestion(place);
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm hover:bg-accent hover:text-accent-foreground border-b border-border/40 last:border-b-0 transition-colors"
+                          >
+                            {place.display_name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
@@ -491,14 +689,20 @@ const Checkout = () => {
                     </div>
                     <div>
                       <Label htmlFor="state">State</Label>
-                      <Input
+                      <select
                         id="state"
                         value={state}
                         onChange={(e) => setState(e.target.value)}
-                        placeholder="CA"
-                        maxLength={2}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         required
-                      />
+                      >
+                        <option value="">State</option>
+                        {US_STATES.map((s) => (
+                          <option key={s.code} value={s.code}>
+                            {s.code}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <Label htmlFor="zipCode">ZIP Code</Label>

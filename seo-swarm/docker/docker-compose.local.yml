@@ -1,0 +1,26 @@
+services:
+  seo-aeo-swarm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: serenity-seo-aeo-swarm-local
+    restart: unless-stopped
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - TARGET_DOMAIN=serenityscrolls.faith
+      - OUTPUT_DIR=/app/drafts
+    volumes:
+      # Read-write volume for staging sitemaps, logs, and email drafts (pointing to local workspace drafts)
+      - c:/Users/Iris/OneDrive/Work/serenityscrollsservant/serenityscrollsservant/seo-swarm/drafts:/app/drafts:rw
+      # Read-only brand context mount
+      - c:/Users/Iris/OneDrive/Work/serenityscrollsservant/serenityscrollsservant/seo-swarm/brand_context:/app/brand_context:ro
+      # Read-only manifest mount
+      - c:/Users/Iris/OneDrive/Work/serenityscrollsservant/serenityscrollsservant/seo-swarm/manifest.json:/app/manifest.json:ro
+    networks:
+      - restricted-net
+
+networks:
+  restricted-net:
+    driver: bridge
+    internal: false

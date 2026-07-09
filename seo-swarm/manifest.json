@@ -1,0 +1,37 @@
+{
+    "swarm_name": "Serenity Scrolls SEO/AEO Swarm",
+    "swarm_id": "serenity_seo_aeo_swarm",
+    "version": "1.0.0",
+    "manager_role": "coord-seo-aeo-mgr",
+    "elf_roles": [
+        "elf-seo-analyst",
+        "elf-leads-scraper",
+        "elf-aeo-writer",
+        "elf-campaign-dispatcher",
+        "elf-seo-qa"
+    ],
+    "boundaries": {
+        "allowed_actions": [
+            "repo_only_docs",
+            "local_only_planning",
+            "status_contract_updates",
+            "setup_queue_refinement",
+            "copyback_report"
+        ],
+        "blocked_actions": [
+            "api_key_handling",
+            "cloud_wiring",
+            "daemon",
+            "launchagent",
+            "external_messaging",
+            "agent_creation",
+            "autonomous_operation",
+            "production_mutation"
+        ]
+    },
+    "launch_gate": {
+        "verifiable_stops_required": true,
+        "path_compliance": true,
+        "zero_api_safety": true
+    }
+}

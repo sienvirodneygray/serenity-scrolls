@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Grace & Peace Christian Bookshop",
+    "website": "gracepeacebooks.com",
+    "email": "buyer@gracepeacebooks.com",
+    "city": "Grand Rapids, MI",
+    "mx_verified": true
+  },
+  {
+    "name": "Cross & Crown Gifts",
+    "website": "crossandcrowngifts.com",
+    "email": "orders@crossandcrowngifts.com",
+    "city": "Wheaton, IL",
+    "mx_verified": true
+  },
+  {
+    "name": "The Mustard Seed Gift Shop",
+    "website": "mustardseedboutique.com",
+    "email": "hello@mustardseedboutique.com",
+    "city": "Nashville, TN",
+    "mx_verified": true
+  },
+  {
+    "name": "Sacred Heart Books & Gifts",
+    "website": "sacredheartgifts.com",
+    "email": "contact@sacredheartgifts.com",
+    "city": "St. Louis, MO",
+    "mx_verified": true
+  },
+  {
+    "name": "Living Water Retreat Center",
+    "website": "livingwaterretreat.org",
+    "email": "wholesale@livingwaterretreat.org",
+    "city": "Colorado Springs, CO",
+    "mx_verified": true
+  }
+]

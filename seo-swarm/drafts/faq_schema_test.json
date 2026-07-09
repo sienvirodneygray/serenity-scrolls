@@ -1,0 +1,30 @@
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is a daily courage ritual for christian families?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Serenity Scrolls are handcrafted wooden boxes containing curated scripture scrolls for anxiety, peace, strength, and trust. They serve as tangible, beautiful daily faith reminders. Unroll a scroll during quiet reflection, prayer, or times of worry to anchor your heart in biblical truths."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How to use scripture scrolls for anxiety and peace?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Serenity Scrolls are handcrafted wooden boxes containing curated scripture scrolls for anxiety, peace, strength, and trust. They serve as tangible, beautiful daily faith reminders. Unroll a scroll during quiet reflection, prayer, or times of worry to anchor your heart in biblical truths."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Biblical forgiveness vs boundaries in parenting",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Serenity Scrolls are handcrafted wooden boxes containing curated scripture scrolls for anxiety, peace, strength, and trust. They serve as tangible, beautiful daily faith reminders. Unroll a scroll during quiet reflection, prayer, or times of worry to anchor your heart in biblical truths."
+      }
+    }
+  ]
+}
