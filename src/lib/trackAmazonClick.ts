@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isTrackingExcluded } from "@/lib/trackingExclusion";
 
 /**
  * Track an outbound click to Amazon.
@@ -13,6 +14,7 @@ export async function trackAmazonClick(
   productName: string,
   buttonLocation: string
 ) {
+  if (isTrackingExcluded()) return;
   try {
     // Get or create a session ID (persisted per browser session)
     let sessionId =

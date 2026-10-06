@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { usePathname } from "next/navigation";
 import { supabase } from '@/integrations/supabase/client';
+import { isTrackingExcluded } from '@/lib/trackingExclusion';
 
 const VISITOR_ID_KEY = 'analytics_visitor_id';
 const SESSION_ID_KEY = 'analytics_session_id';
@@ -87,6 +88,8 @@ export function useAnalytics() {
   const initSession = useCallback(async () => {
     if (isInitializedRef.current) return;
     isInitializedRef.current = true;
+    // Without a session id, page views and session updates below are skipped too
+    if (isTrackingExcluded()) return;
 
     visitorIdRef.current = getVisitorId();
     sessionIdRef.current = getSessionId();

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from "next/navigation";
 import { supabase } from '@/integrations/supabase/client';
+import { isTrackingExcluded } from '@/lib/trackingExclusion';
 
 const VISITOR_ID_KEY = 'analytics_visitor_id';
 
@@ -51,6 +52,7 @@ export const AnalyticsTracker = () => {
   useEffect(() => {
     if (sessionInitialized.current) return;
     sessionInitialized.current = true;
+    if (isTrackingExcluded()) return;
 
     visitorId.current = getVisitorId();
     sessionId.current = 'sess_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
@@ -90,6 +92,7 @@ export const AnalyticsTracker = () => {
 
   // Track page views on route changes and update session activity
   useEffect(() => {
+    if (isTrackingExcluded()) return;
     if (!visitorId.current) {
       visitorId.current = getVisitorId();
     }

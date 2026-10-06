@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { GoogleAnalytics } from '@next/third-parties/google'
+import { GoogleAnalyticsGate } from '@/components/GoogleAnalyticsGate'
 import { Providers } from './providers'
 import { StructuredData } from '@/components/StructuredData'
 import {
@@ -40,7 +40,7 @@ export default function RootLayout({
           {children}
         </Providers>
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+          <GoogleAnalyticsGate gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
         )}
       </body>
     </html>

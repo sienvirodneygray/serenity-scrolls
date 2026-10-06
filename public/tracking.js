@@ -2,6 +2,19 @@
 (function () {
   'use strict';
 
+  // Internal-traffic exclusion: keep in sync with src/lib/trackingExclusion.ts
+  function isTrackingExcluded() {
+    try {
+      var p = new URLSearchParams(location.search).get('notrack');
+      if (p === '1' || p === '0') localStorage.setItem('sienvi_notrack', p);
+      var s = localStorage.getItem('sienvi_notrack');
+      if (s === '1') return true;
+      if (s === '0') return false;
+    } catch (e) {}
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone === 'Asia/Manila'; } catch (e) { return false; }
+  }
+  if (isTrackingExcluded()) return;
+
   const SUPABASE_URL = 'https://ytaporbcmtlidafbssyc.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl0YXBvcmJjbXRsaWRhZmJzc3ljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MjA4ODksImV4cCI6MjA4ODI5Njg4OX0.OtsXhTimnK_VUcZns-ygq5tFBuQLKYjvhfDPBk9NLlw';
 
